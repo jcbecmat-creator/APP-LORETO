@@ -10,7 +10,7 @@
             height: 100%;
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #263fa4; /* Fondo azul solicitado */
+            background-color: #263fa4; /* Fondo azul */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -20,23 +20,24 @@
         .login-box {
             background-color: #ffffff;
             border-radius: 12px;
-            padding: 35px;
+            padding: 30px; /* Reducido de 35px */
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            width: 380px;
+            width: 90%; /* Ajuste móvil */
+            max-width: 340px; /* Reducido de 380px */
             text-align: center;
             box-sizing: border-box;
         }
 
-        /* Logotipo 1 */
+        /* Logotipo 1 reducido ~15% */
         .main-logo {
-            width: 105px; 
+            width: 90px; /* Reducido de 105px */
             height: auto;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Reducido de 20px */
         }
 
-        /* Texto de la empresa */
+        /* Texto de la empresa reducido ~15% */
         .company-name {
-            font-size: 14.4pt; 
+            font-size: 12.5pt; /* Reducido de 14.4pt */
             color: #263fa4;
             font-weight: bold;
             margin-bottom: 5px;
@@ -44,22 +45,22 @@
         }
 
         .welcome-text {
-            font-size: 18px;
+            font-size: 15px; /* Reducido de 18px */
             color: #333333;
-            margin-bottom: 25px;
+            margin-bottom: 20px; /* Reducido de 25px */
         }
 
         .input-group {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Reducido de 20px */
             text-align: left;
         }
 
         .input-group label {
             display: block;
-            font-size: 14px;
+            font-size: 12px; /* Reducido de 14px */
             color: #555;
-            margin-bottom: 8px;
+            margin-bottom: 5px; /* Reducido de 8px */
             font-weight: 600;
         }
 
@@ -69,45 +70,45 @@
 
         .input-group input {
             width: 100%;
-            padding: 12px 12px 12px 40px; 
+            padding: 10px 10px 10px 35px; /* Reducido de 12px y 40px */
             border: 1px solid #cccccc;
             border-radius: 6px;
             box-sizing: border-box;
-            font-size: 16px;
+            font-size: 14px; /* Reducido de 16px */
             background-color: #f9f9f9;
         }
 
         .input-group .field-icon {
             position: absolute;
-            left: 14px;
+            left: 12px; /* Ajustado */
             top: 50%;
             transform: translateY(-50%);
             color: #888;
-            font-size: 16px;
+            font-size: 14px; /* Reducido de 16px */
         }
 
         .input-group .toggle-password {
             position: absolute;
-            right: 14px;
+            right: 12px; /* Ajustado */
             top: 50%;
             transform: translateY(-50%);
             color: #888;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px; /* Reducido de 16px */
         }
 
-        /* Botón de inicio de sesión */
+        /* Botón de inicio de sesión reducido ~15% */
         .login-button {
             background-color: #263fa4;
             color: #ffffff;
             border: none;
-            padding: 14px;
+            padding: 12px; /* Reducido de 14px */
             border-radius: 6px;
-            font-size: 18px;
+            font-size: 15px; /* Reducido de 18px */
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: 12px; /* Reducido de 15px */
             transition: background-color 0.3s;
         }
         
@@ -121,23 +122,23 @@
         }
 
         #mensaje {
-            margin-bottom: 20px;
-            font-size: 14px;
+            margin-bottom: 15px;
+            font-size: 12px; /* Reducido de 14px */
             font-weight: bold;
-            min-height: 20px;
+            min-height: 18px;
         }
 
-        /* Logotipo 2: Aumento de tamaño aplicado correctamente (ahora sí se notará) */
+        /* Logotipo 2 reducido ~15% */
         .bottom-logo {
-            width: 250px; 
+            width: 212px; /* Reducido de 250px */
             height: auto;
-            margin-top: 10px;
+            margin-top: 5px;
         }
 
         .copyright {
-            font-size: 11px;
+            font-size: 9.5px; /* Reducido de 11px */
             color: #ffffff;
-            margin-top: 25px;
+            margin-top: 20px; /* Reducido de 25px */
             text-align: center;
             letter-spacing: 0.5px;
         }
