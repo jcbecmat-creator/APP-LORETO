@@ -20,11 +20,12 @@
         .login-box {
             background-color: #ffffff;
             border-radius: 12px;
-            padding: 40px 35px 30px 35px; 
+            /* Padding: Arriba (reducido), Derecha (reducido), Abajo, Izquierda (reducido) */
+            padding: 20px 20px 25px 20px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            /* Aumentamos el ancho al 96% para celulares y un máximo de 490px para pantallas más grandes */
-            width: 96%; 
-            max-width: 490px; 
+            /* Aumentamos el ancho al 95% para celulares */
+            width: 95%; 
+            max-width: 500px; 
             text-align: center;
             box-sizing: border-box;
         }
@@ -32,12 +33,11 @@
         .main-logo {
             width: 100px; 
             height: auto;
-            margin-top: -20px; 
+            margin-top: 0; /* Ajustado por la reducción del padding superior */
             margin-bottom: 15px; 
         }
 
         .company-name {
-            /* Ajustamos ligeramente el tamaño para garantizar que quepa en una línea en móviles */
             font-size: 12.5pt; 
             color: #263fa4;
             font-weight: bold;
@@ -76,7 +76,8 @@
 
         .input-group input {
             width: 100%;
-            padding: 12px 12px 12px 40px; 
+            /* Aumentamos el padding superior e inferior (16px) para hacer las cajas más altas */
+            padding: 16px 16px 16px 45px; 
             border: 1px solid #cccccc;
             border-radius: 6px;
             box-sizing: border-box;
@@ -86,11 +87,11 @@
 
         .input-group .field-icon {
             position: absolute;
-            left: 12px; 
+            left: 14px; 
             top: 50%;
             transform: translateY(-50%);
             color: #888;
-            font-size: 15px; 
+            font-size: 16px; 
         }
 
         .input-group .toggle-password {
@@ -100,21 +101,23 @@
             transform: translateY(-50%);
             color: #888;
             cursor: pointer;
-            font-size: 15px; 
+            font-size: 16px; 
         }
 
         .login-button {
             background-color: #263fa4;
             color: #ffffff;
             border: none;
-            padding: 14px; 
+            /* Botón un poco más alto para hacer juego con las cajas */
+            padding: 16px; 
             border-radius: 6px;
             font-size: 16px; 
             font-weight: bold;
             cursor: pointer;
             width: 100%;
             margin-top: 5px;
-            margin-bottom: 15px; 
+            /* Margen inferior reducido drásticamente para pegar el logo 2 */
+            margin-bottom: 5px; 
             transition: background-color 0.3s;
         }
         
@@ -128,16 +131,18 @@
         }
 
         #mensaje {
-            margin-bottom: 15px;
+            /* Margen inferior reducido */
+            margin-bottom: 5px;
             font-size: 13px; 
             font-weight: bold;
-            min-height: 18px;
+            min-height: 18px; /* Mantiene el espacio reservado para que no brinque la pantalla al salir un error */
         }
 
         .bottom-logo {
             width: 212px; 
             height: auto;
-            margin-top: 5px;
+            /* Margen superior en 0 para que quede pegado al texto de mensaje/botón */
+            margin-top: 0;
         }
 
         .copyright {
