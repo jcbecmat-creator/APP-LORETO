@@ -10,7 +10,7 @@
             height: 100%;
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #263fa4; /* Fondo azul */
+            background-color: #263fa4; /* Fondo azul original */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -20,48 +20,53 @@
         .login-box {
             background-color: #ffffff;
             border-radius: 12px;
-            /* Padding: Arriba, Derecha, Abajo, Izquierda. Aumentamos arriba y a los lados */
-            padding: 45px 35px 30px 35px; 
+            padding: 40px 35px 30px 35px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            /* Aumentamos el ancho de la caja blanca */
-            width: 95%; 
-            max-width: 400px; 
+            /* Aumentamos el ancho al 96% para celulares y un máximo de 490px para pantallas más grandes */
+            width: 96%; 
+            max-width: 490px; 
             text-align: center;
             box-sizing: border-box;
         }
 
         .main-logo {
-            width: 90px; 
+            width: 100px; 
             height: auto;
+            margin-top: -20px; 
             margin-bottom: 15px; 
         }
 
         .company-name {
+            /* Ajustamos ligeramente el tamaño para garantizar que quepa en una línea en móviles */
             font-size: 12.5pt; 
             color: #263fa4;
             font-weight: bold;
-            /* Aumentamos el margen inferior para separar de "Bienvenido" */
-            margin-bottom: 15px; 
-            line-height: 1.3;
+            margin-bottom: 18px; 
+            line-height: 1.4;
+        }
+
+        /* Clase para forzar que el texto no salte de línea */
+        .no-wrap {
+            white-space: nowrap;
         }
 
         .welcome-text {
-            font-size: 15px; 
+            font-size: 16px; 
             color: #333333;
-            margin-bottom: 20px; 
+            margin-bottom: 25px; 
         }
 
         .input-group {
             position: relative;
-            margin-bottom: 15px; 
+            margin-bottom: 18px; 
             text-align: left;
         }
 
         .input-group label {
             display: block;
-            font-size: 12px; 
+            font-size: 13px; 
             color: #555;
-            margin-bottom: 5px; 
+            margin-bottom: 6px; 
             font-weight: 600;
         }
 
@@ -71,11 +76,11 @@
 
         .input-group input {
             width: 100%;
-            padding: 10px 10px 10px 35px; 
+            padding: 12px 12px 12px 40px; 
             border: 1px solid #cccccc;
             border-radius: 6px;
             box-sizing: border-box;
-            font-size: 14px; 
+            font-size: 15px; 
             background-color: #f9f9f9;
         }
 
@@ -85,30 +90,31 @@
             top: 50%;
             transform: translateY(-50%);
             color: #888;
-            font-size: 14px; 
+            font-size: 15px; 
         }
 
         .input-group .toggle-password {
             position: absolute;
-            right: 12px; 
+            right: 14px; 
             top: 50%;
             transform: translateY(-50%);
             color: #888;
             cursor: pointer;
-            font-size: 14px; 
+            font-size: 15px; 
         }
 
         .login-button {
             background-color: #263fa4;
             color: #ffffff;
             border: none;
-            padding: 12px; 
+            padding: 14px; 
             border-radius: 6px;
-            font-size: 15px; 
+            font-size: 16px; 
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            margin-bottom: 12px; 
+            margin-top: 5px;
+            margin-bottom: 15px; 
             transition: background-color 0.3s;
         }
         
@@ -123,7 +129,7 @@
 
         #mensaje {
             margin-bottom: 15px;
-            font-size: 12px; 
+            font-size: 13px; 
             font-weight: bold;
             min-height: 18px;
         }
@@ -135,9 +141,9 @@
         }
 
         .copyright {
-            font-size: 9.5px; 
+            font-size: 10px; 
             color: #ffffff;
-            margin-top: 20px; 
+            margin-top: 25px; 
             text-align: center;
             letter-spacing: 0.5px;
         }
@@ -148,7 +154,11 @@
     <div class="login-box">
         <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="Logo Loreto" class="main-logo">
         
-        <div class="company-name">Loreto Ingeniería Construcción,<br>Edificación y Remodelación</div>
+        <div class="company-name">
+            <span class="no-wrap">Loreto Ingeniería Construcción</span><br>
+            <span class="no-wrap">Edificación y Remodelación</span>
+        </div>
+        
         <div class="welcome-text">Bienvenido</div>
 
         <div class="input-group">
