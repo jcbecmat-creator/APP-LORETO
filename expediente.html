@@ -68,7 +68,6 @@
         .form-input, .form-select { width: 100%; padding: 12px 15px; background-color: var(--bg-color); border: 1px solid transparent; border-radius: 10px; font-size: 14px; color: var(--text-main); box-sizing: border-box; outline: none; transition: all 0.2s; font-family: inherit; }
         .form-input:focus, .form-select:focus { background-color: white; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(38,63,164,0.1); }
 
-        /* Grids para acomodar campos */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
         @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
@@ -93,11 +92,25 @@
         .btn-clear { background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; margin-left: auto; }
 
         /* --- BOTONES FINALES --- */
-        .action-buttons { display: flex; gap: 15px; margin-top: 30px; }
+        .action-buttons { display: flex; gap: 15px; margin-top: 30px; width: 100%; }
+        
         .btn-guardar { background: var(--primary-blue); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; flex: 2; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(38,63,164,0.2); transition: 0.2s; }
         .btn-guardar:hover { background: #1a2a6e; }
-        .btn-cancelar { background: white; color: var(--danger); border: 1px solid var(--danger); padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-        .btn-cancelar:hover { background: #fef2f2; }
+        
+        /* Cancelar ahora es fondo rojo con letras blancas */
+        .btn-cancelar { background: var(--danger); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+        .btn-cancelar:hover { background: #b91c1c; }
+
+        /* Botón Actualizar Expediente (Verde) */
+        .btn-actualizar { background: var(--success); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: 0.2s; }
+        .btn-actualizar:hover { background: #059669; }
+
+        /* --- MODO BLOQUEADO (Cuando carga datos guardados) --- */
+        .is-locked .form-input, .is-locked .form-select { pointer-events: none; opacity: 0.7; }
+        .is-locked .photo-controls { display: none; }
+        .is-locked .remove-photo { display: none; }
+        .is-locked .btn-clear { display: none; }
+        .is-locked .signature-pad { pointer-events: none; }
 
         /* --- MODALES --- */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
@@ -133,7 +146,7 @@
             <div class="form-container">
                 <div class="page-header">
                     <h1>Expediente Personal</h1>
-                    <p>Completa tu información y adjunta los documentos requeridos.</p>
+                    <p>Completa tu información. Puedes guardar tu avance y continuar después.</p>
                 </div>
 
                 <form id="expedienteForm">
@@ -154,27 +167,35 @@
                     <div class="form-card">
                         <h3 class="section-title"><i data-lucide="user-circle"></i> Datos Personales</h3>
                         <div class="grid-3">
-                            <div class="form-group"><label class="form-label">Nombre(s)</label><input type="text" class="form-input" id="nombre" required></div>
-                            <div class="form-group"><label class="form-label">Apellido Paterno</label><input type="text" class="form-input" id="paterno" required></div>
+                            <div class="form-group"><label class="form-label">Nombre(s)</label><input type="text" class="form-input" id="nombre"></div>
+                            <div class="form-group"><label class="form-label">Apellido Paterno</label><input type="text" class="form-input" id="paterno"></div>
                             <div class="form-group"><label class="form-label">Apellido Materno</label><input type="text" class="form-input" id="materno"></div>
                         </div>
                         <div class="grid-3">
                             <div class="form-group">
                                 <label class="form-label">Sexo</label>
-                                <select class="form-select" id="sexo" required>
-                                    <option value="">Seleccionar...</option><option value="Masculino">Masculino</option><option value="Femenino">Femenino</option><option value="Otro">Otro</option>
+                                <select class="form-select" id="sexo">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Masculino">Masculino</option>
+                                    <option value="Femenino">Femenino</option>
+                                    <option value="Otro">Otro</option>
                                 </select>
                             </div>
-                            <div class="form-group"><label class="form-label">Edad</label><input type="number" class="form-input" id="edad" required></div>
-                            <div class="form-group"><label class="form-label">Fecha de Nacimiento</label><input type="date" class="form-input" id="fecha_nac" required></div>
+                            <div class="form-group"><label class="form-label">Edad</label><input type="number" class="form-input" id="edad"></div>
+                            <div class="form-group"><label class="form-label">Fecha de Nacimiento</label><input type="date" class="form-input" id="fecha_nac"></div>
                         </div>
                         <div class="grid-3">
-                            <div class="form-group"><label class="form-label">Lugar de Nacimiento</label><input type="text" class="form-input" id="lugar_nac" required></div>
-                            <div class="form-group"><label class="form-label">Nacionalidad</label><input type="text" class="form-input" id="nacionalidad" required></div>
+                            <div class="form-group"><label class="form-label">Lugar de Nacimiento</label><input type="text" class="form-input" id="lugar_nac"></div>
+                            <div class="form-group"><label class="form-label">Nacionalidad</label><input type="text" class="form-input" id="nacionalidad"></div>
                             <div class="form-group">
                                 <label class="form-label">Estado Civil</label>
-                                <select class="form-select" id="estado_civil" required>
-                                    <option value="">Seleccionar...</option><option value="Soltero(a)">Soltero(a)</option><option value="Casado(a)">Casado(a)</option><option value="Divorciado(a)">Divorciado(a)</option><option value="Unión Libre">Unión Libre</option>
+                                <select class="form-select" id="estado_civil">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Soltero(a)">Soltero(a)</option>
+                                    <option value="Casado(a)">Casado(a)</option>
+                                    <option value="Divorciado(a)">Divorciado(a)</option>
+                                    <option value="Unión Libre">Unión Libre</option>
+                                    <option value="Viudo(a)">Viudo(a)</option>
                                 </select>
                             </div>
                         </div>
@@ -183,38 +204,38 @@
                     <div class="form-card">
                         <h3 class="section-title"><i data-lucide="map-pin"></i> Domicilio y Contacto</h3>
                         <div class="grid-3">
-                            <div class="form-group"><label class="form-label">Calle</label><input type="text" class="form-input" id="calle" required></div>
-                            <div class="form-group"><label class="form-label">Número Ext.</label><input type="text" class="form-input" id="num_ext" required></div>
+                            <div class="form-group"><label class="form-label">Calle</label><input type="text" class="form-input" id="calle"></div>
+                            <div class="form-group"><label class="form-label">Número Ext.</label><input type="text" class="form-input" id="num_ext"></div>
                             <div class="form-group"><label class="form-label">Número Int.</label><input type="text" class="form-input" id="num_int"></div>
                         </div>
                         <div class="grid-2">
-                            <div class="form-group"><label class="form-label">Colonia</label><input type="text" class="form-input" id="colonia" required></div>
-                            <div class="form-group"><label class="form-label">Alcaldía o Municipio</label><input type="text" class="form-input" id="municipio" required></div>
+                            <div class="form-group"><label class="form-label">Colonia</label><input type="text" class="form-input" id="colonia"></div>
+                            <div class="form-group"><label class="form-label">Alcaldía o Municipio</label><input type="text" class="form-input" id="municipio"></div>
                         </div>
                         <div class="grid-3">
-                            <div class="form-group"><label class="form-label">Ciudad / Población</label><input type="text" class="form-input" id="ciudad" required></div>
-                            <div class="form-group"><label class="form-label">Estado</label><input type="text" class="form-input" id="estado" required></div>
-                            <div class="form-group"><label class="form-label">C.P.</label><input type="number" class="form-input" id="cp" required></div>
+                            <div class="form-group"><label class="form-label">Ciudad / Población</label><input type="text" class="form-input" id="ciudad"></div>
+                            <div class="form-group"><label class="form-label">Estado</label><input type="text" class="form-input" id="estado"></div>
+                            <div class="form-group"><label class="form-label">C.P.</label><input type="number" class="form-input" id="cp"></div>
                         </div>
                         <div class="grid-2">
-                            <div class="form-group"><label class="form-label">Teléfono (Celular)</label><input type="tel" class="form-input" id="telefono" required></div>
-                            <div class="form-group"><label class="form-label">Correo Electrónico</label><input type="email" class="form-input" id="correo" required></div>
+                            <div class="form-group"><label class="form-label">Teléfono (Celular)</label><input type="tel" class="form-input" id="telefono"></div>
+                            <div class="form-group"><label class="form-label">Correo Electrónico</label><input type="email" class="form-input" id="correo"></div>
                         </div>
                     </div>
 
                     <div class="form-card">
                         <h3 class="section-title"><i data-lucide="briefcase"></i> Datos Profesionales y Gubernamentales</h3>
                         <div class="grid-3">
-                            <div class="form-group"><label class="form-label">RFC</label><input type="text" class="form-input" id="rfc" style="text-transform: uppercase;" required></div>
-                            <div class="form-group"><label class="form-label">CURP</label><input type="text" class="form-input" id="curp" style="text-transform: uppercase;" required></div>
-                            <div class="form-group"><label class="form-label">No. Seguridad Social (NSS)</label><input type="number" class="form-input" id="nss" required></div>
+                            <div class="form-group"><label class="form-label">RFC</label><input type="text" class="form-input" id="rfc" style="text-transform: uppercase;"></div>
+                            <div class="form-group"><label class="form-label">CURP</label><input type="text" class="form-input" id="curp" style="text-transform: uppercase;"></div>
+                            <div class="form-group"><label class="form-label">No. Seguridad Social (NSS)</label><input type="number" class="form-input" id="nss"></div>
                         </div>
                         <div class="grid-2">
                             <div class="form-group"><label class="form-label">Unidad Médica Familiar (U.M.F.)</label><input type="text" class="form-input" id="umf"></div>
                             <div class="form-group"><label class="form-label">Número de Consultorio</label><input type="text" class="form-input" id="consultorio"></div>
                         </div>
                         <div class="grid-3">
-                            <div class="form-group"><label class="form-label">Escolaridad</label><input type="text" class="form-input" id="escolaridad" required></div>
+                            <div class="form-group"><label class="form-label">Escolaridad</label><input type="text" class="form-input" id="escolaridad"></div>
                             <div class="form-group"><label class="form-label">Cédula Profesional</label><input type="text" class="form-input" id="cedula_prof"></div>
                             <div class="form-group"><label class="form-label">Colegio al que pertenece</label><input type="text" class="form-input" id="colegio"></div>
                         </div>
@@ -234,10 +255,10 @@
 
                     <div class="form-card">
                         <h3 class="section-title"><i data-lucide="ambulance"></i> En caso de accidente avisar a</h3>
-                        <div class="form-group"><label class="form-label">Nombre Completo</label><input type="text" class="form-input" id="emergencia_nombre" required></div>
+                        <div class="form-group"><label class="form-label">Nombre Completo</label><input type="text" class="form-input" id="emergencia_nombre"></div>
                         <div class="grid-2">
-                            <div class="form-group"><label class="form-label">Parentesco</label><input type="text" class="form-input" id="emergencia_parentesco" required></div>
-                            <div class="form-group"><label class="form-label">Teléfono</label><input type="tel" class="form-input" id="emergencia_tel" required></div>
+                            <div class="form-group"><label class="form-label">Parentesco</label><input type="text" class="form-input" id="emergencia_parentesco"></div>
+                            <div class="form-group"><label class="form-label">Teléfono</label><input type="tel" class="form-input" id="emergencia_tel"></div>
                         </div>
                     </div>
 
@@ -259,12 +280,16 @@
                         <h3 class="section-title"><i data-lucide="pen-tool"></i> Firma del Trabajador</h3>
                         <div class="signature-container"><canvas id="firma_trabajador" class="signature-pad"></canvas></div>
                         <button type="button" class="btn-clear" onclick="limpiarFirma()"><i data-lucide="eraser" style="width:14px;"></i> Limpiar Firma</button>
-                        <input type="hidden" id="firma_trabajador_data" required>
+                        <input type="hidden" id="firma_trabajador_data">
                     </div>
 
-                    <div class="action-buttons">
+                    <div class="action-buttons" id="action-buttons-view" style="display: none;">
+                        <button type="button" class="btn-actualizar" onclick="habilitarEdicion()"><i data-lucide="edit"></i> Actualizar Expediente</button>
+                    </div>
+
+                    <div class="action-buttons" id="action-buttons-edit">
                         <button type="button" class="btn-cancelar" onclick="confirmarCancelar()"><i data-lucide="x-circle"></i> Cancelar</button>
-                        <button type="submit" class="btn-guardar" id="btn-guardar"><i data-lucide="save"></i> Guardar Expediente</button>
+                        <button type="submit" class="btn-guardar" id="btn-guardar"><i data-lucide="save"></i> Guardar Avance</button>
                     </div>
 
                 </form>
@@ -287,7 +312,7 @@
     <div id="modal-confirm" class="modal-overlay">
         <div class="modal-content">
             <i data-lucide="alert-triangle" style="color: var(--danger); width: 48px; height: 48px; margin-bottom: 15px;"></i>
-            <p>¿Estás seguro que deseas cancelar? Se descartarán los cambios que no hayas guardado.</p>
+            <p>¿Estás seguro que deseas cancelar? Se descartarán los cambios no guardados y el formulario regresará a su última versión guardada.</p>
             <div class="modal-buttons">
                 <button class="btn-modal" style="background:var(--bg-color); color:var(--text-main);" onclick="document.getElementById('modal-confirm').style.display='none'">No, continuar</button>
                 <button class="btn-modal" style="background:var(--danger); color:white;" onclick="ejecutarCancelar()">Sí, cancelar</button>
@@ -298,13 +323,13 @@
     <div id="modal-success" class="modal-overlay">
         <div class="modal-content">
             <i data-lucide="check-circle" style="color: var(--success); width: 48px; height: 48px; margin-bottom: 15px;"></i>
-            <p>El expediente se ha guardado exitosamente en el sistema.</p>
+            <p>El avance de tu expediente se ha guardado exitosamente.</p>
             <button class="btn-modal" style="background:var(--success); color:white; width:100%;" onclick="document.getElementById('modal-success').style.display='none'">Aceptar</button>
         </div>
     </div>
 
     <script>
-        // Lista de todos los IDs de texto del formulario para guardar/cargar fácilmente
+        // Lista de todos los IDs de texto
         const formCampos = [
             'nombre', 'paterno', 'materno', 'sexo', 'edad', 'fecha_nac', 'lugar_nac', 
             'nacionalidad', 'estado_civil', 'calle', 'num_ext', 'num_int', 'colonia', 
@@ -472,14 +497,26 @@
         setTimeout(inicializarFirma, 500);
 
         // ==========================================
-        // 4. MEMORIA DEL FORMULARIO (Guardar y Cargar local)
+        // 4. MEMORIA Y CONTROL DE ESTADOS (Bloqueado/Desbloqueado)
         // ==========================================
+        function habilitarEdicion() {
+            document.getElementById('expedienteForm').classList.remove('is-locked');
+            formCampos.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = false; });
+            document.getElementById('action-buttons-view').style.display = 'none';
+            document.getElementById('action-buttons-edit').style.display = 'flex';
+        }
+
+        function bloquearEdicion() {
+            document.getElementById('expedienteForm').classList.add('is-locked');
+            formCampos.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = true; });
+            document.getElementById('action-buttons-view').style.display = 'flex';
+            document.getElementById('action-buttons-edit').style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function guardarDatosLocales() {
             let datos = {};
-            formCampos.forEach(id => {
-                const el = document.getElementById(id);
-                if(el) datos[id] = el.value;
-            });
+            formCampos.forEach(id => { const el = document.getElementById(id); if(el) datos[id] = el.value; });
             datos.fotos = fotos;
             datos.firma = document.getElementById('firma_trabajador_data').value;
             localStorage.setItem('expediente_guardado_' + idUsuario, JSON.stringify(datos));
@@ -504,10 +541,12 @@
                     img.onload = () => { if(ctxFirma) ctxFirma.drawImage(img, 0, 0, canvasFirma.width, canvasFirma.height); };
                     img.src = datos.firma;
                 }
+                bloquearEdicion(); // Como ya tiene datos, lo bloqueamos para protegerlo
             } else {
                 document.getElementById('expedienteForm').reset();
                 limpiarFirma();
                 Object.keys(fotos).forEach(t => { fotos[t] = [null]; renderSlots(t); });
+                habilitarEdicion(); // Es nuevo, lo dejamos abierto
             }
         }
 
@@ -522,38 +561,28 @@
             const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
             const ab = new ArrayBuffer(byteString.length);
             const ia = new Uint8Array(ab);
-            for (let i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
-            }
+            for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
             return new Blob([ab], {type: mimeString});
         }
 
         // ==========================================
-        // 6. ACCIONES DE BOTONES (Guardar en Firebase y Cancelar)
+        // 6. ACCIONES DE BOTONES (Guardar y Cancelar)
         // ==========================================
         function confirmarCancelar() { document.getElementById('modal-confirm').style.display = 'flex'; }
 
         function ejecutarCancelar() {
             document.getElementById('modal-confirm').style.display = 'none';
-            cargarDatosGuardados();
-            window.location.href = 'inicio.html';
+            // Restauramos el formulario a su última versión guardada segura
+            cargarDatosGuardados(); 
         }
 
         document.getElementById('expedienteForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Validar firma
-            const canvasBlanco = document.createElement('canvas');
-            canvasBlanco.width = canvasFirma.width; canvasBlanco.height = canvasFirma.height;
-            if(canvasFirma.toDataURL() === canvasBlanco.toDataURL()) {
-                alert("La firma del trabajador es obligatoria.");
-                return;
-            }
+            e.preventDefault(); // Evitamos recargar la página
 
             const btnGuardar = document.getElementById('btn-guardar');
             const textoOriginal = btnGuardar.innerHTML;
             btnGuardar.disabled = true;
-            btnGuardar.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Guardando en servidor...';
+            btnGuardar.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Guardando...';
             lucide.createIcons();
 
             try {
@@ -572,9 +601,12 @@
                     }
                 }
 
-                // Subir firma a Storage
+                // Subir firma a Storage (solo si no está en blanco)
+                const canvasBlanco = document.createElement('canvas');
+                canvasBlanco.width = canvasFirma.width; canvasBlanco.height = canvasFirma.height;
                 const firmaData = document.getElementById('firma_trabajador_data').value;
-                if (firmaData) {
+                
+                if (firmaData && firmaData !== canvasBlanco.toDataURL()) {
                     const refFirma = storage.ref(`expedientes/${idUsuario}/firma_${Date.now()}.png`);
                     await refFirma.put(dataURItoBlob(firmaData));
                     urlFirma = await refFirma.getDownloadURL();
@@ -596,17 +628,19 @@
                 // Guardar en Firestore
                 await db.collection("expedientes_personal").doc(idUsuario).set(datosExpediente, { merge: true });
                 
-                // Guardar localmente el nuevo punto de control
+                // Actualizar la memoria local para el botón de cancelar
                 guardarDatosLocales();
                 
+                // Mostrar éxito y proteger el formulario
                 document.getElementById('modal-success').style.display = 'flex';
                 btnGuardar.disabled = false;
                 btnGuardar.innerHTML = textoOriginal;
+                bloquearEdicion();
                 lucide.createIcons();
 
             } catch (err) {
                 console.error("Error guardando en Firebase:", err);
-                alert("Error al guardar el expediente. Revisa tu conexión a internet.");
+                alert("Error al guardar el avance. Revisa tu conexión a internet.");
                 btnGuardar.disabled = false;
                 btnGuardar.innerHTML = textoOriginal;
                 lucide.createIcons();
