@@ -315,6 +315,24 @@
         ];
 
         // ==========================================
+        // CONFIGURACIÓN DE FIREBASE (LORETO)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDkwUT5MrsJV2IMp18-RT20829M9c3-zfk",
+            authDomain: "loreto-ingenieria.firebaseapp.com",
+            projectId: "loreto-ingenieria",
+            storageBucket: "loreto-ingenieria.firebasestorage.app",
+            messagingSenderId: "873434501512",
+            appId: "1:873434501512:web:963903379a5e72cb092a3d"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // ==========================================
         // 1. CARGAR MENÚ DINÁMICO
         // ==========================================
         fetch('menu.html')
@@ -324,7 +342,6 @@
                 lucide.createIcons();
                 const linkInicio = document.getElementById('link-inicio');
                 if(linkInicio) linkInicio.classList.remove('active');
-                // IMPORTANTE: Asegúrate de ponerle id="link-expediente" a esa opción en menu.html
                 const linkExpediente = document.getElementById('link-expediente');
                 if(linkExpediente) linkExpediente.classList.add('active');
             });
@@ -333,6 +350,7 @@
             document.getElementById('sidebar').classList.toggle('open');
         });
 
+        const idUsuario = localStorage.getItem('usuario') || 'SinID';
         const nombreUsuario = localStorage.getItem('nombre') || 'U';
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
         lucide.createIcons();
@@ -457,7 +475,6 @@
         // 4. MEMORIA DEL FORMULARIO (Guardar y Cargar local)
         // ==========================================
         function guardarDatosLocales() {
-            const idUsuario = localStorage.getItem('usuario') || 'SinID';
             let datos = {};
             formCampos.forEach(id => {
                 const el = document.getElementById(id);
@@ -465,28 +482,22 @@
             });
             datos.fotos = fotos;
             datos.firma = document.getElementById('firma_trabajador_data').value;
-            
-            // Guardamos todo el "punto de control" en el navegador
             localStorage.setItem('expediente_guardado_' + idUsuario, JSON.stringify(datos));
         }
 
         function cargarDatosGuardados() {
-            const idUsuario = localStorage.getItem('usuario') || 'SinID';
             const guardado = localStorage.getItem('expediente_guardado_' + idUsuario);
             
             if(guardado) {
                 const datos = JSON.parse(guardado);
-                // Restaurar textos
                 formCampos.forEach(id => {
                     const el = document.getElementById(id);
                     if(el && datos[id]) el.value = datos[id];
                 });
-                // Restaurar fotos
                 if(datos.fotos) {
                     fotos = datos.fotos;
                     Object.keys(fotos).forEach(target => renderSlots(target));
                 }
-                // Restaurar firma
                 if(datos.firma) {
                     document.getElementById('firma_trabajador_data').value = datos.firma;
                     const img = new Image();
@@ -494,26 +505,37 @@
                     img.src = datos.firma;
                 }
             } else {
-                // Si no hay punto de control, lo dejamos en blanco
                 document.getElementById('expedienteForm').reset();
                 limpiarFirma();
                 Object.keys(fotos).forEach(t => { fotos[t] = [null]; renderSlots(t); });
             }
         }
 
-        // Cargar los datos guardados en cuanto se abre la página
         document.addEventListener('DOMContentLoaded', cargarDatosGuardados);
 
         // ==========================================
-        // 5. ACCIONES DE BOTONES (Guardar y Cancelar)
+        // 5. FUNCIONES DE APOYO PARA FIREBASE
+        // ==========================================
+        function dataURItoBlob(dataURI) {
+            if(!dataURI) return null;
+            const byteString = atob(dataURI.split(',')[1]);
+            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([ab], {type: mimeString});
+        }
+
+        // ==========================================
+        // 6. ACCIONES DE BOTONES (Guardar en Firebase y Cancelar)
         // ==========================================
         function confirmarCancelar() { document.getElementById('modal-confirm').style.display = 'flex'; }
 
         function ejecutarCancelar() {
             document.getElementById('modal-confirm').style.display = 'none';
-            // Magia: En vez de borrar todo a cero, restauramos el último "punto de control"
             cargarDatosGuardados();
-            // Lo mandamos a la pantalla de inicio
             window.location.href = 'inicio.html';
         }
 
@@ -531,22 +553,60 @@
             const btnGuardar = document.getElementById('btn-guardar');
             const textoOriginal = btnGuardar.innerHTML;
             btnGuardar.disabled = true;
-            btnGuardar.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Guardando...';
+            btnGuardar.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Guardando en servidor...';
             lucide.createIcons();
 
             try {
-                // AQUÍ SE CONECTARÍA A FIREBASE A FUTURO
-                await new Promise(r => setTimeout(r, 1500)); // Simulación de 1.5s
+                let urlsFotos = {};
+                let urlFirma = null;
+
+                // Subir fotos a Storage
+                const targets = Object.keys(fotos);
+                for (let target of targets) {
+                    if (fotos[target][0]) {
+                        const ref = storage.ref(`expedientes/${idUsuario}/${target}_${Date.now()}.jpg`);
+                        await ref.put(dataURItoBlob(fotos[target][0]));
+                        urlsFotos[target] = await ref.getDownloadURL();
+                    } else {
+                        urlsFotos[target] = null;
+                    }
+                }
+
+                // Subir firma a Storage
+                const firmaData = document.getElementById('firma_trabajador_data').value;
+                if (firmaData) {
+                    const refFirma = storage.ref(`expedientes/${idUsuario}/firma_${Date.now()}.png`);
+                    await refFirma.put(dataURItoBlob(firmaData));
+                    urlFirma = await refFirma.getDownloadURL();
+                }
+
+                // Recopilar todos los textos
+                let datosExpediente = {
+                    id_trabajador: idUsuario,
+                    fecha_actualizacion: firebase.firestore.FieldValue.serverTimestamp(),
+                    urls_fotos: urlsFotos,
+                    url_firma: urlFirma
+                };
+
+                formCampos.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) datosExpediente[id] = el.value || '';
+                });
+
+                // Guardar en Firestore
+                await db.collection("expedientes_personal").doc(idUsuario).set(datosExpediente, { merge: true });
                 
-                // ¡PUNTO CLAVE! Si el guardado fue exitoso, creamos un nuevo punto de control
+                // Guardar localmente el nuevo punto de control
                 guardarDatosLocales();
                 
                 document.getElementById('modal-success').style.display = 'flex';
                 btnGuardar.disabled = false;
                 btnGuardar.innerHTML = textoOriginal;
                 lucide.createIcons();
+
             } catch (err) {
-                alert("Error al guardar el expediente.");
+                console.error("Error guardando en Firebase:", err);
+                alert("Error al guardar el expediente. Revisa tu conexión a internet.");
                 btnGuardar.disabled = false;
                 btnGuardar.innerHTML = textoOriginal;
                 lucide.createIcons();
