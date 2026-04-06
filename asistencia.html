@@ -216,22 +216,22 @@
 
                 <div class="grid-botones">
                     <div class="btn-wrapper">
-                        <button id="btn-Entrada" class="btn-check" onclick="marcar('Entrada', this)"><i data-lucide="log-in"></i> ENTRADA</button>
+                        <button id="btn-Entrada" class="btn-check" onclick="marcar('Entrada', this)"><i data-lucide="log-in"></i> Entrada</button>
                         <div id="time-Entrada" class="time-display"></div>
                     </div>
                     
                     <div class="btn-wrapper">
-                        <button id="btn-Salida" class="btn-check" onclick="marcar('Salida', this)"><i data-lucide="log-out"></i> SALIDA</button>
+                        <button id="btn-Salida" class="btn-check" onclick="marcar('Salida', this)"><i data-lucide="log-out"></i> Salida</button>
                         <div id="time-Salida" class="time-display"></div>
                     </div>
                     
                     <div class="btn-wrapper">
-                        <button id="btn-Entrada-Tiempo-Extra" class="btn-check" onclick="marcar('Entrada Tiempo Extra', this)"><i data-lucide="clock-9"></i> ENTRADA TIEMPO EXTRA</button>
+                        <button id="btn-Entrada-Tiempo-Extra" class="btn-check" onclick="marcar('Entrada Tiempo Extra', this)"><i data-lucide="clock-9"></i> Entrada Tiempo Extra</button>
                         <div id="time-Entrada-Tiempo-Extra" class="time-display"></div>
                     </div>
                     
                     <div class="btn-wrapper">
-                        <button id="btn-Salida-Tiempo-Extra" class="btn-check" onclick="marcar('Salida Tiempo Extra', this)"><i data-lucide="clock-12"></i> SALIDA TIEMPO EXTRA</button>
+                        <button id="btn-Salida-Tiempo-Extra" class="btn-check" onclick="marcar('Salida Tiempo Extra', this)"><i data-lucide="clock-12"></i> Salida Tiempo Extra</button>
                         <div id="time-Salida-Tiempo-Extra" class="time-display"></div>
                     </div>
                 </div>
@@ -397,7 +397,7 @@
                         mostrarExito(`Has registrado tu ${tipo} con éxito a las ${horaString}`);
 
                         // Dejar el botón inactivo
-                        boton.innerHTML = `<i data-lucide="check-circle"></i> REGISTRADO`;
+                        boton.innerHTML = `<i data-lucide="check-circle"></i> Registrado`;
                         lucide.createIcons();
 
                     } catch (error) {
