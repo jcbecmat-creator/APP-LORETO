@@ -220,11 +220,13 @@
             sidebar.classList.toggle('open');
         });
 
-        // 3. Leer el usuario desde el inicio de sesión
-        const usuarioGuardado = localStorage.getItem('usuario');
-        if (usuarioGuardado) {
-            document.getElementById('welcome-name').innerText = usuarioGuardado;
-            document.getElementById('user-initial').innerText = usuarioGuardado.charAt(0).toUpperCase();
+        // 3. Leer el NOMBRE COMPLETO desde el inicio de sesión
+        const nombreGuardado = localStorage.getItem('nombre');
+        
+        if (nombreGuardado) {
+            document.getElementById('welcome-name').innerText = nombreGuardado;
+            // Usamos la primera letra del nombre completo para el circulito
+            document.getElementById('user-initial').innerText = nombreGuardado.charAt(0).toUpperCase();
         }
 
         // 4. Botón Cerrar Sesión
