@@ -20,12 +20,12 @@
         .login-box {
             background-color: #ffffff;
             border-radius: 12px;
-            /* Padding: Arriba (reducido), Derecha (reducido), Abajo, Izquierda (reducido) */
-            padding: 20px 20px 25px 20px; 
+            /* Padding: Arriba (casi eliminado), Derecha, Abajo, Izquierda */
+            padding: 5px 20px 25px 20px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            /* Aumentamos el ancho al 95% para celulares */
-            width: 95%; 
-            max-width: 500px; 
+            /* Aumentamos el ancho al 100% para que se expanda por completo a los lados */
+            width: 100%; 
+            max-width: 600px; /* Límite más amplio por si lo abren en tablet/PC */
             text-align: center;
             box-sizing: border-box;
         }
@@ -33,15 +33,15 @@
         .main-logo {
             width: 100px; 
             height: auto;
-            margin-top: 0; /* Ajustado por la reducción del padding superior */
-            margin-bottom: 15px; 
+            margin-top: 0px; /* Pegado por completo hacia arriba */
+            margin-bottom: 12px; 
         }
 
         .company-name {
             font-size: 12.5pt; 
             color: #263fa4;
             font-weight: bold;
-            margin-bottom: 18px; 
+            margin-bottom: 15px; 
             line-height: 1.4;
         }
 
@@ -53,12 +53,12 @@
         .welcome-text {
             font-size: 16px; 
             color: #333333;
-            margin-bottom: 25px; 
+            margin-bottom: 22px; 
         }
 
         .input-group {
             position: relative;
-            margin-bottom: 18px; 
+            margin-bottom: 20px; 
             text-align: left;
         }
 
@@ -66,7 +66,7 @@
             display: block;
             font-size: 13px; 
             color: #555;
-            margin-bottom: 6px; 
+            margin-bottom: 8px; 
             font-weight: 600;
         }
 
@@ -76,8 +76,8 @@
 
         .input-group input {
             width: 100%;
-            /* Aumentamos el padding superior e inferior (16px) para hacer las cajas más altas */
-            padding: 16px 16px 16px 45px; 
+            /* Cajas altas mantenidas del cambio anterior */
+            padding: 18px 16px 18px 45px; 
             border: 1px solid #cccccc;
             border-radius: 6px;
             box-sizing: border-box;
@@ -108,15 +108,13 @@
             background-color: #263fa4;
             color: #ffffff;
             border: none;
-            /* Botón un poco más alto para hacer juego con las cajas */
-            padding: 16px; 
+            padding: 18px; 
             border-radius: 6px;
-            font-size: 16px; 
+            font-size: 17px; 
             font-weight: bold;
             cursor: pointer;
             width: 100%;
             margin-top: 5px;
-            /* Margen inferior reducido drásticamente para pegar el logo 2 */
             margin-bottom: 5px; 
             transition: background-color 0.3s;
         }
@@ -131,17 +129,15 @@
         }
 
         #mensaje {
-            /* Margen inferior reducido */
             margin-bottom: 5px;
             font-size: 13px; 
             font-weight: bold;
-            min-height: 18px; /* Mantiene el espacio reservado para que no brinque la pantalla al salir un error */
+            min-height: 18px; 
         }
 
         .bottom-logo {
             width: 212px; 
             height: auto;
-            /* Margen superior en 0 para que quede pegado al texto de mensaje/botón */
             margin-top: 0;
         }
 
