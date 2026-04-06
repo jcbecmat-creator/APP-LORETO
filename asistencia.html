@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia | Loreto Ingeniería</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <style>
+        :root {
+            --primary-blue: #263fa4;
+            --light-blue: #eef2ff;
+            --bg-color: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success-green: #10b981;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            z-index: 50;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .menu-btn { background: none; border: none; cursor: pointer; color: var(--text-main); }
+        .header-title { margin: 0; font-size: 15px; font-weight: 700; color: var(--primary-blue); }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .user-initial { width: 35px; height: 35px; border-radius: 50%; background-color: var(--primary-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        /* --- LAYOUT --- */
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 260px; background: white; border-right: 1px solid var(--border-color); overflow-y: auto; transition: transform 0.3s ease; }
+        
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; height: calc(100vh - 60px); transform: translateX(-100%); z-index: 40; }
+            .sidebar.open { transform: translateX(0); }
+            .header-title { display: none; }
+        }
+
+        /* --- CONTENIDO ASISTENCIA --- */
+        .content { flex: 1; padding: 20px; overflow-y: auto; display: flex; justify-content: center; }
+        
+        .asistencia-card {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-color);
+            height: fit-content;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        /* --- BOTONES --- */
+        .grid-botones {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn-check {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 20px 10px;
+            border-radius: 12px;
+            border: none;
+            background-color: var(--primary-blue);
+            color: white;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-check:hover { background-color: #1a2a6e; transform: translateY(-2px); }
+        
+        /* Botón desactivado (cuando ya se hizo clic) */
+        .btn-check:disabled {
+            background-color: var(--border-color);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* --- INFO DE REGISTRO --- */
+        .info-registro {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: var(--light-blue);
+            border-radius: 10px;
+            border-left: 5px solid var(--primary-blue);
+            display: none; /* Se muestra al dar clic */
+        }
+
+        .info-registro p { margin: 5px 0; font-size: 14px; color: var(--text-main); }
+        .info-registro span { font-weight: 700; color: var(--primary-blue); }
+
+        .nota-advertencia {
+            margin-top: 25px;
+            font-size: 12px;
+            color: #b91c1c; /* Rojo oscuro */
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-btn" id="toggle-menu"><i data-lucide="menu"></i></button>
+            <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Logo" height="35">
+            <h1 class="header-title">Módulo de Asistencia</h1>
+        </div>
+        <div class="header-right">
+            <div class="user-initial" id="user-initial">U</div>
+            <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="User" height="35" style="border-radius:4px;">
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="content">
+            <div class="asistencia-card">
+                <h2 style="margin-top:0; color: var(--primary-blue); text-align:center;">Registro de Jornada</h2>
+                
+                <div class="form-group">
+                    <label>Sitio / Obra</label>
+                    <select class="form-control" id="sitio">
+                        <option value="">Selecciona ubicación...</option>
+                        <option value="Oficina Central">Oficina Central</option>
+                        <option value="Obra Reforma">Obra Reforma</option>
+                        <option value="Obra Santa Fe">Obra Santa Fe</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="text" class="form-control" id="fecha-hoy" readonly>
+                </div>
+
+                <div class="grid-botones">
+                    <button class="btn-check" onclick="marcar('Entrada', this)"><i data-lucide="log-in"></i> ENTRADA</button>
+                    <button class="btn-check" onclick="marcar('Salida', this)"><i data-lucide="log-out"></i> SALIDA</button>
+                    <button class="btn-check" onclick="marcar('Entrada Extra', this)"><i data-lucide="clock-9"></i> ENTRADA EXTRA</button>
+                    <button class="btn-check" onclick="marcar('Salida Extra', this)"><i data-lucide="clock-12"></i> SALIDA EXTRA</button>
+                </div>
+
+                <div id="box-confirmacion" class="info-registro">
+                    <p>Registro exitoso: <span id="tipo-registro">-</span></p>
+                    <p>Hora: <span id="hora-registro">-</span></p>
+                    <p>Ubicación: <span id="coords-registro">Obteniendo coordenadas...</span></p>
+                </div>
+
+                <div class="nota-advertencia">
+                    ⚠️ Tienes 15 minutos de tolerancia en tu entrada, evita sanciones y recuerda que la asistencia está geolocalizada.
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 1. CARGAR MENÚ DINÁMICO
+        fetch('menu.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('sidebar').innerHTML = html;
+                lucide.createIcons();
+                // Activar el link de asistencia en el menú
+                const link = document.getElementById('link-asistencia');
+                if(link) link.classList.add('active');
+            });
+
+        // 2. PONER FECHA DE HOY
+        const hoy = new Date();
+        document.getElementById('fecha-hoy').value = hoy.toLocaleDateString('es-MX', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+        });
+
+        // 3. LÓGICA DE REGISTRO Y GEOLOCALIZACIÓN
+        function marcar(tipo, boton) {
+            const sitio = document.getElementById('sitio').value;
+            if(!sitio) {
+                alert("Por favor, selecciona primero el Sitio/Obra.");
+                return;
+            }
+
+            // Desactivar el botón inmediatamente
+            boton.disabled = true;
+            
+            // Mostrar recuadro de info
+            document.getElementById('box-confirmacion').style.display = 'block';
+            document.getElementById('tipo-registro').innerText = tipo;
+            
+            // Obtener Hora actual
+            const ahora = new Date();
+            document.getElementById('hora-registro').innerText = ahora.toLocaleTimeString();
+
+            // Obtener Coordenadas
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const lat = pos.coords.latitude.toFixed(6);
+                    const lon = pos.coords.longitude.toFixed(6);
+                    document.getElementById('coords-registro').innerText = `${lat}, ${lon}`;
+                }, (err) => {
+                    document.getElementById('coords-registro').innerText = "Error: Permiso de GPS denegado.";
+                });
+            } else {
+                document.getElementById('coords-registro').innerText = "GPS no soportado en este navegador.";
+            }
+        }
+
+        // Hamburguesa móvil
+        document.getElementById('toggle-menu').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        // Cargar nombre del login
+        const nombre = localStorage.getItem('nombre');
+        if (nombre) document.getElementById('user-initial').innerText = nombre.charAt(0).toUpperCase();
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
