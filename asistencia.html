@@ -117,7 +117,8 @@
             background-color: var(--primary-blue);
             color: white;
             font-weight: 700;
-            font-size: 13px;
+            font-size: 12px; /* Reducido un poco para que quepa bien el texto extra */
+            text-align: center;
             cursor: pointer;
             transition: all 0.3s;
         }
@@ -152,6 +153,36 @@
             text-align: center;
             line-height: 1.5;
         }
+
+        /* --- MODAL PERSONALIZADO (Reemplaza el Alert del navegador) --- */
+        .modal-overlay {
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); 
+            z-index: 9999;
+            align-items: center; 
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            width: 90%; max-width: 320px;
+            text-align: center; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        .modal-content p { margin: 0 0 20px 0; font-size: 15px; color: var(--text-main); font-weight: 600; }
+        .btn-modal {
+            background: var(--primary-blue); color: white; border: none; padding: 10px 25px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;
+        }
+        .btn-modal:hover { background: #1a2a6e; }
     </style>
 </head>
 <body>
@@ -191,10 +222,10 @@
                 </div>
 
                 <div class="grid-botones">
-                    <button class="btn-check" onclick="marcar('Entrada', this)"><i data-lucide="log-in"></i> ENTRADA</button>
-                    <button class="btn-check" onclick="marcar('Salida', this)"><i data-lucide="log-out"></i> SALIDA</button>
-                    <button class="btn-check" onclick="marcar('Entrada Extra', this)"><i data-lucide="clock-9"></i> ENTRADA EXTRA</button>
-                    <button class="btn-check" onclick="marcar('Salida Extra', this)"><i data-lucide="clock-12"></i> SALIDA EXTRA</button>
+                    <button id="btn-Entrada" class="btn-check" onclick="marcar('Entrada', this)"><i data-lucide="log-in"></i> ENTRADA</button>
+                    <button id="btn-Salida" class="btn-check" onclick="marcar('Salida', this)"><i data-lucide="log-out"></i> SALIDA</button>
+                    <button id="btn-Entrada-Tiempo-Extra" class="btn-check" onclick="marcar('Entrada Tiempo Extra', this)"><i data-lucide="clock-9"></i> ENTRADA TIEMPO EXTRA</button>
+                    <button id="btn-Salida-Tiempo-Extra" class="btn-check" onclick="marcar('Salida Tiempo Extra', this)"><i data-lucide="clock-12"></i> SALIDA TIEMPO EXTRA</button>
                 </div>
 
                 <div id="box-confirmacion" class="info-registro">
@@ -210,7 +241,24 @@
         </main>
     </div>
 
+    <div id="customAlert" class="modal-overlay">
+        <div class="modal-content">
+            <i data-lucide="alert-circle" style="color: #ef4444; width: 48px; height: 48px; margin-bottom: 15px;"></i>
+            <p id="customAlertMessage">Mensaje de alerta</p>
+            <button class="btn-modal" onclick="cerrarAlerta()">Aceptar</button>
+        </div>
+    </div>
+
     <script>
+        // Funciones para el Modal Personalizado
+        function mostrarAlerta(mensaje) {
+            document.getElementById('customAlertMessage').innerText = mensaje;
+            document.getElementById('customAlert').style.display = 'flex';
+        }
+        function cerrarAlerta() {
+            document.getElementById('customAlert').style.display = 'none';
+        }
+
         // ==========================================
         // CONFIGURACIÓN DE FIREBASE (LORETO)
         // ==========================================
@@ -248,32 +296,58 @@
         // 2. PONER FECHA DE HOY
         // ==========================================
         const hoy = new Date();
-        document.getElementById('fecha-hoy').value = hoy.toLocaleDateString('es-MX', { 
+        const fechaString = hoy.toLocaleDateString('es-MX', { 
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
         });
+        document.getElementById('fecha-hoy').value = fechaString;
 
         // ==========================================
-        // 3. LÓGICA DE REGISTRO, GPS Y FIREBASE
+        // 3. REVISAR EN FIREBASE SI YA CHECÓ HOY (PERSISTENCIA)
+        // ==========================================
+        const idUsuario = localStorage.getItem('usuario');
+        const nombreUsuario = localStorage.getItem('nombre') || 'Usuario Desconocido';
+
+        if (idUsuario) {
+            db.collection("registro_asistencia")
+                .where("usuario_id", "==", idUsuario)
+                .where("fecha", "==", fechaString)
+                .get()
+                .then((querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        const tipo = doc.data().tipo_registro;
+                        // Transformamos "Entrada Tiempo Extra" a "btn-Entrada-Tiempo-Extra" para apagar el botón
+                        const idBoton = "btn-" + tipo.replace(/ /g, "-"); 
+                        const btn = document.getElementById(idBoton);
+                        
+                        if(btn) {
+                            btn.disabled = true;
+                            btn.innerHTML = `<i data-lucide="check-circle"></i> REGISTRADO`;
+                        }
+                    });
+                    lucide.createIcons();
+                })
+                .catch((error) => {
+                    console.error("Error al cargar asistencias previas:", error);
+                });
+        }
+
+        // ==========================================
+        // 4. LÓGICA DE REGISTRO, GPS Y GUARDADO
         // ==========================================
         function marcar(tipo, boton) {
             const sitio = document.getElementById('sitio').value;
             if(!sitio) {
-                alert("Por favor, selecciona primero el Sitio/Obra.");
+                mostrarAlerta("Por favor, selecciona primero el Sitio/Obra en el que te encuentras.");
                 return;
             }
 
-            // Datos del usuario desde localStorage
-            const nombreUsuario = localStorage.getItem('nombre') || 'Usuario Desconocido';
-            const idUsuario = localStorage.getItem('usuario') || 'SinID';
-
-            // Desactivar el botón para evitar doble clic
+            // Desactivar temporalmente mientras se guarda
             boton.disabled = true;
             const textoOriginal = boton.innerHTML;
             boton.innerHTML = "Guardando...";
 
             const ahora = new Date();
             const horaString = ahora.toLocaleTimeString();
-            const fechaString = document.getElementById('fecha-hoy').value;
 
             // Solicitar GPS
             if (navigator.geolocation) {
@@ -283,7 +357,6 @@
                     const coordsTexto = `${lat}, ${lon}`;
 
                     try {
-                        // Guardar en la base de datos de Firebase
                         const docId = `ASISTENCIA_${idUsuario}_${Date.now()}`;
                         await db.collection("registro_asistencia").doc(docId).set({
                             id_registro: docId,
@@ -299,30 +372,30 @@
                             timestamp: firebase.firestore.FieldValue.serverTimestamp()
                         });
 
-                        // Mostrar recuadro verde de éxito
+                        // Mostrar recuadro de éxito abajo
                         document.getElementById('box-confirmacion').style.display = 'block';
                         document.getElementById('tipo-registro').innerText = tipo;
                         document.getElementById('hora-registro').innerText = horaString;
                         document.getElementById('coords-registro').innerText = coordsTexto;
 
-                        // Dejar el botón marcado
-                        boton.innerHTML = `<i data-lucide="check-circle"></i> Registrado`;
+                        // Dejar el botón inactivo de forma permanente
+                        boton.innerHTML = `<i data-lucide="check-circle"></i> REGISTRADO`;
                         lucide.createIcons();
 
                     } catch (error) {
                         console.error("Error guardando en Firebase:", error);
-                        alert("Error al guardar. Revisa tu conexión a internet.");
+                        mostrarAlerta("Error al guardar. Revisa tu conexión a internet.");
                         boton.disabled = false;
                         boton.innerHTML = textoOriginal;
                     }
 
                 }, (err) => {
-                    alert("Error: Es obligatorio permitir el acceso al GPS para registrar la asistencia.");
+                    mostrarAlerta("Es obligatorio permitir el acceso al GPS para registrar la asistencia. Revisa los permisos de tu navegador o celular.");
                     boton.disabled = false;
                     boton.innerHTML = textoOriginal;
                 });
             } else {
-                alert("GPS no soportado en este navegador.");
+                mostrarAlerta("GPS no soportado en este dispositivo/navegador.");
                 boton.disabled = false;
                 boton.innerHTML = textoOriginal;
             }
@@ -334,8 +407,9 @@
         });
 
         // Cargar inicial del usuario
-        const nombre = localStorage.getItem('nombre');
-        if (nombre) document.getElementById('user-initial').innerText = nombre.charAt(0).toUpperCase();
+        if (nombreUsuario !== 'Usuario Desconocido') {
+            document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
+        }
 
         lucide.createIcons();
     </script>
