@@ -224,17 +224,13 @@
             btnLogin.disabled = true;
             mensajeDiv.innerText = "";
             
-            // NUEVA URL INTEGRADA AQUÍ
-            var scriptURL = "https://script.google.com/macros/s/AKfycbwqYYt1UkJezoaa6iaWcWRE3kaPEolDaW9gSPE1nff2NgTtT86ZMGkXHmDxlhmFqNs/exec";
+            // LA URL DE TU SCRIPT
+            var scriptURL = "https://script.google.com/macros/s/AKfycbyQBuAUlC0bc8dYgUHgwbTNOa7ut6dKB_Ls6sqgDbKyHF51zKofE9cQ7rWp_SH2X9k/exec";
 
-            var data = new URLSearchParams();
-            data.append('usuario', user);
-            data.append('contrasena', pass);
+            // CAMBIO CLAVE: Armamos la URL para enviarlo por GET y evitar el bloqueo de red
+            var urlCompleta = scriptURL + "?usuario=" + encodeURIComponent(user) + "&contrasena=" + encodeURIComponent(pass);
 
-            fetch(scriptURL, {
-                method: 'POST',
-                body: data
-            })
+            fetch(urlCompleta)
             .then(response => response.json())
             .then(respuesta => {
                 btnLogin.innerText = "Iniciar sesión";
