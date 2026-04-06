@@ -15,7 +15,7 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            /* Margen superior ajustado a 28px. Lados y abajo mantienen 12px */
+            /* Margen superior ajustado a 21px. Lados y abajo mantienen 12px */
             padding: 21px 12px 12px 12px; 
             box-sizing: border-box;
         }
@@ -23,7 +23,7 @@
         .login-box {
             background-color: #ffffff;
             border-radius: 12px;
-            /* Padding inferior reducido a 15px para quitar espacio blanco sobrante abajo */
+            /* Padding inferior a 15px para quitar espacio blanco sobrante abajo */
             padding: 12px 25px 15px 25px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             /* Toma absolutamente todo el ancho disponible respetando el padding de 12px del body */
@@ -148,7 +148,6 @@
         .copyright {
             font-size: 10px; 
             color: #ffffff;
-            /* Reducido para que suba y sea visible sin hacer scroll */
             margin-top: 15px; 
             text-align: center;
             letter-spacing: 0.5px;
@@ -225,7 +224,8 @@
             btnLogin.disabled = true;
             mensajeDiv.innerText = "";
             
-            var scriptURL = "https://script.google.com/macros/s/AKfycbxA8-SPAsg97_ns7FdqXqw6LLt2-bGafvzO6cL9CsSbx26e9Oz59CxKEemmPK1Gzik/exec";
+            // NUEVA URL INTEGRADA AQUÍ
+            var scriptURL = "https://script.google.com/macros/s/AKfycbwqYYt1UkJezoaa6iaWcWRE3kaPEolDaW9gSPE1nff2NgTtT86ZMGkXHmDxlhmFqNs/exec";
 
             var data = new URLSearchParams();
             data.append('usuario', user);
@@ -242,8 +242,16 @@
 
                 if(respuesta.success) {
                     mensajeDiv.style.color = "#188038";
-                    mensajeDiv.innerText = "¡Bienvenido! Nivel: " + respuesta.privilegio;
-                    // Redirección o carga de app aquí
+                    mensajeDiv.innerText = "¡Bienvenido! Redirigiendo...";
+                    
+                    // Guardamos el nombre de usuario y privilegio para inicio.html
+                    localStorage.setItem('usuario', user); 
+                    localStorage.setItem('privilegio', respuesta.privilegio);
+                    
+                    // Redirigimos al menú inicio.html
+                    setTimeout(() => {
+                        window.location.href = "inicio.html";
+                    }, 1000);
                 } else {
                     mensajeDiv.style.color = "#d93025";
                     mensajeDiv.innerText = respuesta.mensaje;
