@@ -232,16 +232,16 @@
             .then(respuesta => {
                 btnLogin.innerText = "Iniciar sesión";
                 btnLogin.disabled = false;
-
-                if(respuesta.success) {
+                
+            if(respuesta.success) {
                     mensajeDiv.style.color = "#188038";
                     mensajeDiv.innerText = "¡Bienvenido! Redirigiendo...";
                     
-                    // Guardamos datos
+                    // Guardamos el ID, el PRIVILEGIO y ahora también el NOMBRE COMPLETO
                     localStorage.setItem('usuario', user); 
                     localStorage.setItem('privilegio', respuesta.privilegio);
+                    localStorage.setItem('nombre', respuesta.nombre); 
                     
-                    // Redirigimos al menú inicio.html
                     setTimeout(() => {
                         window.location.href = "inicio.html";
                     }, 1000);
