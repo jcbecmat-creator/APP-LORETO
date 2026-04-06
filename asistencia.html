@@ -97,12 +97,18 @@
             outline: none;
         }
 
-        /* --- BOTONES --- */
+        /* --- BOTONES Y HORAS --- */
         .grid-botones {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
             margin-top: 25px;
+        }
+
+        .btn-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .btn-check {
@@ -117,10 +123,11 @@
             background-color: var(--primary-blue);
             color: white;
             font-weight: 700;
-            font-size: 12px; /* Reducido un poco para que quepa bien el texto extra */
+            font-size: 12px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
+            width: 100%;
         }
 
         .btn-check:hover { background-color: #1a2a6e; transform: translateY(-2px); }
@@ -132,47 +139,24 @@
             transform: none;
         }
 
-        /* --- INFO DE REGISTRO --- */
-        .info-registro {
-            margin-top: 25px;
-            padding: 15px;
-            background-color: var(--light-blue);
-            border-radius: 10px;
-            border-left: 5px solid var(--primary-blue);
-            display: none;
-        }
-
-        .info-registro p { margin: 5px 0; font-size: 14px; color: var(--text-main); }
-        .info-registro span { font-weight: 700; color: var(--primary-blue); }
-
-        .nota-advertencia {
-            margin-top: 25px;
-            font-size: 12px;
-            color: #b91c1c; 
-            font-weight: 600;
+        /* Cajita que muestra la hora debajo del botón */
+        .time-display {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--primary-blue);
             text-align: center;
-            line-height: 1.5;
+            min-height: 15px; /* Mantiene el espacio aunque esté vacío */
         }
 
-        /* --- MODAL PERSONALIZADO (Reemplaza el Alert del navegador) --- */
+        /* --- MODAL PERSONALIZADO --- */
         .modal-overlay {
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); 
-            z-index: 9999;
-            align-items: center; 
-            justify-content: center;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;
         }
         
         .modal-content {
-            background: white; 
-            padding: 25px; 
-            border-radius: 12px; 
-            width: 90%; max-width: 320px;
-            text-align: center; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            animation: fadeIn 0.3s ease-in-out;
+            background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 320px;
+            text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease-in-out;
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
@@ -183,6 +167,15 @@
             border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;
         }
         .btn-modal:hover { background: #1a2a6e; }
+
+        .nota-advertencia {
+            margin-top: 25px;
+            font-size: 12px;
+            color: #b91c1c; 
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -204,7 +197,7 @@
 
         <main class="content">
             <div class="asistencia-card">
-                <h2 style="margin-top:0; color: var(--primary-blue); text-align:center;">Registro de Jornada</h2>
+                <h2 style="margin-top:0; color: var(--primary-blue); text-align:center;">Registro de Asistencia</h2>
                 
                 <div class="form-group">
                     <label>Sitio / Obra</label>
@@ -222,16 +215,25 @@
                 </div>
 
                 <div class="grid-botones">
-                    <button id="btn-Entrada" class="btn-check" onclick="marcar('Entrada', this)"><i data-lucide="log-in"></i> ENTRADA</button>
-                    <button id="btn-Salida" class="btn-check" onclick="marcar('Salida', this)"><i data-lucide="log-out"></i> SALIDA</button>
-                    <button id="btn-Entrada-Tiempo-Extra" class="btn-check" onclick="marcar('Entrada Tiempo Extra', this)"><i data-lucide="clock-9"></i> ENTRADA TIEMPO EXTRA</button>
-                    <button id="btn-Salida-Tiempo-Extra" class="btn-check" onclick="marcar('Salida Tiempo Extra', this)"><i data-lucide="clock-12"></i> SALIDA TIEMPO EXTRA</button>
-                </div>
-
-                <div id="box-confirmacion" class="info-registro">
-                    <p>Registro exitoso: <span id="tipo-registro">-</span></p>
-                    <p>Hora: <span id="hora-registro">-</span></p>
-                    <p>Ubicación: <span id="coords-registro">Obteniendo coordenadas...</span></p>
+                    <div class="btn-wrapper">
+                        <button id="btn-Entrada" class="btn-check" onclick="marcar('Entrada', this)"><i data-lucide="log-in"></i> ENTRADA</button>
+                        <div id="time-Entrada" class="time-display"></div>
+                    </div>
+                    
+                    <div class="btn-wrapper">
+                        <button id="btn-Salida" class="btn-check" onclick="marcar('Salida', this)"><i data-lucide="log-out"></i> SALIDA</button>
+                        <div id="time-Salida" class="time-display"></div>
+                    </div>
+                    
+                    <div class="btn-wrapper">
+                        <button id="btn-Entrada-Tiempo-Extra" class="btn-check" onclick="marcar('Entrada Tiempo Extra', this)"><i data-lucide="clock-9"></i> ENTRADA TIEMPO EXTRA</button>
+                        <div id="time-Entrada-Tiempo-Extra" class="time-display"></div>
+                    </div>
+                    
+                    <div class="btn-wrapper">
+                        <button id="btn-Salida-Tiempo-Extra" class="btn-check" onclick="marcar('Salida Tiempo Extra', this)"><i data-lucide="clock-12"></i> SALIDA TIEMPO EXTRA</button>
+                        <div id="time-Salida-Tiempo-Extra" class="time-display"></div>
+                    </div>
                 </div>
 
                 <div class="nota-advertencia">
@@ -249,18 +251,30 @@
         </div>
     </div>
 
+    <div id="successAlert" class="modal-overlay">
+        <div class="modal-content">
+            <i data-lucide="check-circle" style="color: #10b981; width: 48px; height: 48px; margin-bottom: 15px;"></i>
+            <p id="successAlertMessage">Registro guardado exitosamente.</p>
+            <button class="btn-modal" style="background:#10b981;" onclick="cerrarSuccess()">Aceptar</button>
+        </div>
+    </div>
+
     <script>
-        // Funciones para el Modal Personalizado
+        // Funciones para los Modales
         function mostrarAlerta(mensaje) {
             document.getElementById('customAlertMessage').innerText = mensaje;
             document.getElementById('customAlert').style.display = 'flex';
         }
-        function cerrarAlerta() {
-            document.getElementById('customAlert').style.display = 'none';
+        function cerrarAlerta() { document.getElementById('customAlert').style.display = 'none'; }
+        
+        function mostrarExito(mensaje) {
+            document.getElementById('successAlertMessage').innerText = mensaje;
+            document.getElementById('successAlert').style.display = 'flex';
         }
+        function cerrarSuccess() { document.getElementById('successAlert').style.display = 'none'; }
 
         // ==========================================
-        // CONFIGURACIÓN DE FIREBASE (LORETO)
+        // CONFIGURACIÓN DE FIREBASE
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyDkwUT5MrsJV2IMp18-RT20829M9c3-zfk",
@@ -284,10 +298,8 @@
             .then(html => {
                 document.getElementById('sidebar').innerHTML = html;
                 lucide.createIcons();
-                
                 const linkInicio = document.getElementById('link-inicio');
                 if(linkInicio) linkInicio.classList.remove('active');
-                
                 const linkAsistencia = document.getElementById('link-asistencia');
                 if(linkAsistencia) linkAsistencia.classList.add('active');
             });
@@ -302,7 +314,7 @@
         document.getElementById('fecha-hoy').value = fechaString;
 
         // ==========================================
-        // 3. REVISAR EN FIREBASE SI YA CHECÓ HOY (PERSISTENCIA)
+        // 3. REVISAR EN FIREBASE SI YA CHECÓ HOY
         // ==========================================
         const idUsuario = localStorage.getItem('usuario');
         const nombreUsuario = localStorage.getItem('nombre') || 'Usuario Desconocido';
@@ -315,24 +327,30 @@
                 .then((querySnapshot) => {
                     querySnapshot.forEach((doc) => {
                         const tipo = doc.data().tipo_registro;
-                        // Transformamos "Entrada Tiempo Extra" a "btn-Entrada-Tiempo-Extra" para apagar el botón
-                        const idBoton = "btn-" + tipo.replace(/ /g, "-"); 
+                        const hora = doc.data().hora; // Recuperamos la hora guardada
+                        
+                        const idBase = tipo.replace(/ /g, "-");
+                        const idBoton = "btn-" + idBase;
+                        const idTime = "time-" + idBase;
+                        
                         const btn = document.getElementById(idBoton);
+                        const timeDisplay = document.getElementById(idTime);
                         
                         if(btn) {
                             btn.disabled = true;
                             btn.innerHTML = `<i data-lucide="check-circle"></i> REGISTRADO`;
                         }
+                        if(timeDisplay && hora) {
+                            timeDisplay.innerText = `Checada: ${hora}`;
+                        }
                     });
                     lucide.createIcons();
                 })
-                .catch((error) => {
-                    console.error("Error al cargar asistencias previas:", error);
-                });
+                .catch((error) => console.error("Error al cargar asistencias previas:", error));
         }
 
         // ==========================================
-        // 4. LÓGICA DE REGISTRO, GPS Y GUARDADO
+        // 4. LÓGICA DE REGISTRO
         // ==========================================
         function marcar(tipo, boton) {
             const sitio = document.getElementById('sitio').value;
@@ -341,15 +359,14 @@
                 return;
             }
 
-            // Desactivar temporalmente mientras se guarda
             boton.disabled = true;
             const textoOriginal = boton.innerHTML;
             boton.innerHTML = "Guardando...";
 
             const ahora = new Date();
-            const horaString = ahora.toLocaleTimeString();
+            // Formato de hora, ej: 08:30 a.m.
+            const horaString = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
 
-            // Solicitar GPS
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(async (pos) => {
                     const lat = pos.coords.latitude.toFixed(6);
@@ -372,13 +389,14 @@
                             timestamp: firebase.firestore.FieldValue.serverTimestamp()
                         });
 
-                        // Mostrar recuadro de éxito abajo
-                        document.getElementById('box-confirmacion').style.display = 'block';
-                        document.getElementById('tipo-registro').innerText = tipo;
-                        document.getElementById('hora-registro').innerText = horaString;
-                        document.getElementById('coords-registro').innerText = coordsTexto;
+                        // Mostrar la hora justo debajo del botón
+                        const idTime = "time-" + tipo.replace(/ /g, "-");
+                        document.getElementById(idTime).innerText = `Checada: ${horaString}`;
 
-                        // Dejar el botón inactivo de forma permanente
+                        // Alerta visual verde
+                        mostrarExito(`Has registrado tu ${tipo} con éxito a las ${horaString}`);
+
+                        // Dejar el botón inactivo
                         boton.innerHTML = `<i data-lucide="check-circle"></i> REGISTRADO`;
                         lucide.createIcons();
 
@@ -406,7 +424,6 @@
             document.getElementById('sidebar').classList.toggle('open');
         });
 
-        // Cargar inicial del usuario
         if (nombreUsuario !== 'Usuario Desconocido') {
             document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
         }
