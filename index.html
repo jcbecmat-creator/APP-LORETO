@@ -15,7 +15,6 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            /* Margen superior ajustado a 21px. Lados y abajo mantienen 12px */
             padding: 21px 12px 12px 12px; 
             box-sizing: border-box;
         }
@@ -23,10 +22,8 @@
         .login-box {
             background-color: #ffffff;
             border-radius: 12px;
-            /* Padding inferior a 15px para quitar espacio blanco sobrante abajo */
             padding: 12px 25px 15px 25px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            /* Toma absolutamente todo el ancho disponible respetando el padding de 12px del body */
             width: 100%; 
             max-width: 550px; 
             text-align: center;
@@ -48,7 +45,6 @@
             line-height: 1.4;
         }
 
-        /* Forzar que el texto no salte de línea */
         .no-wrap {
             white-space: nowrap;
         }
@@ -79,7 +75,6 @@
 
         .input-group input {
             width: 100%;
-            /* Cajas mantienen su tamaño largo y ancho */
             padding: 18px 16px 18px 45px; 
             border: 1px solid #cccccc;
             border-radius: 6px;
@@ -195,7 +190,6 @@
     </div>
 
     <script>
-        // Lógica para mostrar/ocultar contraseña
         const togglePasswordIcon = document.getElementById('togglePasswordIcon');
         const passwordField = document.getElementById('password');
 
@@ -207,7 +201,6 @@
             this.classList.toggle('fa-eye-slash');
         });
 
-        // Conexión con el backend de Google Sheets
         function iniciarSesion() {
             var user = document.getElementById("username").value;
             var pass = document.getElementById("password").value;
@@ -224,13 +217,17 @@
             btnLogin.disabled = true;
             mensajeDiv.innerText = "";
             
-            // LA URL DE TU SCRIPT
+            // LA URL DE TU SCRIPT DE GOOGLE (Verifica que sea la más reciente)
             var scriptURL = "https://script.google.com/macros/s/AKfycbyQBuAUlC0bc8dYgUHgwbTNOa7ut6dKB_Ls6sqgDbKyHF51zKofE9cQ7rWp_SH2X9k/exec";
 
-            // CAMBIO CLAVE: Armamos la URL para enviarlo por GET y evitar el bloqueo de red
-            var urlCompleta = scriptURL + "?usuario=" + encodeURIComponent(user) + "&contrasena=" + encodeURIComponent(pass);
-
-            fetch(urlCompleta)
+            // EL SECRETO: Enviamos la petición como POST con el cuerpo en JSON y encabezado 'text/plain' para evitar el bloqueo de red
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ usuario: user, contrasena: pass }),
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                }
+            })
             .then(response => response.json())
             .then(respuesta => {
                 btnLogin.innerText = "Iniciar sesión";
@@ -240,7 +237,7 @@
                     mensajeDiv.style.color = "#188038";
                     mensajeDiv.innerText = "¡Bienvenido! Redirigiendo...";
                     
-                    // Guardamos el nombre de usuario y privilegio para inicio.html
+                    // Guardamos datos
                     localStorage.setItem('usuario', user); 
                     localStorage.setItem('privilegio', respuesta.privilegio);
                     
