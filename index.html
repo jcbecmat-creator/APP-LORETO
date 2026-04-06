@@ -15,20 +15,20 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            /* Esto garantiza un margen azul exacto en los lados */
-            padding: 18px; 
+            /* ESTE ES EL MARGEN AZUL: 12px a la izquierda, derecha y arriba */
+            padding: 12px; 
             box-sizing: border-box;
         }
 
         .login-box {
             background-color: #ffffff;
             border-radius: 12px;
-            /* El padding superior (18px) es EXACTAMENTE IGUAL al margen azul de los lados */
-            padding: 18px 22px 25px 22px; 
+            /* Padding superior en 12px (SIMÉTRICO al margen azul). Lados en 25px para que el contenido respire */
+            padding: 12px 25px 25px 25px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            /* Toma todo el espacio disponible respetando el margen azul del body */
+            /* Toma absolutamente todo el ancho disponible */
             width: 100%; 
-            max-width: 500px; 
+            max-width: 550px; 
             text-align: center;
             box-sizing: border-box;
         }
@@ -36,20 +36,20 @@
         .main-logo {
             width: 100px; 
             height: auto;
-            /* Margen en 0 para que baje y respete los 18px exactos de la caja blanca */
+            /* Sin margen arriba para que respete perfectamente los 12px de la caja blanca */
             margin-top: 0px; 
-            margin-bottom: 18px; 
+            margin-bottom: 15px; 
         }
 
         .company-name {
-            font-size: 12.5pt; 
+            font-size: 13pt; 
             color: #263fa4;
             font-weight: bold;
             margin-bottom: 20px; 
             line-height: 1.4;
         }
 
-        /* Clase para forzar que el texto no salte de línea */
+        /* Forzar que el texto no salte de línea */
         .no-wrap {
             white-space: nowrap;
         }
@@ -80,7 +80,7 @@
 
         .input-group input {
             width: 100%;
-            /* Cajas largas/altas mantenidas */
+            /* Cajas recuperan su tamaño largo y ancho */
             padding: 18px 16px 18px 45px; 
             border: 1px solid #cccccc;
             border-radius: 6px;
