@@ -77,8 +77,8 @@
         .row-active { background-color: var(--success-bg) !important; }
         .row-active td { color: var(--success-text); }
         
-        .cell-dia { font-weight: 800 !important; color: var(--primary-blue) !important; font-size: 14px !important; }
-        .cell-fecha { text-transform: capitalize; color: var(--text-muted); font-size: 12px !important; }
+        .cell-dia { font-weight: 800 !important; color: var(--primary-blue) !important; }
+        .cell-fecha { text-transform: capitalize; color: var(--text-muted); }
         .cell-empty { color: #cbd5e1 !important; font-weight: 400 !important; }
         .cell-horas-te { font-weight: 700; color: #0f766e; background-color: #d1fae5; border-radius: 4px; padding: 4px 8px; display: inline-block;}
 
@@ -149,12 +149,12 @@
                                     <tr>
                                         <th style="width: 40px;">#</th>
                                         <th>Día / Fecha</th>
-                                        <th style="text-align: left;">Sitio / Obra</th>
+                                        <th>Sitio / Obra</th>
                                         <th>Entrada</th>
                                         <th>Salida</th>
                                         <th>Entrada T.E.</th>
                                         <th>Salida T.E.</th>
-                                        <th>Horas T.E. Realizadas</th>
+                                        <th>HORAS T.E.</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbody-mes-actual">
@@ -171,12 +171,12 @@
                                     <tr>
                                         <th style="width: 40px;">#</th>
                                         <th>Día / Fecha</th>
-                                        <th style="text-align: left;">Sitio / Obra</th>
+                                        <th>Sitio / Obra</th>
                                         <th>Entrada</th>
                                         <th>Salida</th>
                                         <th>Entrada T.E.</th>
                                         <th>Salida T.E.</th>
-                                        <th>Horas T.E. Realizadas</th>
+                                        <th>HORAS T.E.</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbody-mes-anterior">
@@ -240,7 +240,6 @@
         function calcularDiferenciaTE(entrada, salida) {
             if (entrada === '-' || salida === '-') return '-';
 
-            // Convertir texto "05:30 p.m." o "17:30:00" a objeto Date
             function parseTime(timeStr) {
                 const match = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(a\.?m\.?|p\.?m\.?|am|pm)?/i);
                 if (!match) return null;
@@ -263,7 +262,6 @@
             if (!t1 || !t2) return '-';
 
             let diffMs = t2 - t1;
-            // Si la salida es menor que la entrada (pasó la medianoche)
             if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
 
             const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
@@ -278,6 +276,7 @@
         const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         
         const hoy = new Date();
+        const diaActual = hoy.getDate();
         const mesActual = hoy.getMonth();
         const añoActual = hoy.getFullYear();
 
@@ -349,17 +348,18 @@
         }
 
         function pintarTablas() {
-            const generarHTML = (arrayDatos) => {
+            const generarHTML = (arrayDatos, esMesActual) => {
                 let html = '';
                 for(let i = 1; i < arrayDatos.length; i++) {
                     const fila = arrayDatos[i];
-                    const tieneDatos = (fila.entrada !== '-' || fila.salida !== '-' || fila.entradaExt !== '-');
-                    const claseFila = tieneDatos ? 'row-active' : '';
+                    
+                    // Ahora la fila se pinta de verde ÚNICAMENTE si es el día de hoy
+                    const esHoy = (esMesActual && i === diaActual);
+                    const claseFila = esHoy ? 'row-active' : '';
                     
                     const getCelda = (valor) => valor === '-' ? `<span class="cell-empty">-</span>` : valor;
                     const getSitio = (valor) => valor === '' ? `<span class="cell-empty">Sin registro</span>` : `<span style="font-weight:600;">${valor}</span>`;
                     
-                    // Calculamos las horas T.E
                     const horasTE = calcularDiferenciaTE(fila.entradaExt, fila.salidaExt);
                     const htmlHorasTE = horasTE === '-' ? `<span class="cell-empty">-</span>` : `<span class="cell-horas-te">${horasTE}</span>`;
 
@@ -367,7 +367,7 @@
                         <tr class="${claseFila}">
                             <td class="cell-dia">${i}</td>
                             <td class="cell-fecha">${fila.fechaStr}</td>
-                            <td style="text-align: left;">${getSitio(fila.sitio)}</td>
+                            <td>${getSitio(fila.sitio)}</td>
                             <td>${getCelda(fila.entrada)}</td>
                             <td>${getCelda(fila.salida)}</td>
                             <td>${getCelda(fila.entradaExt)}</td>
@@ -379,10 +379,10 @@
                 return html;
             };
 
-            document.getElementById('tbody-mes-actual').innerHTML = generarHTML(datosActual);
-            document.getElementById('tbody-mes-anterior').innerHTML = generarHTML(datosAnterior);
+            // Pasamos "true" para la primera tabla (mes actual) y "false" para la segunda
+            document.getElementById('tbody-mes-actual').innerHTML = generarHTML(datosActual, true);
+            document.getElementById('tbody-mes-anterior').innerHTML = generarHTML(datosAnterior, false);
 
-            // Ocultar loader, mostrar tablas y botón flotante
             document.getElementById('loader').style.display = 'none';
             document.getElementById('tablas-container').style.display = 'block';
             document.getElementById('btn-descargar-pdf').style.display = 'flex';
@@ -407,13 +407,11 @@
                 hour: '2-digit', minute: '2-digit' 
             });
 
-            // Ajustamos el tamaño a 720px que encaja perfectamente en formato carta
             const pdfWrap = document.createElement('div');
             pdfWrap.style.width = '750px'; 
             pdfWrap.style.backgroundColor = 'white';
             pdfWrap.style.color = '#1e293b';
 
-            // Usamos un padding más pequeño en el PDF (20px en vez de 40px) y letras más compactas (9px-10px)
             const crearHoja = (titulo, tbodyId) => `
                 <div style="padding: 20px 30px; background: white; font-family: 'Inter', sans-serif;">
                     
@@ -433,12 +431,12 @@
                             <tr style="background-color: #eef2ff; color: #263fa4; text-transform: uppercase;">
                                 <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">#</th>
                                 <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Día / Fecha</th>
-                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: left;">Sitio / Obra</th>
+                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Sitio / Obra</th>
                                 <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Entrada</th>
                                 <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Salida</th>
                                 <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Ent. Extra</th>
                                 <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Sal. Extra</th>
-                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Horas T.E.</th>
+                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">HORAS T.E.</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -458,24 +456,32 @@
                 ${crearHoja(document.getElementById('title-mes-anterior').innerText, 'tbody-mes-anterior')}
             `;
 
-            // Aplicar estilos "inline" compactos para celdas del PDF
+            // Forzar estilos consistentes en todas las celdas del PDF (tamaño 9px)
             const celdas = pdfWrap.querySelectorAll('td');
             celdas.forEach(td => {
-                td.style.padding = '4px'; // Menos padding para ahorrar espacio vertical
+                td.style.padding = '4px';
                 td.style.border = '1px solid #e2e8f0';
                 td.style.textAlign = 'center';
+                td.style.fontSize = '9px'; 
                 if(td.querySelector('.cell-empty')) { td.style.color = '#cbd5e1'; }
             });
             
-            pdfWrap.querySelectorAll('.cell-fecha').forEach(td => td.style.color = '#64748b');
-            pdfWrap.querySelectorAll('.cell-dia').forEach(td => { td.style.fontWeight = 'bold'; td.style.color = '#263fa4'; });
+            pdfWrap.querySelectorAll('.cell-fecha').forEach(td => {
+                td.style.color = '#64748b';
+                td.style.fontSize = '9px'; 
+            });
+            pdfWrap.querySelectorAll('.cell-dia').forEach(td => { 
+                td.style.fontWeight = 'bold'; 
+                td.style.color = '#263fa4'; 
+                td.style.fontSize = '9px'; 
+            });
             
-            // Celdas de Horas TE en PDF
             pdfWrap.querySelectorAll('.cell-horas-te').forEach(span => { 
                 span.style.color = '#0f766e'; 
                 span.style.fontWeight = 'bold';
             });
 
+            // Resaltar únicamente el día de hoy (si aplica en el PDF)
             pdfWrap.querySelectorAll('.row-active').forEach(tr => {
                 tr.style.backgroundColor = '#f0fdf4';
                 tr.querySelectorAll('td').forEach(td => {
@@ -483,7 +489,6 @@
                 });
             });
 
-            // Ajuste de márgenes para que entre perfectamente en una página
             const opt = {
                 margin:       [15, 15, 15, 15], 
                 filename:     `Biometrico_${nombreUsuario.replace(/ /g, '_')}.pdf`,
