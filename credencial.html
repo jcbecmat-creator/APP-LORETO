@@ -61,11 +61,8 @@
 
         /* --- CONTENIDO PRINCIPAL --- */
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        
-        /* Modificado: padding-bottom a 100px para que el botón de Guardar no quede debajo del flotante en móviles */
         .form-container { max-width: 900px; margin: 0 auto; padding-bottom: 100px; }
         
-        /* Modificado: Eliminado text-align: center para alinear a la izquierda como el resto de las pantallas */
         .page-header { margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
         .page-header p { color: var(--text-muted); margin: 0; font-size: 14px; }
@@ -100,20 +97,23 @@
         /* --- FRONTAL --- */
         .cred-banner { width: 100%; height: auto; display: block; }
         
+        /* Modificado: Nombre en Negritas */
         .cred-name { 
             font-size: 13px; 
             text-align: center; 
             text-transform: uppercase; 
             margin-top: 12px; 
             padding: 0 10px; 
-            font-weight: normal; 
+            font-weight: bold; 
         }
         
+        /* Modificado: NSS en Negritas */
         .cred-nss { 
             font-size: 14px; 
             text-align: center; 
             margin-top: 5px; 
             margin-bottom: 10px; 
+            font-weight: bold;
         }
         
         .cred-photo { 
@@ -127,10 +127,12 @@
         }
         .cred-photo img { width: 100%; height: 100%; object-fit: cover; display: none; }
         
+        /* Modificado: Cargo en Negritas */
         .cred-cargo { 
             text-align: center; 
             font-size: 14px; 
             margin-top: 10px; 
+            font-weight: bold;
         }
         
         .cred-firma { 
@@ -156,12 +158,14 @@
         }
 
         /* --- POSTERIOR --- */
+        
+        /* Modificado: Logotipo 2 incrementado un 15% (60px -> 69px) manteniendo márgenes */
         .cred-trucks { 
             width: 90%; 
             margin: 15px auto; 
             display: block; 
             object-fit: contain; 
-            height: 60px; 
+            height: 69px; 
         }
         
         .cred-qr-container { 
@@ -359,6 +363,28 @@
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
 
         // ==========================================
+        // UTILERÍA: CONVERTIR URL DE IMAGEN A BASE64
+        // (Solución para que aparezcan en PDF)
+        // ==========================================
+        const imageUrlToBase64 = async (url) => {
+            if (!url) return null;
+            if (url.startsWith('data:')) return url; // Ya es base64
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                return await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) {
+                console.error("Error convirtiendo imagen a base64", e);
+                return null; 
+            }
+        };
+
+        // ==========================================
         // 2. EXTRAER DATOS DESDE FIRESTORE
         // ==========================================
         async function cargarDatosCredencial() {
@@ -402,10 +428,8 @@
                     const curpStr = datos.curp || 'S/N';
                     const vigenciaStr = '01/01/2026 - 31/12/2026';
 
-                    // Modificado: Generar QR con el nuevo formato estructurado
+                    // Generar QR Profesional
                     const textQR = `Loreto Ingeniería, Construcción, Edificación y Remodelación\nEmpleado: ${nombreStr}\nNSS: ${nssStr}\nRFC: ${rfcStr}\nCURP: ${curpStr}\nVigencia: ${vigenciaStr}`;
-                    
-                    // Usamos encodeURIComponent para respetar los saltos de línea (\n)
                     const qrcodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(textQR)}`;
                     document.getElementById('img-qr').src = qrcodeUrl;
 
@@ -458,15 +482,22 @@
         // ==========================================
         // 4. GENERAR PDF (En Una Sola Hoja)
         // ==========================================
-        function generarPDF() {
+        // Modificado: Función asíncrona para manejar Base64
+        async function generarPDF() {
             const btn = document.getElementById('btn-descargar-pdf');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando PDF...';
             btn.disabled = true;
             lucide.createIcons();
 
-            const fechaHoraDescarga = new Date().toLocaleString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            // --- PASO CRUCIAL: Convertir imágenes actuales a Base64 para el PDF ---
+            const photoSrc = document.getElementById('img-photo').src;
+            const firmaSrc = document.getElementById('img-firma').src;
             
+            const photoBase64 = await imageUrlToBase64(photoSrc);
+            const firmaBase64 = await imageUrlToBase64(firmaSrc);
+
+            // Contenedor "Virtual" para el PDF
             const pdfWrap = document.createElement('div');
             pdfWrap.style.width = '100%';
             pdfWrap.style.padding = '40px 0';
@@ -481,6 +512,18 @@
             const frontClone = document.getElementById('credencial-front').cloneNode(true);
             const backClone = document.getElementById('credencial-back').cloneNode(true);
 
+            // --- PASO CRUCIAL 2: Inyectar Base64 en los clones ---
+            if (photoBase64) {
+                const clonedPhoto = frontClone.querySelector('#img-photo');
+                clonedPhoto.src = photoBase64;
+                clonedPhoto.style.display = 'block';
+            }
+            if (firmaBase64) {
+                const clonedFirma = frontClone.querySelector('#img-firma');
+                clonedFirma.src = firmaBase64;
+                clonedFirma.style.display = 'block';
+            }
+
             [frontClone, backClone].forEach(clone => {
                 clone.style.width = '7cm';
                 clone.style.height = '10cm';
@@ -492,6 +535,7 @@
 
             pdfWrap.appendChild(cardsContainer);
             
+            // Pie de página de impresión
             const printFooter = document.createElement('div');
             printFooter.style.textAlign = 'center';
             printFooter.style.fontSize = '9px';
@@ -505,10 +549,10 @@
             pdfWrap.appendChild(printFooter);
 
             const opt = {
-                margin:       20,
+                margin:       15, // Reducido un poco para centrar mejor en carta
                 filename:     `Credencial_${nombreUsuario.replace(/ /g, '_')}.pdf`,
-                image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { scale: 2, useCORS: true },
+                image:        { type: 'jpeg', quality: 1 }, // Máxima calidad
+                html2canvas:  { scale: 2, useCORS: true }, // scale 2 es suficiente y rápido
                 jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' } 
             };
 
