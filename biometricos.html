@@ -10,25 +10,16 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
-            --primary-blue: #263fa4;
-            --light-blue: #eef2ff;
-            --bg-color: #f8fafc;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --success-bg: #f0fdf4;
-            --success-text: #166534;
-            --danger: #dc2626;
+            --primary-blue: #263fa4; --light-blue: #eef2ff; --bg-color: #f8fafc;
+            --text-main: #1e293b; --text-muted: #64748b; --border-color: #e2e8f0;
+            --success-bg: #f0fdf4; --success-text: #166534; --danger: #dc2626;
         }
 
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-
-        /* --- HEADER Y LAYOUT --- */
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: white; border-bottom: 1px solid var(--border-color); z-index: 50; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .menu-btn { background: none; border: none; cursor: pointer; color: var(--text-main); }
@@ -38,13 +29,8 @@
 
         .main-layout { display: flex; flex: 1; overflow: hidden; }
         .sidebar { width: 260px; background: white; border-right: 1px solid var(--border-color); overflow-y: auto; transition: transform 0.3s ease; display: flex; flex-direction: column; }
-        @media (max-width: 768px) {
-            .sidebar { position: fixed; height: calc(100vh - 60px); transform: translateX(-100%); z-index: 40; }
-            .sidebar.open { transform: translateX(0); }
-            .header-title { display: none; }
-        }
+        @media (max-width: 768px) { .sidebar { position: fixed; height: calc(100vh - 60px); transform: translateX(-100%); z-index: 40; } .sidebar.open { transform: translateX(0); } .header-title { display: none; } }
 
-        /* --- ESTILOS DEL MENÚ DINÁMICO --- */
         .sidebar-nav { padding: 15px 10px; }
         .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .sidebar-section:last-child { border-bottom: none; }
@@ -54,7 +40,6 @@
         .nav-item.active { background-color: var(--light-blue); color: var(--primary-blue); font-weight: 700; border-left: 4px solid var(--primary-blue); }
         .nav-item.active i { color: var(--primary-blue); }
 
-        /* --- CONTENIDO PRINCIPAL --- */
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .biometricos-container { max-width: 1050px; margin: 0 auto; padding-bottom: 80px; }
         
@@ -65,7 +50,6 @@
         .data-card { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-color); margin-bottom: 25px; }
         .section-title { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: var(--primary-blue); margin: 0 0 20px 0; padding-bottom: 12px; border-bottom: 1px solid var(--bg-color); }
         
-        /* --- ESTILOS DE LA TABLA --- */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; border: 1px solid var(--border-color); }
         .data-table { width: 100%; border-collapse: collapse; min-width: 800px; }
         .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 14px 12px; text-align: center; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
@@ -82,30 +66,9 @@
         .cell-empty { color: #cbd5e1 !important; font-weight: 400 !important; }
         .cell-horas-te { font-weight: 700; color: #0f766e; background-color: #d1fae5; border-radius: 4px; padding: 4px 8px; display: inline-block;}
 
-        /* Loader */
         .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
 
-        /* --- BOTÓN FLOTANTE --- */
-        .fab-download {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background-color: var(--danger);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 16px 24px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
-            display: none;
-            align-items: center;
-            gap: 10px;
-            z-index: 1000;
-            transition: transform 0.2s, background-color 0.2s;
-        }
-
+        .fab-download { position: fixed; bottom: 30px; right: 30px; background-color: var(--danger); color: white; border: none; border-radius: 50px; padding: 16px 24px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4); display: none; align-items: center; gap: 10px; z-index: 1000; transition: transform 0.2s, background-color 0.2s; }
         .fab-download:hover { transform: translateY(-5px); background-color: #b91c1c; }
         @media (max-width: 768px) { .fab-download { bottom: 20px; right: 20px; padding: 14px 20px; font-size: 14px; } }
     </style>
@@ -140,7 +103,6 @@
                 </div>
 
                 <div id="tablas-container" style="display: none;">
-                    
                     <div class="data-card">
                         <h3 class="section-title"><i data-lucide="calendar-days"></i> <span id="title-mes-actual">Mes Actual</span></h3>
                         <div class="table-responsive">
@@ -157,8 +119,7 @@
                                         <th>HORAS T.E.</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tbody-mes-actual">
-                                    </tbody>
+                                <tbody id="tbody-mes-actual"></tbody>
                             </table>
                         </div>
                     </div>
@@ -179,26 +140,18 @@
                                         <th>HORAS T.E.</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tbody-mes-anterior">
-                                    </tbody>
+                                <tbody id="tbody-mes-anterior"></tbody>
                             </table>
                         </div>
                     </div>
-
                 </div>
-
             </div>
         </main>
     </div>
 
-    <button id="btn-descargar-pdf" class="fab-download" onclick="generarPDF()">
-        <i data-lucide="file-down"></i> Descargar Biométrico
-    </button>
+    <button id="btn-descargar-pdf" class="fab-download" onclick="generarPDF()"><i data-lucide="file-down"></i> Descargar Biométrico</button>
 
     <script>
-        // ==========================================
-        // CONFIGURACIÓN DE FIREBASE
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyDkwUT5MrsJV2IMp18-RT20829M9c3-zfk",
             authDomain: "loreto-ingenieria.firebaseapp.com",
@@ -207,81 +160,45 @@
             messagingSenderId: "873434501512",
             appId: "1:873434501512:web:963903379a5e72cb092a3d"
         };
-        
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        // ==========================================
-        // 1. CARGAR MENÚ DINÁMICO
-        // ==========================================
-        fetch('menu.html')
-            .then(res => res.text())
-            .then(html => {
-                document.getElementById('sidebar').innerHTML = html;
-                lucide.createIcons();
-                const linkInicio = document.getElementById('link-inicio');
-                if(linkInicio) linkInicio.classList.remove('active');
-                
-                const linkBiometricos = document.getElementById('link-biometricos');
-                if(linkBiometricos) linkBiometricos.classList.add('active');
-            });
-
-        document.getElementById('toggle-menu').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('open');
+        fetch('menu.html').then(res => res.text()).then(html => {
+            document.getElementById('sidebar').innerHTML = html; lucide.createIcons();
+            const linkInicio = document.getElementById('link-inicio'); if(linkInicio) linkInicio.classList.remove('active');
+            const linkBiometricos = document.getElementById('link-biometricos'); if(linkBiometricos) linkBiometricos.classList.add('active');
         });
+
+        document.getElementById('toggle-menu').addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('open'); });
 
         const idUsuario = localStorage.getItem('usuario');
         const nombreUsuario = localStorage.getItem('nombre') || 'Usuario Desconocido';
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
 
-        // ==========================================
-        // FUNCIONES AUXILIARES: CALCULAR HORAS EXTRA
-        // ==========================================
         function calcularDiferenciaTE(entrada, salida) {
             if (entrada === '-' || salida === '-') return '-';
-
             function parseTime(timeStr) {
                 const match = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(a\.?m\.?|p\.?m\.?|am|pm)?/i);
                 if (!match) return null;
-                
-                let hours = parseInt(match[1], 10);
-                const mins = parseInt(match[2], 10);
+                let hours = parseInt(match[1], 10); const mins = parseInt(match[2], 10);
                 const modifier = match[4] ? match[4].toLowerCase().replace(/\./g, '') : '';
-
                 if (modifier === 'pm' && hours < 12) hours += 12;
                 if (modifier === 'am' && hours === 12) hours = 0;
-
-                const date = new Date();
-                date.setHours(hours, mins, 0, 0);
-                return date;
+                const date = new Date(); date.setHours(hours, mins, 0, 0); return date;
             }
 
-            const t1 = parseTime(entrada);
-            const t2 = parseTime(salida);
-
+            const t1 = parseTime(entrada); const t2 = parseTime(salida);
             if (!t1 || !t2) return '-';
-
             let diffMs = t2 - t1;
             if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
-
             const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
             const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
             return `${diffHrs}h ${diffMins.toString().padStart(2, '0')}m`;
         }
 
-        // ==========================================
-        // 2. LÓGICA DE FECHAS Y TABLAS
-        // ==========================================
         const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-        
-        const hoy = new Date();
-        const diaActual = hoy.getDate();
-        const mesActual = hoy.getMonth();
-        const añoActual = hoy.getFullYear();
-
-        let mesAnterior = mesActual - 1;
-        let añoAnterior = añoActual;
+        const hoy = new Date(); const diaActual = hoy.getDate(); const mesActual = hoy.getMonth(); const añoActual = hoy.getFullYear();
+        let mesAnterior = mesActual - 1; let añoAnterior = añoActual;
         if (mesAnterior < 0) { mesAnterior = 11; añoAnterior--; }
 
         document.getElementById('title-mes-actual').innerText = `Mes Actual: ${meses[mesActual]} ${añoActual}`;
@@ -303,23 +220,23 @@
             datosAnterior[i].fechaStr = d.toLocaleDateString('es-MX', { weekday: 'short', day: '2-digit' }).replace('.', '');
         }
 
-        // ==========================================
-        // 3. CONSULTA A FIREBASE Y LLENADO
-        // ==========================================
         async function cargarAsistencias() {
             if(!idUsuario) return;
-
             try {
                 const snapshot = await db.collection("registro_asistencia").where("usuario_id", "==", idUsuario).get();
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    let fechaRegistro = data.timestamp ? data.timestamp.toDate() : null;
+                    if (!data.fecha) return;
 
-                    if(fechaRegistro) {
-                        const m = fechaRegistro.getMonth();
-                        const y = fechaRegistro.getFullYear();
-                        const d = fechaRegistro.getDate();
+                    // Extracción inteligente de la fecha literal guardada ("lunes, 6 de abril de 2026")
+                    const regex = /(\d+)\s+de\s+([a-z]+)\s+de\s+(\d+)/i;
+                    const match = data.fecha.match(regex);
+
+                    if (match) {
+                        const d = parseInt(match[1], 10);
+                        const m = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"].indexOf(match[2].toLowerCase());
+                        const y = parseInt(match[3], 10);
 
                         let targetData = null;
                         if(m === mesActual && y === añoActual) targetData = datosActual;
@@ -338,12 +255,9 @@
                         }
                     }
                 });
-
                 pintarTablas();
-
             } catch(error) {
                 console.error("Error al cargar biométricos:", error);
-                alert("Hubo un problema al sincronizar los datos de asistencia.");
             }
         }
 
@@ -352,8 +266,6 @@
                 let html = '';
                 for(let i = 1; i < arrayDatos.length; i++) {
                     const fila = arrayDatos[i];
-                    
-                    // Fila se pinta de verde ÚNICAMENTE si es el día de hoy
                     const esHoy = (esMesActual && i === diaActual);
                     const claseFila = esHoy ? 'row-active' : '';
                     
@@ -363,25 +275,13 @@
                     const horasTE = calcularDiferenciaTE(fila.entradaExt, fila.salidaExt);
                     const htmlHorasTE = horasTE === '-' ? `<span class="cell-empty">-</span>` : `<span class="cell-horas-te">${horasTE}</span>`;
 
-                    html += `
-                        <tr class="${claseFila}">
-                            <td class="cell-dia">${i}</td>
-                            <td class="cell-fecha">${fila.fechaStr}</td>
-                            <td>${getSitio(fila.sitio)}</td>
-                            <td>${getCelda(fila.entrada)}</td>
-                            <td>${getCelda(fila.salida)}</td>
-                            <td>${getCelda(fila.entradaExt)}</td>
-                            <td>${getCelda(fila.salidaExt)}</td>
-                            <td>${htmlHorasTE}</td>
-                        </tr>
-                    `;
+                    html += `<tr class="${claseFila}"><td class="cell-dia">${i}</td><td class="cell-fecha">${fila.fechaStr}</td><td>${getSitio(fila.sitio)}</td><td>${getCelda(fila.entrada)}</td><td>${getCelda(fila.salida)}</td><td>${getCelda(fila.entradaExt)}</td><td>${getCelda(fila.salidaExt)}</td><td>${htmlHorasTE}</td></tr>`;
                 }
                 return html;
             };
 
             document.getElementById('tbody-mes-actual').innerHTML = generarHTML(datosActual, true);
             document.getElementById('tbody-mes-anterior').innerHTML = generarHTML(datosAnterior, false);
-
             document.getElementById('loader').style.display = 'none';
             document.getElementById('tablas-container').style.display = 'block';
             document.getElementById('btn-descargar-pdf').style.display = 'flex';
@@ -390,30 +290,17 @@
 
         document.addEventListener('DOMContentLoaded', cargarAsistencias);
 
-        // ==========================================
-        // 4. LÓGICA DE GENERACIÓN DE PDF OPTIMIZADA
-        // ==========================================
         function generarPDF() {
             const btn = document.getElementById('btn-descargar-pdf');
             const originalText = btn.innerHTML;
-            
-            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando PDF...';
-            btn.disabled = true;
-            lucide.createIcons();
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando PDF...'; btn.disabled = true; lucide.createIcons();
 
-            const fechaHoraDescarga = new Date().toLocaleString('es-MX', { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
-                hour: '2-digit', minute: '2-digit' 
-            });
-
+            const fechaHoraDescarga = new Date().toLocaleString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             const pdfWrap = document.createElement('div');
-            pdfWrap.style.width = '750px'; 
-            pdfWrap.style.backgroundColor = 'white';
-            pdfWrap.style.color = '#1e293b';
+            pdfWrap.style.width = '750px'; pdfWrap.style.backgroundColor = 'white'; pdfWrap.style.color = '#1e293b';
 
             const crearHoja = (titulo, tbodyId) => `
                 <div style="padding: 20px 30px; background: white; font-family: 'Inter', sans-serif;">
-                    
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #263fa4; padding-bottom: 10px; margin-bottom: 15px;">
                         <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 40px;">
                         <div style="text-align: center; color: #263fa4;">
@@ -422,94 +309,40 @@
                         </div>
                         <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 40px; border-radius: 4px;">
                     </div>
-                    
                     <h3 style="color: #263fa4; font-size: 14px; margin-bottom: 10px; font-weight: bold;">${titulo}</h3>
-                    
                     <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 10px;">
                         <thead>
                             <tr style="background-color: #eef2ff; color: #263fa4; text-transform: uppercase;">
-                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">#</th>
-                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">Día / Fecha</th>
-                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">Sitio / Obra</th>
-                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">Entrada</th>
-                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">Salida</th>
-                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">Ent. Extra</th>
-                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">Sal. Extra</th>
-                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">HORAS T.E.</th>
+                                <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">#</th>
+                                <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">Día / Fecha</th>
+                                <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">Sitio / Obra</th>
+                                <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">Entrada</th>
+                                <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">Salida</th>
+                                <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">Ent. Extra</th>
+                                <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">Sal. Extra</th>
+                                <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">HORAS T.E.</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            ${document.getElementById(tbodyId).innerHTML}
-                        </tbody>
+                        <tbody>${document.getElementById(tbodyId).innerHTML}</tbody>
                     </table>
-
                     <div style="text-align: center; font-size: 9px; color: #64748b; margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 10px; font-weight: 600;">
                         Documento generado el: ${fechaHoraDescarga}
                     </div>
                 </div>
             `;
 
-            pdfWrap.innerHTML = `
-                ${crearHoja(document.getElementById('title-mes-actual').innerText, 'tbody-mes-actual')}
-                <div class="html2pdf__page-break"></div>
-                ${crearHoja(document.getElementById('title-mes-anterior').innerText, 'tbody-mes-anterior')}
-            `;
+            pdfWrap.innerHTML = `${crearHoja(document.getElementById('title-mes-actual').innerText, 'tbody-mes-actual')} <div class="html2pdf__page-break"></div> ${crearHoja(document.getElementById('title-mes-anterior').innerText, 'tbody-mes-anterior')}`;
 
-            // Establecemos un padding intermedio (6px) para rellenar la hoja correctamente
             const celdas = pdfWrap.querySelectorAll('td');
-            celdas.forEach(td => {
-                td.style.padding = '6px 4px'; 
-                td.style.border = '1px solid #e2e8f0';
-                td.style.textAlign = 'center';
-                td.style.fontSize = '9px'; 
-                if(td.querySelector('.cell-empty')) { td.style.color = '#cbd5e1'; }
-            });
-            
-            // Forzamos explícitamente el tamaño de 9px para las primeras dos columnas en el PDF
-            pdfWrap.querySelectorAll('.cell-fecha').forEach(td => {
-                td.style.color = '#64748b';
-                td.style.setProperty('font-size', '9px', 'important');
-            });
-            pdfWrap.querySelectorAll('.cell-dia').forEach(td => { 
-                td.style.fontWeight = 'bold'; 
-                td.style.color = '#263fa4'; 
-                td.style.setProperty('font-size', '9px', 'important');
-            });
-            
-            pdfWrap.querySelectorAll('.cell-horas-te').forEach(span => { 
-                span.style.color = '#0f766e'; 
-                span.style.fontWeight = 'bold';
-            });
+            celdas.forEach(td => { td.style.padding = '6px 4px'; td.style.border = '1px solid #e2e8f0'; td.style.textAlign = 'center'; td.style.fontSize = '9px'; if(td.querySelector('.cell-empty')) { td.style.color = '#cbd5e1'; } });
+            pdfWrap.querySelectorAll('.cell-fecha').forEach(td => { td.style.color = '#64748b'; td.style.setProperty('font-size', '9px', 'important'); });
+            pdfWrap.querySelectorAll('.cell-dia').forEach(td => { td.style.fontWeight = 'bold'; td.style.color = '#263fa4'; td.style.setProperty('font-size', '9px', 'important'); });
+            pdfWrap.querySelectorAll('.cell-horas-te').forEach(span => { span.style.color = '#0f766e'; span.style.fontWeight = 'bold'; });
+            pdfWrap.querySelectorAll('.row-active').forEach(tr => { tr.style.backgroundColor = '#f0fdf4'; tr.querySelectorAll('td').forEach(td => { if(!td.querySelector('.cell-empty')) td.style.color = '#166534'; }); });
 
-            // Resaltar únicamente el día de hoy (si aplica en el PDF)
-            pdfWrap.querySelectorAll('.row-active').forEach(tr => {
-                tr.style.backgroundColor = '#f0fdf4';
-                tr.querySelectorAll('td').forEach(td => {
-                    if(!td.querySelector('.cell-empty')) td.style.color = '#166534';
-                });
-            });
-
-            const opt = {
-                margin:       [15, 15, 15, 15], 
-                filename:     `Biometrico_${nombreUsuario.replace(/ /g, '_')}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'pt', format: 'letter', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(pdfWrap).save().then(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                lucide.createIcons();
-            }).catch(err => {
-                console.error("Error generando el PDF:", err);
-                alert("Hubo un error al generar tu PDF.");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                lucide.createIcons();
-            });
+            const opt = { margin: [15, 15, 15, 15], filename: `Biometrico_${nombreUsuario.replace(/ /g, '_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'pt', format: 'letter', orientation: 'portrait' } };
+            html2pdf().set(opt).from(pdfWrap).save().then(() => { btn.innerHTML = originalText; btn.disabled = false; lucide.createIcons(); }).catch(err => { alert("Hubo un error al generar tu PDF."); btn.innerHTML = originalText; btn.disabled = false; lucide.createIcons(); });
         }
-
     </script>
 </body>
 </html>
