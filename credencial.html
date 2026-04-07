@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Credencial Digital | Loreto Ingeniería</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --primary-blue: #263fa4;
+            --light-blue: #eef2ff;
+            --bg-color: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success-bg: #f0fdf4;
+            --success-text: #166534;
+            --danger: #dc2626;
+        }
+
+        body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        /* --- HEADER Y LAYOUT --- */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: white; border-bottom: 1px solid var(--border-color); z-index: 50; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .menu-btn { background: none; border: none; cursor: pointer; color: var(--text-main); }
+        .header-title { margin: 0; font-size: 15px; font-weight: 700; color: var(--primary-blue); }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .user-initial { width: 35px; height: 35px; border-radius: 50%; background-color: var(--primary-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 260px; background: white; border-right: 1px solid var(--border-color); overflow-y: auto; transition: transform 0.3s ease; display: flex; flex-direction: column; }
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; height: calc(100vh - 60px); transform: translateX(-100%); z-index: 40; }
+            .sidebar.open { transform: translateX(0); }
+            .header-title { display: none; }
+        }
+
+        /* --- ESTILOS DEL MENÚ DINÁMICO (CORREGIDO) --- */
+        .sidebar-nav { padding: 15px 10px; }
+        .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        .sidebar-section:last-child { border-bottom: none; }
+        
+        .sidebar .section-title { 
+            font-size: 11px; font-weight: 800; color: var(--text-muted); 
+            text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px;
+            padding-bottom: 0; border-bottom: none; display: block;
+        }
+
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 8px; margin-bottom: 2px; transition: all 0.2s; }
+        .nav-item:hover { background-color: var(--bg-color); }
+        .nav-item.active { background-color: var(--light-blue); color: var(--primary-blue); font-weight: 700; border-left: 4px solid var(--primary-blue); }
+        .nav-item.active i { color: var(--primary-blue); }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .form-container { max-width: 900px; margin: 0 auto; padding-bottom: 50px; }
+        
+        .page-header { margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; text-align: center;}
+        .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
+        .page-header p { color: var(--text-muted); margin: 0; font-size: 14px; }
+
+        /* Loader */
+        .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
+
+        /* --- CREDENCIAL DISEÑO (10cm H x 7cm W) --- */
+        .credencial-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            width: 7cm;
+            height: 10cm;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            position: relative;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Frontal */
+        .card-front {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .top-banner {
+            width: 100%;
+            height: 0.8cm;
+            background-color: var(--primary-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .header-logos {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            margin-bottom: 10px;
+        }
+
+        .logo-1 { height: 18px; }
+        .logo-2 { height: 18px; }
+
+        .card-title {
+            color: var(--primary-blue);
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin: 0 0 15px 0;
+            text-align: center;
+        }
+
+        .employee-photo-slot {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--bg-color);
+            border: 2px solid var(--primary-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        .employee-photo-slot img { width: 100%; height: 100%; object-fit: cover; }
+        .employee-photo-slot i { width: 60px; height: 60px; color: #cbd5e1; }
+
+        .data-section {
+            width: 100%;
+            padding: 0 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .data-item { display: flex; flex-direction: column; gap: 2px;}
+        .data-label { font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+        .data-value { font-size: 12px; font-weight: 700; color: var(--text-main); margin: 0; }
+
+        .cargo-container {
+            margin-top: 10px;
+            width: 100%;
+            text-align: center;
+            padding: 0 10px;
+        }
+        .cargo-label { font-size: 11px; font-weight: 700; color: var(--primary-blue); text-transform: uppercase; }
+        .cargo-value { font-size: 14px; font-weight: 800; color: var(--primary-blue); margin: 3px 0 0 0; border-bottom: 2px solid var(--light-blue); display: inline-block; padding-bottom: 2px;}
+
+        .signature-section {
+            margin-top: auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+        .signature-line {
+            width: 80%;
+            border-top: 1px solid var(--text-main);
+            margin: 0 0 5px 0;
+        }
+        .signature-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .signature-slot {
+            width: 80%;
+            height: 40px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .signature-slot img { width: 100%; height: 100%; object-fit: contain; }
+        .signature-slot i { width: 30px; height: 30px; color: #cbd5e1; }
+
+        /* Posterior */
+        .card-back {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .back-logos {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .logo-1-sm { height: 15px; }
+        .logo-2-sm { height: 15px; }
+
+        .back-title {
+            color: var(--primary-blue);
+            font-size: 12px;
+            font-weight: 800;
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+
+        .info-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .info-label { font-size: 10px; font-weight: 700; color: var(--primary-blue); text-transform: uppercase; letter-spacing: 0.3px; }
+        .info-text { font-size: 11px; font-weight: 500; color: var(--text-main); margin: 0; line-height: 1.4; }
+
+        .emergency-group {
+            border: 1px dashed var(--border-color);
+            background: var(--bg-color);
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .qr-section {
+            margin-top: auto;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding-bottom: 10px;
+        }
+        .qr-slot {
+            width: 2cm;
+            height: 2cm;
+            background-color: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+        .qr-slot img { width: 100%; height: 100%; }
+        .qr-slot i { width: 50px; height: 50px; color: #cbd5e1; }
+
+        /* --- CARGO EDITABLE SECTION --- */
+        .cargo-editor {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-color);
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .cargo-editor h3 { font-size: 18px; font-weight: 700; color: var(--primary-blue); margin: 0; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group- cargo { margin-bottom: 0; }
+        .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .form-input-cargo { width: 100%; padding: 12px 15px; background-color: var(--bg-color); border: 1px solid transparent; border-radius: 10px; font-size: 14px; color: var(--text-main); box-sizing: border-box; outline: none; transition: all 0.2s; font-family: inherit; }
+        .form-input-cargo:focus { background-color: white; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(38,63,164,0.1); }
+
+        .btn-guardar {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(38,63,164,0.2);
+            transition: 0.2s;
+            width: 100%;
+        }
+        .btn-guardar:hover { background: #1a2a6e; }
+
+        /* --- BOTÓN FLOTANTE --- */
+        .fab-download {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 16px 24px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .fab-download:hover { transform: translateY(-5px); background-color: #b91c1c; }
+        @media (max-width: 768px) { .fab-download { bottom: 20px; right: 20px; padding: 14px 20px; font-size: 14px; } }
+        
+        /* Modales */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 100%; max-width: 350px; text-align: center; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .modal-content p { font-size: 15px; color: var(--text-main); margin-bottom: 20px; font-weight: 600; line-height: 1.5; }
+        .btn-modal { width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
+
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-btn" id="toggle-menu"><i data-lucide="menu"></i></button>
+            <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Logo" style="height: 35px; object-fit: contain;">
+            <h1 class="header-title">Credencial Digital</h1>
+        </div>
+        <div class="header-right">
+            <div class="user-initial" id="user-initial">U</div>
+            <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="User" height="35" style="border-radius:4px;">
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="content">
+            <div class="form-container">
+                <div class="page-header">
+                    <h1>Tu Identificación Oficial</h1>
+                    <p>Visualiza y gestiona tu credencial digital. Completa el Cargo para activarla.</p>
+                </div>
+
+                <div id="loader" class="loader-container">
+                    <i data-lucide="loader-2" class="animate-spin" style="width:40px; height:40px; margin-bottom: 15px;"></i>
+                    <p>Generando tu credencial desde el expediente...</p>
+                </div>
+
+                <div id="tablas-container" style="display: none;">
+                    
+                    <div class="credencial-wrapper">
+                        
+                        <div class="card card-front" id="credencial-front">
+                            <div class="top-banner">IDENTIFICACIÓN OFICIAL</div>
+                            <div class="header-logos">
+                                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" class="logo-1" alt="Logo 1">
+                                <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" class="logo-2" alt="Logo 2">
+                            </div>
+                            <h3 class="card-title">CREDENCIAL DE EMPLEADO</h3>
+                            
+                            <div class="employee-photo-slot" id="slot-photo">
+                                <i data-lucide="user"></i>
+                            </div>
+
+                            <div class="data-section">
+                                <div class="data-item"><p class="data-label">Nombre(s)</p><p class="data-value" id="label-nombre">[placeholder]</p></div>
+                                <div class="data-item"><p class="data-label">Apellido Paterno</p><p class="data-value" id="label-paterno">[placeholder]</p></div>
+                                <div class="data-item"><p class="data-label">Apellido Materno</p><p class="data-value" id="label-materno">[placeholder]</p></div>
+                                <div class="data-item"><p class="data-label">NSS</p><p class="data-value" id="label-nss">[placeholder]</p></div>
+                            </div>
+
+                            <div class="cargo-container">
+                                <p class="cargo-label">Cargo:</p>
+                                <p class="cargo-value" id="label-cargo">[placeholder]</p>
+                            </div>
+
+                            <div class="signature-section">
+                                <div class="signature-slot" id="slot-firma"><i data-lucide="pen-tool"></i></div>
+                                <div class="signature-line"></div>
+                                <p class="signature-label">FIRMA DEL TRABAJADOR</p>
+                            </div>
+                        </div>
+
+                        <div class="card card-back" id="credencial-back">
+                            <div class="back-logos">
+                                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" class="logo-1-sm" alt="Logo 1">
+                                <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" class="logo-2-sm" alt="Logo 2">
+                            </div>
+                            <h3 class="back-title">LORETO INGENIERÍA</h3>
+
+                            <div class="info-section">
+                                <div class="info-group emergency-group">
+                                    <p class="info-label">En caso de emergencia avisar a:</p>
+                                    <p class="info-text" id="label-emergencia-nombre">[placeholder]</p>
+                                    <p class="info-text">Teléfono: <span id="label-emergencia-tel">[placeholder]</span></p>
+                                </div>
+                                <div class="info-group">
+                                    <p class="info-label">Para aclaraciones sobre esta identificación contactar a:</p>
+                                    <p class="info-text">Loreto Ingeniería, S.A. de C.V.</p>
+                                    <p class="info-text">contacto@loreto.mx | verify.loreto.mx</p>
+                                </div>
+                            </div>
+
+                            <div class="qr-section">
+                                <div class="qr-slot" id="slot-qr">
+                                    <i data-lucide="qr-code"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="cargo-editor">
+                        <h3><i data-lucide="edit-3"></i> Actualizar tu Cargo</h3>
+                        <div class="form-group- cargo">
+                            <label class="form-label">Introduce tu Cargo Actual</label>
+                            <input type="text" class="form-input-cargo" id="input-cargo" placeholder="Ej: Residente de Obra, Arquitecto Junior">
+                        </div>
+                        <button type="button" class="btn-guardar" onclick="guardarCargo()"><i data-lucide="save"></i> Guardar Cargo</button>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <button id="btn-descargar-pdf" class="fab-download" onclick="generarPDF()">
+        <i data-lucide="file-pdf"></i> Descargar Credencial
+    </button>
+
+    <div id="modal-success-cargo" class="modal-overlay">
+        <div class="modal-content">
+            <i data-lucide="check-circle" style="color: var(--success-text); width: 48px; height: 48px; margin-bottom: 15px;"></i>
+            <p>Cargo actualizado exitosamente. Tu credencial ya lo muestra.</p>
+            <button class="btn-modal" style="background:var(--success-text); color:white; width:100%;" onclick="document.getElementById('modal-success-cargo').style.display='none'">Aceptar</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // CONFIGURACIÓN DE FIREBASE
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDkwUT5MrsJV2IMp18-RT20829M9c3-zfk",
+            authDomain: "loreto-ingenieria.firebaseapp.com",
+            projectId: "loreto-ingenieria",
+            storageBucket: "loreto-ingenieria.firebasestorage.app",
+            messagingSenderId: "873434501512",
+            appId: "1:873434501512:web:963903379a5e72cb092a3d"
+        };
+        
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.firestore();
+
+        // ==========================================
+        // 1. CARGAR MENÚ DINÁMICO
+        // ==========================================
+        fetch('menu.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('sidebar').innerHTML = html;
+                lucide.createIcons();
+                const linkInicio = document.getElementById('link-inicio');
+                if(linkInicio) linkInicio.classList.remove('active');
+                
+                const linkCredencial = document.getElementById('link-credencial');
+                if(linkCredencial) linkCredencial.classList.add('active');
+            });
+
+        document.getElementById('toggle-menu').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        const idUsuario = localStorage.getItem('usuario') || 'SinID';
+        const nombreUsuario = localStorage.getItem('nombre') || 'U';
+        document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
+
+        // ==========================================
+        // 2. CARGAR DATOS DESDE EXPEDIENTE (localStorage)
+        // ==========================================
+        function dataURItoBlob(dataURI) {
+            if(!dataURI) return null;
+            const byteString = atob(dataURI.split(',')[1]);
+            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+            return new Blob([ab], {type: mimeString});
+        }
+
+        async function cargarDatosCredencial() {
+            const guardado = localStorage.getItem('expediente_guardado_' + idUsuario);
+            
+            if(guardado) {
+                const datos = JSON.parse(guardado);
+
+                // Llenar Frontal
+                if(datos.nombre) document.getElementById('label-nombre').innerText = datos.nombre;
+                if(datos.paterno) document.getElementById('label-paterno').innerText = datos.paterno;
+                if(datos.materno) document.getElementById('label-materno').innerText = datos.materno;
+                if(datos.nss) document.getElementById('label-nss').innerText = datos.nss;
+                
+                // Cargar Foto (Selfie)
+                if(datos.fotos && datos.fotos.selfie && datos.fotos.selfie[0]) {
+                    document.getElementById('slot-photo').innerHTML = `<img src="${datos.fotos.selfie[0]}">`;
+                }
+
+                // Cargar Firma
+                if(datos.firma) {
+                    document.getElementById('slot-firma').innerHTML = `<img src="${datos.firma}">`;
+                }
+
+                // Cargar Cargo (si ya existe)
+                const cargoSaved = localStorage.getItem('credencial_cargo_' + idUsuario);
+                if(cargoSaved) {
+                    document.getElementById('label-cargo').innerText = cargoSaved;
+                    document.getElementById('input-cargo').value = cargoSaved;
+                } else {
+                    document.getElementById('label-cargo').innerText = "[Completa tu cargo]";
+                }
+
+                // Llenar Posterior
+                if(datos.emergencia_nombre) document.getElementById('label-emergencia-nombre').innerText = datos.emergencia_nombre;
+                if(datos.emergencia_tel) document.getElementById('label-emergencia-tel').innerText = datos.emergencia_tel;
+
+                // Generar QR (basado en síntesis del contexto Loreto y image 3)
+                const textQR = `LORETO INGENIERÍA S.A. de C.V. | contacto@loreto.mx | verify.loreto.mx`;
+                const qrcodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(textQR)}`;
+                document.getElementById('slot-qr').innerHTML = `<img src="${qrcodeUrl}" alt="QR Code">`;
+
+                mostrarCredencial();
+
+            } else {
+                // No hay expediente, mostrar placeholders o modal de alerta
+                document.getElementById('tablas-container').innerHTML = `
+                    <div class="data-card" style="text-align:center; padding: 40px;">
+                        <i data-lucide="alert-triangle" style="width:48px; height:48px; color:var(--danger); margin-bottom:15px;"></i>
+                        <h2 style="color:var(--primary-blue);">Sin Expediente</h2>
+                        <p style="color:var(--text-muted);">No hemos encontrado un expediente guardado para tu usuario. Debes completar primero tu expediente personal en el menú correspondiente para generar tu credencial.</p>
+                        <a href="expediente.html" style="display:inline-block; margin-top:15px; background:var(--primary-blue); color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold;">Ir a Expediente</a>
+                    </div>
+                `;
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('tablas-container').style.display = 'block';
+                lucide.createIcons();
+            }
+        }
+
+        function mostrarCredencial() {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('tablas-container').style.display = 'block';
+            document.getElementById('btn-descargar-pdf').style.display = 'flex';
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // 3. EDITAR Y GUARDAR CARGO
+        // ==========================================
+        function guardarCargo() {
+            const inputCargo = document.getElementById('input-cargo').value.trim();
+            if(inputCargo === '') {
+                // Alerta básica si está vacío
+                alert("Por favor, introduce tu cargo.");
+                return;
+            }
+
+            // Actualizar vista credencial
+            document.getElementById('label-cargo').innerText = inputCargo;
+            
+            // Guardar en localStorage
+            localStorage.setItem('credencial_cargo_' + idUsuario, inputCargo);
+            
+            // Opcional: Guardar en Firestore también si lo requieres
+            db.collection("expedientes_personal").doc(idUsuario).set({
+                cargo_credencial: inputCargo,
+                fecha_actualizacion_cargo: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            document.getElementById('modal-success-cargo').style.display = 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', cargarDatosCredencial);
+
+        // ==========================================
+        // 4. GENERAR PDF (Formato Carta, Ambos Lados)
+        // ==========================================
+        function generarPDF() {
+            const btn = document.getElementById('btn-descargar-pdf');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando PDF...';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            const fechaHoraDescarga = new Date().toLocaleString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            
+            // Contenedor para el PDF (fuera de la vista)
+            const pdfWrap = document.createElement('div');
+            pdfWrap.style.width = '794px'; // ~Letter width en pt
+            pdfWrap.style.backgroundColor = 'white';
+            pdfWrap.style.color = '#1e293b';
+            pdfWrap.style.fontFamily = "'Inter', sans-serif";
+            pdfWrap.style.padding = '40px';
+            pdfWrap.style.display = 'flex';
+            pdfWrap.style.flexDirection = 'column';
+            pdfWrap.style.alignItems = 'center';
+            pdfWrap.style.gap = '40px';
+
+            // Clona la credencial frontal y posterior, asegurando las dimensiones
+            const frontClone = document.getElementById('credencial-front').cloneNode(true);
+            const backClone = document.getElementById('credencial-back').cloneNode(true);
+
+            [frontClone, backClone].forEach(clone => {
+                clone.style.width = '7cm';
+                clone.style.height = '10cm';
+                clone.style.boxShadow = 'none'; // Quitar sombra para impresión
+                clone.style.border = '1px solid #e2e8f0'; // Mantener borde fino
+                clone.style.margin = '0';
+                clone.style.overflow = 'hidden';
+                clone.style.position = 'relative';
+                clone.style.display = 'flex';
+                clone.style.flexDirection = 'column';
+                clone.style.background = 'white';
+                
+                // Forzar color de banner
+                const banner = clone.querySelector('.top-banner');
+                if(banner) {
+                    banner.style.backgroundColor = '#263fa4';
+                    banner.style.color = 'white';
+                }
+                
+                // Forzar color de Cargo y títulos azules
+                clone.querySelectorAll('.cargo-value, .card-title, .back-title, .cargo-label, .info-label').forEach(el => {
+                    el.style.color = '#263fa4';
+                });
+                
+                // Forzar el QR (img)
+                const qrSlot = clone.querySelector('.qr-slot');
+                if(qrSlot) {
+                    qrSlot.style.display = 'flex';
+                    qrSlot.style.justifyContent = 'center';
+                    qrSlot.style.alignItems = 'center';
+                    qrSlot.style.padding = '5px';
+                    qrSlot.querySelector('img').style.width = '2cm';
+                    qrSlot.querySelector('img').style.height = '2cm';
+                }
+
+                // Forzar la firma y foto
+                const signatureSlot = clone.querySelector('.signature-slot');
+                if(signatureSlot && signatureSlot.querySelector('img')) {
+                    signatureSlot.querySelector('img').style.width = '100%';
+                    signatureSlot.querySelector('img').style.height = '100%';
+                    signatureSlot.querySelector('img').style.objectFit = 'contain';
+                }
+                const photoSlot = clone.querySelector('.employee-photo-slot');
+                if(photoSlot && photoSlot.querySelector('img')) {
+                    photoSlot.querySelector('img').style.width = '120px';
+                    photoSlot.querySelector('img').style.height = '120px';
+                    photoSlot.querySelector('img').style.objectFit = 'cover';
+                    photoSlot.style.borderRadius = '50%';
+                    photoSlot.style.border = '2px solid #263fa4';
+                }
+            });
+
+            pdfWrap.appendChild(frontClone);
+            pdfWrap.appendChild(backClone);
+            
+            // Pie de página para impresión
+            const printFooter = document.createElement('div');
+            printFooter.style.textAlign = 'center';
+            printFooter.style.fontSize = '9px';
+            printFooter.style.color = '#64748b';
+            printFooter.style.marginTop = '40px';
+            printFooter.style.borderTop = '1px solid #e2e8f0';
+            printFooter.style.paddingTop = '10px';
+            printFooter.innerHTML = `Identificación Oficial generada el: ${fechaHoraDescarga}. Loreto Ingeniería S.A. de C.V.`;
+            pdfWrap.appendChild(printFooter);
+
+            // Opciones html2pdf
+            const opt = {
+                margin:       [30, 30, 30, 30], // Márgenes de la hoja carta
+                filename:     `Credencial_${nombreUsuario.replace(/ /g, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'pt', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(pdfWrap).save().then(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                lucide.createIcons();
+            }).catch(err => {
+                console.error("Error generando el PDF:", err);
+                alert("Hubo un error al generar tu PDF.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                lucide.createIcons();
+            });
+        }
+
+    </script>
+</body>
+</html>
