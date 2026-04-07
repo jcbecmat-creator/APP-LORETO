@@ -60,7 +60,7 @@
 
         /* --- FORMULARIOS ESTILO TARJETAS --- */
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .form-container { max-width: 900px; margin: 0 auto; padding-bottom: 50px; }
+        .form-container { max-width: 900px; margin: 0 auto; padding-bottom: 100px; }
         
         .page-header { margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
@@ -92,7 +92,7 @@
         .doc-item label { font-size: 11px; font-weight: 700; color: var(--primary-blue); display: block; margin-bottom: 10px; height: 30px; }
         .doc-item .photo-slot { max-width: 100%; aspect-ratio: 4/3; margin-bottom: 10px; }
 
-        /* --- VISUALIZADOR DE IMÁGENES (NUEVO) --- */
+        /* --- VISUALIZADOR DE IMÁGENES --- */
         #image-viewer-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center;
@@ -121,6 +121,15 @@
         .btn-actualizar { background: var(--success); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: 0.2s; }
         .btn-actualizar:hover { background: #059669; }
 
+        /* --- BOTÓN FLOTANTE ADMINISTRADOR --- */
+        .fab-admin-close {
+            position: fixed; bottom: 30px; right: 30px; background-color: var(--danger); color: white; border: none; border-radius: 50px;
+            padding: 16px 24px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+            display: none; align-items: center; gap: 10px; z-index: 1000; transition: transform 0.2s;
+        }
+        .fab-admin-close:hover { transform: translateY(-5px); background-color: #b91c1c; }
+        @media (max-width: 768px) { .fab-admin-close { bottom: 20px; right: 20px; padding: 14px 20px; font-size: 14px; } }
+
         /* --- MODO BLOQUEADO --- */
         .is-locked .form-input, .is-locked .form-select { pointer-events: none; opacity: 0.7; }
         .is-locked .photo-controls { display: none; }
@@ -146,9 +155,9 @@
         <div class="header-left">
             <button class="menu-btn" id="toggle-menu"><i data-lucide="menu"></i></button>
             <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Logo" style="height: 35px; object-fit: contain;">
-            <h1 class="header-title">Expediente</h1>
+            <h1 class="header-title" id="titulo-pagina">Expediente</h1>
         </div>
-        <div class="header-right">
+        <div class="header-right" id="header-right">
             <div class="user-initial" id="user-initial">U</div>
             <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="User" height="35" style="border-radius:4px;">
         </div>
@@ -160,15 +169,15 @@
         <main class="content">
             <div class="form-container">
                 <div class="page-header">
-                    <h1>Expediente Personal</h1>
-                    <p>Completa tu información. Puedes guardar tu avance y continuar después.</p>
+                    <h1 id="titulo-principal">Expediente Personal</h1>
+                    <p id="subtitulo-principal">Completa tu información. Puedes guardar tu avance y continuar después.</p>
                 </div>
 
                 <form id="expedienteForm">
                     
                     <div class="form-card">
                         <h3 class="section-title"><i data-lucide="camera"></i> Fotografía del Trabajador</h3>
-                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Tómate una selfie clara, con buena iluminación y sin accesorios (gorras, lentes oscuros).</p>
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;" class="hide-in-admin">Tómate una selfie clara, con buena iluminación y sin accesorios (gorras, lentes oscuros).</p>
                         
                         <div class="photo-controls" style="max-width: 300px; margin: 0 auto 15px auto;">
                             <button type="button" class="btn-photo" onclick="triggerCamera('selfie')"><i data-lucide="camera"></i> Cámara</button>
@@ -340,7 +349,7 @@
 
                     <div class="form-card">
                         <h3 class="section-title"><i data-lucide="files"></i> Documentos Adjuntos</h3>
-                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Toma una foto clara o sube el archivo de cada documento solicitado.</p>
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;" class="hide-in-admin">Toma una foto clara o sube el archivo de cada documento solicitado.</p>
                         
                         <div class="docs-grid">
                             <div class="doc-item"><label>INE (Frente)</label><div id="slot-ine_frente-0" class="photo-slot"><i data-lucide="credit-card" style="color:#cbd5e1;"></i></div><div class="photo-controls" style="margin-top:10px;"><button type="button" class="btn-photo" onclick="triggerCamera('ine_frente')"><i data-lucide="camera"></i></button><button type="button" class="btn-photo-sec" onclick="triggerFile('ine_frente')"><i data-lucide="upload"></i></button></div></div>
@@ -408,8 +417,11 @@
         </div>
     </div>
 
+    <button id="btn-cerrar-expediente" class="fab-admin-close" onclick="window.location.href='expedientes.html'">
+        <i data-lucide="x-circle"></i> Cerrar Expediente
+    </button>
+
     <script>
-        // ACTUALIZACIÓN DE CAMPOS: Se agregan las variables de Cuenta Bancaria
         const formCampos = [
             'nombre', 'paterno', 'materno', 'sexo', 'edad', 'fecha_nac', 'lugar_nac', 
             'nacionalidad', 'estado_civil', 'calle', 'num_ext', 'num_int', 'colonia', 
@@ -433,19 +445,40 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
+        // -------------------------------------------------------------
+        // LOGICA DE ADMINISTRADOR VS TRABAJADOR
+        // -------------------------------------------------------------
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewUid = urlParams.get('viewUid');
+        const isAdminView = !!viewUid;
+
+        const idUsuario = isAdminView ? viewUid : (localStorage.getItem('usuario') || 'SinID');
+        const nombreUsuario = isAdminView ? 'Admin' : (localStorage.getItem('nombre') || 'U');
+
         fetch('menu.html').then(res => res.text()).then(html => {
             document.getElementById('sidebar').innerHTML = html;
             lucide.createIcons();
             const linkInicio = document.getElementById('link-inicio'); if(linkInicio) linkInicio.classList.remove('active');
-            const linkExpediente = document.getElementById('link-expediente'); if(linkExpediente) linkExpediente.classList.add('active');
+            
+            if (isAdminView) {
+                const linkExpAdmin = document.getElementById('link-expedientes-admin'); 
+                if(linkExpAdmin) linkExpAdmin.classList.add('active');
+            } else {
+                const linkExpediente = document.getElementById('link-expediente'); 
+                if(linkExpediente) linkExpediente.classList.add('active');
+            }
         });
 
         document.getElementById('toggle-menu').addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('open'); });
-
-        const idUsuario = localStorage.getItem('usuario') || 'SinID';
-        const nombreUsuario = localStorage.getItem('nombre') || 'U';
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
-        lucide.createIcons();
+        
+        if(isAdminView) {
+            document.getElementById('titulo-pagina').innerText = "Visor de Expediente";
+            document.getElementById('titulo-principal').innerText = "Visor de Expediente (Solo Lectura)";
+            document.getElementById('subtitulo-principal').innerText = "Estás visualizando el expediente de un trabajador registrado en el sistema.";
+            document.getElementById('header-right').style.display = 'none';
+            document.querySelectorAll('.hide-in-admin').forEach(el => el.style.display = 'none');
+        }
 
         let fotos = { selfie: [null], ine_frente: [null], ine_vuelta: [null], cuenta: [null], comprobante: [null], cedula: [null], titulo: [null] };
         let activeTarget = ''; let currentFacingMode = 'environment'; let currentStream;
@@ -484,7 +517,6 @@
 
         function removeFoto(target) { fotos[target][0] = null; renderSlots(target); }
 
-        // FUNCIONES DEL VISUALIZADOR DE IMÁGENES
         function openImageViewer(src) {
             document.getElementById('image-viewer-img').src = src;
             document.getElementById('image-viewer-overlay').style.display = 'flex';
@@ -497,7 +529,6 @@
         function renderSlots(target) {
             const slot = document.getElementById(`slot-${target}-0`); if(!slot) return;
             if (fotos[target][0]) { 
-                // Al darle click a la imagen se hace zoom, y el botón X se separa con event.stopPropagation()
                 slot.innerHTML = `<img src="${fotos[target][0]}" onclick="openImageViewer(this.src)"><span class="remove-photo" onclick="event.stopPropagation(); removeFoto('${target}')">&times;</span>`; 
                 slot.style.border = "1px solid var(--border-color)"; 
             } 
@@ -533,10 +564,48 @@
         function bloquearEdicion() {
             document.getElementById('expedienteForm').classList.add('is-locked');
             formCampos.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = true; });
-            document.getElementById('action-buttons-view').style.display = 'flex'; document.getElementById('action-buttons-edit').style.display = 'none';
+            
+            if(isAdminView) {
+                // El Admin NUNCA puede editar el expediente desde esta vista, ocultamos los botones completamente.
+                document.getElementById('action-buttons-view').style.display = 'none'; 
+                document.getElementById('action-buttons-edit').style.display = 'none';
+                document.getElementById('btn-cerrar-expediente').style.display = 'flex';
+            } else {
+                document.getElementById('action-buttons-view').style.display = 'flex'; 
+                document.getElementById('action-buttons-edit').style.display = 'none';
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // CARGA DESDE FIREBASE (MODO ADMINISTRADOR)
+        async function cargarDatosAdmin() {
+            try {
+                const doc = await db.collection("expedientes_personal").doc(idUsuario).get();
+                if(doc.exists) {
+                    const datos = doc.data();
+                    formCampos.forEach(id => { const el = document.getElementById(id); if(el && datos[id]) el.value = datos[id]; });
+                    
+                    if(datos.urls_fotos) {
+                        Object.keys(datos.urls_fotos).forEach(target => {
+                            if(datos.urls_fotos[target]) {
+                                fotos[target] = [datos.urls_fotos[target]];
+                                renderSlots(target);
+                            }
+                        });
+                    }
+                    if(datos.url_firma) {
+                        document.getElementById('firma_trabajador_data').value = datos.url_firma;
+                        const img = new Image(); img.onload = () => { if(ctxFirma) ctxFirma.drawImage(img, 0, 0, canvasFirma.width, canvasFirma.height); }; img.src = datos.url_firma;
+                    }
+                }
+                bloquearEdicion();
+            } catch(e) {
+                console.error("Error al descargar expediente de Firebase:", e);
+                alert("Error al cargar la información del trabajador.");
+            }
+        }
+
+        // CARGA LOCAL (MODO TRABAJADOR)
         function guardarDatosLocales() {
             let datos = {}; formCampos.forEach(id => { const el = document.getElementById(id); if(el) datos[id] = el.value; });
             datos.fotos = fotos; datos.firma = document.getElementById('firma_trabajador_data').value;
@@ -560,7 +629,15 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', cargarDatosGuardados);
+        // INICIALIZACIÓN
+        document.addEventListener('DOMContentLoaded', () => {
+            if(isAdminView) {
+                cargarDatosAdmin();
+            } else {
+                cargarDatosGuardados();
+            }
+            lucide.createIcons();
+        });
 
         function dataURItoBlob(dataURI) {
             if(!dataURI) return null; const byteString = atob(dataURI.split(',')[1]); const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
@@ -572,6 +649,8 @@
 
         document.getElementById('expedienteForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            if(isAdminView) return; // Por seguridad extra
+
             const btnGuardar = document.getElementById('btn-guardar'); const textoOriginal = btnGuardar.innerHTML;
             btnGuardar.disabled = true; btnGuardar.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Guardando...'; lucide.createIcons();
 
