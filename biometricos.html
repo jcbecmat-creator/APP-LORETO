@@ -31,10 +31,18 @@
         .sidebar { width: 260px; background: white; border-right: 1px solid var(--border-color); overflow-y: auto; transition: transform 0.3s ease; display: flex; flex-direction: column; }
         @media (max-width: 768px) { .sidebar { position: fixed; height: calc(100vh - 60px); transform: translateX(-100%); z-index: 40; } .sidebar.open { transform: translateX(0); } .header-title { display: none; } }
 
+        /* --- ESTILOS DEL MENÚ DINÁMICO --- */
         .sidebar-nav { padding: 15px 10px; }
         .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .sidebar-section:last-child { border-bottom: none; }
-        .section-title-menu { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px; }
+        
+        /* CORRECCIÓN: Evita el choque de estilos con los títulos de la página principal */
+        .sidebar .section-title { 
+            font-size: 11px; font-weight: 800; color: var(--text-muted); 
+            text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px;
+            padding-bottom: 0; border-bottom: none; display: block;
+        }
+
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 8px; margin-bottom: 2px; transition: all 0.2s; }
         .nav-item:hover { background-color: var(--bg-color); }
         .nav-item.active { background-color: var(--light-blue); color: var(--primary-blue); font-weight: 700; border-left: 4px solid var(--primary-blue); }
@@ -229,7 +237,6 @@
                     const data = doc.data();
                     if (!data.fecha) return;
 
-                    // Extracción inteligente de la fecha literal guardada ("lunes, 6 de abril de 2026")
                     const regex = /(\d+)\s+de\s+([a-z]+)\s+de\s+(\d+)/i;
                     const match = data.fecha.match(regex);
 
@@ -334,7 +341,7 @@
             pdfWrap.innerHTML = `${crearHoja(document.getElementById('title-mes-actual').innerText, 'tbody-mes-actual')} <div class="html2pdf__page-break"></div> ${crearHoja(document.getElementById('title-mes-anterior').innerText, 'tbody-mes-anterior')}`;
 
             const celdas = pdfWrap.querySelectorAll('td');
-            celdas.forEach(td => { td.style.padding = '6px 4px'; td.style.border = '1px solid #e2e8f0'; td.style.textAlign = 'center'; td.style.fontSize = '9px'; if(td.querySelector('.cell-empty')) { td.style.color = '#cbd5e1'; } });
+            celdas.forEach(td => { td.style.padding = '5px 4px'; td.style.border = '1px solid #e2e8f0'; td.style.textAlign = 'center'; td.style.fontSize = '9px'; if(td.querySelector('.cell-empty')) { td.style.color = '#cbd5e1'; } });
             pdfWrap.querySelectorAll('.cell-fecha').forEach(td => { td.style.color = '#64748b'; td.style.setProperty('font-size', '9px', 'important'); });
             pdfWrap.querySelectorAll('.cell-dia').forEach(td => { td.style.fontWeight = 'bold'; td.style.color = '#263fa4'; td.style.setProperty('font-size', '9px', 'important'); });
             pdfWrap.querySelectorAll('.cell-horas-te').forEach(span => { span.style.color = '#0f766e'; span.style.fontWeight = 'bold'; });
