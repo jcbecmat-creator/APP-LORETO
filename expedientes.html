@@ -61,8 +61,13 @@
         
         /* --- ESTILOS DE LA TABLA --- */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; border: 1px solid var(--border-color); }
-        .data-table { width: 100%; border-collapse: collapse; min-width: 1050px; }
-        .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 14px 12px; text-align: left; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        
+        /* Modificado: Ancho mínimo aumentado para dar 15% más de espacio real a las columnas */
+        .data-table { width: 100%; border-collapse: collapse; min-width: 1250px; }
+        
+        /* Modificado: Encabezados (th) centrados */
+        .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 14px 12px; text-align: center; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        
         .data-table td { padding: 12px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-color); text-align: left; font-weight: 500; vertical-align: middle; }
         .data-table tr:last-child td { border-bottom: none; }
         .data-table tbody tr:hover { background-color: #f8fafc; }
@@ -140,13 +145,13 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 40px; text-align: center;">#</th>
-                                    <th style="width: 70px; text-align: center;">Foto</th>
-                                    <th style="width: 22%;">Nombre del Trabajador</th>
-                                    <th style="width: 26%;">Cargo</th>
-                                    <th style="width: 26%;">NSS</th>
-                                    <th style="width: 26%;">Cuenta CLABE</th>
-                                    <th style="text-align: center; width: 160px;">Acción</th>
+                                    <th style="width: 40px;">#</th>
+                                    <th style="width: 70px;">Foto</th>
+                                    <th style="width: 25%;">Nombre del Trabajador</th>
+                                    <th style="width: 25%;">Cargo</th>
+                                    <th style="width: 25%;">NSS</th>
+                                    <th style="width: 25%;">Cuenta CLABE</th>
+                                    <th style="width: 185px;">Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-expedientes">
@@ -228,10 +233,9 @@
                 listaTrabajadores.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
                 let html = '';
-                let contador = 1; // Inicializamos el contador
+                let contador = 1;
 
                 listaTrabajadores.forEach(trabajador => {
-                    // Preparamos la imagen o el icono por defecto
                     const fotoHtml = trabajador.fotoUrl 
                         ? `<img src="${trabajador.fotoUrl}" class="table-photo" onclick="openImageViewer(this.src)" title="Clic para ampliar">` 
                         : `<div class="table-photo-empty"><i data-lucide="user"></i></div>`;
@@ -240,10 +244,10 @@
                         <tr>
                             <td style="text-align: center; font-weight: 700; color: var(--text-muted);">${contador}</td>
                             <td style="text-align: center;">${fotoHtml}</td>
-                            <td style="font-weight: 700; color: var(--primary-blue);">${trabajador.nombre}</td>
-                            <td>${trabajador.cargo}</td>
-                            <td style="font-family: monospace; font-size: 14px; letter-spacing: 0.5px;">${trabajador.nss}</td>
-                            <td style="font-family: monospace; font-size: 14px; letter-spacing: 0.5px;">${trabajador.clabe}</td>
+                            <td style="font-weight: 700; color: var(--primary-blue); text-align: center;">${trabajador.nombre}</td>
+                            <td style="text-align: center;">${trabajador.cargo}</td>
+                            <td style="font-family: monospace; font-size: 14px; letter-spacing: 0.5px; text-align: center;">${trabajador.nss}</td>
+                            <td style="font-family: monospace; font-size: 14px; letter-spacing: 0.5px; text-align: center;">${trabajador.clabe}</td>
                             <td style="text-align: center;">
                                 <a href="expediente.html?viewUid=${trabajador.id}" class="btn-ver-expediente">
                                     <i data-lucide="file-text"></i> Ver expediente
@@ -251,13 +255,13 @@
                             </td>
                         </tr>
                     `;
-                    contador++; // Aumentamos el contador en 1 para la siguiente fila
+                    contador++;
                 });
 
                 document.getElementById('tbody-expedientes').innerHTML = html;
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('tabla-container').style.display = 'block';
-                lucide.createIcons(); // Renderizamos los iconos inyectados en la tabla
+                lucide.createIcons();
 
             } catch (error) {
                 console.error("Error al cargar los expedientes:", error);
