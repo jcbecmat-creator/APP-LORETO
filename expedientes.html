@@ -51,7 +51,9 @@
 
         /* --- CONTENIDO PRINCIPAL --- */
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .container { max-width: 1200px; margin: 0 auto; padding-bottom: 50px; }
+        
+        /* MODIFICADO: El contenedor ahora abarca el 95% de la pantalla para aprovechar todo el ancho */
+        .container { max-width: 96%; margin: 0 auto; padding-bottom: 50px; }
         
         .page-header { margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
@@ -60,20 +62,17 @@
         .data-card { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-color); }
         
         /* --- ESTILOS DE LA TABLA --- */
+        /* Se elimina el desbordamiento innecesario en pantallas grandes */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; border: 1px solid var(--border-color); }
+        .data-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
         
-        /* Modificado: Ancho mínimo aumentado para dar 15% más de espacio real a las columnas */
-        .data-table { width: 100%; border-collapse: collapse; min-width: 1250px; }
-        
-        /* Modificado: Encabezados (th) centrados */
         .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 14px 12px; text-align: center; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
-        
-        .data-table td { padding: 12px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-color); text-align: left; font-weight: 500; vertical-align: middle; }
+        .data-table td { padding: 12px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-color); text-align: center; font-weight: 500; vertical-align: middle; }
         .data-table tr:last-child td { border-bottom: none; }
         .data-table tbody tr:hover { background-color: #f8fafc; }
 
         /* Miniatura de la foto en la tabla */
-        .table-photo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; cursor: zoom-in; border: 1px solid var(--border-color); transition: transform 0.2s; }
+        .table-photo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; cursor: zoom-in; border: 1px solid var(--border-color); transition: transform 0.2s; margin: 0 auto; display: block;}
         .table-photo:hover { transform: scale(1.05); border-color: var(--primary-blue); }
         .table-photo-empty { width: 45px; height: 45px; border-radius: 8px; background: var(--bg-color); display: flex; align-items: center; justify-content: center; color: #cbd5e1; border: 1px dashed #cbd5e1; margin: 0 auto;}
 
@@ -92,7 +91,9 @@
             gap: 8px;
             transition: background-color 0.2s;
             width: 100%;
+            max-width: 160px;
             box-sizing: border-box;
+            margin: 0 auto;
         }
         .btn-ver-expediente:hover { background-color: #b91c1c; }
 
@@ -147,11 +148,11 @@
                                 <tr>
                                     <th style="width: 40px;">#</th>
                                     <th style="width: 70px;">Foto</th>
-                                    <th style="width: 25%;">Nombre del Trabajador</th>
-                                    <th style="width: 25%;">Cargo</th>
-                                    <th style="width: 25%;">NSS</th>
-                                    <th style="width: 25%;">Cuenta CLABE</th>
-                                    <th style="width: 185px;">Acción</th>
+                                    <th style="width: 24%;">Nombre del Trabajador</th>
+                                    <th style="width: 22%;">Cargo</th>
+                                    <th style="width: 19%;">NSS</th>
+                                    <th style="width: 20%;">Cuenta CLABE</th>
+                                    <th style="width: 160px;">Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-expedientes">
@@ -250,7 +251,7 @@
                             <td style="font-family: monospace; font-size: 14px; letter-spacing: 0.5px; text-align: center;">${trabajador.clabe}</td>
                             <td style="text-align: center;">
                                 <a href="expediente.html?viewUid=${trabajador.id}" class="btn-ver-expediente">
-                                    <i data-lucide="file-text"></i> Ver expediente
+                                    <i data-lucide="file-text"></i> Ver
                                 </a>
                             </td>
                         </tr>
