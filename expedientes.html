@@ -51,8 +51,6 @@
 
         /* --- CONTENIDO PRINCIPAL --- */
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        
-        /* MODIFICADO: El contenedor ahora abarca el 95% de la pantalla para aprovechar todo el ancho */
         .container { max-width: 96%; margin: 0 auto; padding-bottom: 50px; }
         
         .page-header { margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
@@ -62,12 +60,14 @@
         .data-card { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-color); }
         
         /* --- ESTILOS DE LA TABLA --- */
-        /* Se elimina el desbordamiento innecesario en pantallas grandes */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; border: 1px solid var(--border-color); }
-        .data-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        .data-table { width: 100%; border-collapse: collapse; min-width: 1250px; }
         
+        /* Encabezados centrados */
         .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 14px 12px; text-align: center; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
-        .data-table td { padding: 12px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-color); text-align: center; font-weight: 500; vertical-align: middle; }
+        
+        /* Celdas alineadas a la izquierda por defecto */
+        .data-table td { padding: 12px 15px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-color); text-align: left; font-weight: 500; vertical-align: middle; }
         .data-table tr:last-child td { border-bottom: none; }
         .data-table tbody tr:hover { background-color: #f8fafc; }
 
@@ -148,11 +148,11 @@
                                 <tr>
                                     <th style="width: 40px;">#</th>
                                     <th style="width: 70px;">Foto</th>
-                                    <th style="width: 24%;">Nombre del Trabajador</th>
-                                    <th style="width: 22%;">Cargo</th>
-                                    <th style="width: 19%;">NSS</th>
-                                    <th style="width: 20%;">Cuenta CLABE</th>
-                                    <th style="width: 160px;">Acción</th>
+                                    <th style="width: 25%;">Nombre del Trabajador</th>
+                                    <th style="width: 25%;">Cargo</th>
+                                    <th style="width: 25%;">NSS</th>
+                                    <th style="width: 25%;">Cuenta CLABE</th>
+                                    <th style="width: 185px;">Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-expedientes">
@@ -245,13 +245,13 @@
                         <tr>
                             <td style="text-align: center; font-weight: 700; color: var(--text-muted);">${contador}</td>
                             <td style="text-align: center;">${fotoHtml}</td>
-                            <td style="font-weight: 700; color: var(--primary-blue); text-align: center;">${trabajador.nombre}</td>
-                            <td style="text-align: center;">${trabajador.cargo}</td>
-                            <td style="font-family: monospace; font-size: 14px; letter-spacing: 0.5px; text-align: center;">${trabajador.nss}</td>
-                            <td style="font-family: monospace; font-size: 14px; letter-spacing: 0.5px; text-align: center;">${trabajador.clabe}</td>
+                            <td style="font-weight: 700; color: var(--primary-blue); text-align: left;">${trabajador.nombre}</td>
+                            <td style="text-align: left;">${trabajador.cargo}</td>
+                            <td style="font-family: monospace; font-size: 14px; letter-spacing: 0.5px; text-align: left;">${trabajador.nss}</td>
+                            <td style="font-family: monospace; font-size: 14px; letter-spacing: 0.5px; text-align: left;">${trabajador.clabe}</td>
                             <td style="text-align: center;">
                                 <a href="expediente.html?viewUid=${trabajador.id}" class="btn-ver-expediente">
-                                    <i data-lucide="file-text"></i> Ver
+                                    <i data-lucide="file-text"></i> Ver expediente
                                 </a>
                             </td>
                         </tr>
