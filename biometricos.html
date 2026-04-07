@@ -56,7 +56,7 @@
 
         /* --- CONTENIDO PRINCIPAL --- */
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .biometricos-container { max-width: 1000px; margin: 0 auto; padding-bottom: 80px; }
+        .biometricos-container { max-width: 1050px; margin: 0 auto; padding-bottom: 80px; }
         
         .page-header { margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
@@ -67,7 +67,7 @@
         
         /* --- ESTILOS DE LA TABLA --- */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; border: 1px solid var(--border-color); }
-        .data-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        .data-table { width: 100%; border-collapse: collapse; min-width: 800px; }
         .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 14px 12px; text-align: center; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
         .data-table td { padding: 12px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-color); text-align: center; font-weight: 500; }
         
@@ -80,6 +80,7 @@
         .cell-dia { font-weight: 800 !important; color: var(--primary-blue) !important; font-size: 14px !important; }
         .cell-fecha { text-transform: capitalize; color: var(--text-muted); font-size: 12px !important; }
         .cell-empty { color: #cbd5e1 !important; font-weight: 400 !important; }
+        .cell-horas-te { font-weight: 700; color: #0f766e; background-color: #d1fae5; border-radius: 4px; padding: 4px 8px; display: inline-block;}
 
         /* Loader */
         .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
@@ -98,26 +99,15 @@
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
-            display: none; /* Se oculta hasta que cargan los datos */
+            display: none;
             align-items: center;
             gap: 10px;
             z-index: 1000;
             transition: transform 0.2s, background-color 0.2s;
         }
 
-        .fab-download:hover {
-            transform: translateY(-5px);
-            background-color: #b91c1c;
-        }
-
-        @media (max-width: 768px) {
-            .fab-download {
-                bottom: 20px;
-                right: 20px;
-                padding: 14px 20px;
-                font-size: 14px;
-            }
-        }
+        .fab-download:hover { transform: translateY(-5px); background-color: #b91c1c; }
+        @media (max-width: 768px) { .fab-download { bottom: 20px; right: 20px; padding: 14px 20px; font-size: 14px; } }
     </style>
 </head>
 <body>
@@ -164,6 +154,7 @@
                                         <th>Salida</th>
                                         <th>Entrada T.E.</th>
                                         <th>Salida T.E.</th>
+                                        <th>Horas T.E. Realizadas</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbody-mes-actual">
@@ -185,6 +176,7 @@
                                         <th>Salida</th>
                                         <th>Entrada T.E.</th>
                                         <th>Salida T.E.</th>
+                                        <th>Horas T.E. Realizadas</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbody-mes-anterior">
@@ -216,9 +208,7 @@
             appId: "1:873434501512:web:963903379a5e72cb092a3d"
         };
         
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
         // ==========================================
@@ -243,6 +233,44 @@
         const idUsuario = localStorage.getItem('usuario');
         const nombreUsuario = localStorage.getItem('nombre') || 'Usuario Desconocido';
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
+
+        // ==========================================
+        // FUNCIONES AUXILIARES: CALCULAR HORAS EXTRA
+        // ==========================================
+        function calcularDiferenciaTE(entrada, salida) {
+            if (entrada === '-' || salida === '-') return '-';
+
+            // Convertir texto "05:30 p.m." o "17:30:00" a objeto Date
+            function parseTime(timeStr) {
+                const match = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(a\.?m\.?|p\.?m\.?|am|pm)?/i);
+                if (!match) return null;
+                
+                let hours = parseInt(match[1], 10);
+                const mins = parseInt(match[2], 10);
+                const modifier = match[4] ? match[4].toLowerCase().replace(/\./g, '') : '';
+
+                if (modifier === 'pm' && hours < 12) hours += 12;
+                if (modifier === 'am' && hours === 12) hours = 0;
+
+                const date = new Date();
+                date.setHours(hours, mins, 0, 0);
+                return date;
+            }
+
+            const t1 = parseTime(entrada);
+            const t2 = parseTime(salida);
+
+            if (!t1 || !t2) return '-';
+
+            let diffMs = t2 - t1;
+            // Si la salida es menor que la entrada (pasó la medianoche)
+            if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
+
+            const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+            return `${diffHrs}h ${diffMins.toString().padStart(2, '0')}m`;
+        }
 
         // ==========================================
         // 2. LÓGICA DE FECHAS Y TABLAS
@@ -330,6 +358,10 @@
                     
                     const getCelda = (valor) => valor === '-' ? `<span class="cell-empty">-</span>` : valor;
                     const getSitio = (valor) => valor === '' ? `<span class="cell-empty">Sin registro</span>` : `<span style="font-weight:600;">${valor}</span>`;
+                    
+                    // Calculamos las horas T.E
+                    const horasTE = calcularDiferenciaTE(fila.entradaExt, fila.salidaExt);
+                    const htmlHorasTE = horasTE === '-' ? `<span class="cell-empty">-</span>` : `<span class="cell-horas-te">${horasTE}</span>`;
 
                     html += `
                         <tr class="${claseFila}">
@@ -340,6 +372,7 @@
                             <td>${getCelda(fila.salida)}</td>
                             <td>${getCelda(fila.entradaExt)}</td>
                             <td>${getCelda(fila.salidaExt)}</td>
+                            <td>${htmlHorasTE}</td>
                         </tr>
                     `;
                 }
@@ -359,13 +392,12 @@
         document.addEventListener('DOMContentLoaded', cargarAsistencias);
 
         // ==========================================
-        // 4. LÓGICA DE GENERACIÓN DE PDF
+        // 4. LÓGICA DE GENERACIÓN DE PDF OPTIMIZADA
         // ==========================================
         function generarPDF() {
             const btn = document.getElementById('btn-descargar-pdf');
             const originalText = btn.innerHTML;
             
-            // Estado de carga en el botón
             btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando PDF...';
             btn.disabled = true;
             lucide.createIcons();
@@ -375,37 +407,38 @@
                 hour: '2-digit', minute: '2-digit' 
             });
 
-            // Creamos un contenedor "virtual" que html2pdf va a leer
+            // Ajustamos el tamaño a 720px que encaja perfectamente en formato carta
             const pdfWrap = document.createElement('div');
-            pdfWrap.style.width = '800px'; 
+            pdfWrap.style.width = '750px'; 
             pdfWrap.style.backgroundColor = 'white';
             pdfWrap.style.color = '#1e293b';
 
-            // Plantilla para cada hoja tamaño carta
+            // Usamos un padding más pequeño en el PDF (20px en vez de 40px) y letras más compactas (9px-10px)
             const crearHoja = (titulo, tbodyId) => `
-                <div style="padding: 40px; background: white; font-family: 'Inter', sans-serif;">
+                <div style="padding: 20px 30px; background: white; font-family: 'Inter', sans-serif;">
                     
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #263fa4; padding-bottom: 15px; margin-bottom: 25px;">
-                        <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 50px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #263fa4; padding-bottom: 10px; margin-bottom: 15px;">
+                        <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 40px;">
                         <div style="text-align: center; color: #263fa4;">
-                            <h2 style="margin: 0; font-size: 22px; font-weight: 800; text-transform: uppercase;">BIOMÉTRICO</h2>
-                            <h3 style="margin: 5px 0 0 0; font-size: 16px; color: #1e293b; font-weight: 700;">${nombreUsuario}</h3>
+                            <h2 style="margin: 0; font-size: 18px; font-weight: 800; text-transform: uppercase;">BIOMÉTRICO</h2>
+                            <h3 style="margin: 3px 0 0 0; font-size: 14px; color: #1e293b; font-weight: 700;">${nombreUsuario}</h3>
                         </div>
-                        <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 50px; border-radius: 6px;">
+                        <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 40px; border-radius: 4px;">
                     </div>
                     
-                    <h3 style="color: #263fa4; font-size: 16px; margin-bottom: 15px; font-weight: bold;">${titulo}</h3>
+                    <h3 style="color: #263fa4; font-size: 14px; margin-bottom: 10px; font-weight: bold;">${titulo}</h3>
                     
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 10px;">
                         <thead>
                             <tr style="background-color: #eef2ff; color: #263fa4; text-transform: uppercase;">
-                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">#</th>
-                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">Día / Fecha</th>
-                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: left;">Sitio / Obra</th>
-                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">Entrada</th>
-                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">Salida</th>
-                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">Ent. Extra</th>
-                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">Sal. Extra</th>
+                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">#</th>
+                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Día / Fecha</th>
+                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: left;">Sitio / Obra</th>
+                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Entrada</th>
+                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Salida</th>
+                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Ent. Extra</th>
+                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Sal. Extra</th>
+                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Horas T.E.</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -413,23 +446,22 @@
                         </tbody>
                     </table>
 
-                    <div style="text-align: center; font-size: 11px; color: #64748b; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 15px; font-weight: 600;">
-                        Documento generado y descargado el: ${fechaHoraDescarga}
+                    <div style="text-align: center; font-size: 9px; color: #64748b; margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 10px; font-weight: 600;">
+                        Documento generado el: ${fechaHoraDescarga}
                     </div>
                 </div>
             `;
 
-            // Construimos el HTML combinando la hoja 1, un salto de página forzado, y la hoja 2
             pdfWrap.innerHTML = `
                 ${crearHoja(document.getElementById('title-mes-actual').innerText, 'tbody-mes-actual')}
                 <div class="html2pdf__page-break"></div>
                 ${crearHoja(document.getElementById('title-mes-anterior').innerText, 'tbody-mes-anterior')}
             `;
 
-            // Aplicar estilos "inline" para garantizar que la tabla del PDF se vea bien
+            // Aplicar estilos "inline" compactos para celdas del PDF
             const celdas = pdfWrap.querySelectorAll('td');
             celdas.forEach(td => {
-                td.style.padding = '8px';
+                td.style.padding = '4px'; // Menos padding para ahorrar espacio vertical
                 td.style.border = '1px solid #e2e8f0';
                 td.style.textAlign = 'center';
                 if(td.querySelector('.cell-empty')) { td.style.color = '#cbd5e1'; }
@@ -438,7 +470,12 @@
             pdfWrap.querySelectorAll('.cell-fecha').forEach(td => td.style.color = '#64748b');
             pdfWrap.querySelectorAll('.cell-dia').forEach(td => { td.style.fontWeight = 'bold'; td.style.color = '#263fa4'; });
             
-            // Fila pintada de verde si hubo asistencia
+            // Celdas de Horas TE en PDF
+            pdfWrap.querySelectorAll('.cell-horas-te').forEach(span => { 
+                span.style.color = '#0f766e'; 
+                span.style.fontWeight = 'bold';
+            });
+
             pdfWrap.querySelectorAll('.row-active').forEach(tr => {
                 tr.style.backgroundColor = '#f0fdf4';
                 tr.querySelectorAll('td').forEach(td => {
@@ -446,16 +483,15 @@
                 });
             });
 
-            // Configuración exacta para tamaño Carta (Letter)
+            // Ajuste de márgenes para que entre perfectamente en una página
             const opt = {
-                margin:       [0, 0, 0, 0], 
+                margin:       [15, 15, 15, 15], 
                 filename:     `Biometrico_${nombreUsuario.replace(/ /g, '_')}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'pt', format: 'letter', orientation: 'portrait' }
             };
 
-            // Generar PDF y restaurar botón
             html2pdf().set(opt).from(pdfWrap).save().then(() => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
