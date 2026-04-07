@@ -10,6 +10,8 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
@@ -21,6 +23,7 @@
             --border-color: #e2e8f0;
             --success-bg: #f0fdf4;
             --success-text: #166534;
+            --danger: #dc2626;
         }
 
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
@@ -53,7 +56,7 @@
 
         /* --- CONTENIDO PRINCIPAL --- */
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .biometricos-container { max-width: 1000px; margin: 0 auto; padding-bottom: 50px; }
+        .biometricos-container { max-width: 1000px; margin: 0 auto; padding-bottom: 80px; }
         
         .page-header { margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
@@ -71,7 +74,6 @@
         .data-table tr:last-child td { border-bottom: none; }
         .data-table tbody tr:hover { background-color: #f8fafc; }
         
-        /* Fila con datos (Asistió ese día) */
         .row-active { background-color: var(--success-bg) !important; }
         .row-active td { color: var(--success-text); }
         
@@ -81,6 +83,41 @@
 
         /* Loader */
         .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
+
+        /* --- BOTÓN FLOTANTE --- */
+        .fab-download {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 16px 24px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+            display: none; /* Se oculta hasta que cargan los datos */
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .fab-download:hover {
+            transform: translateY(-5px);
+            background-color: #b91c1c;
+        }
+
+        @media (max-width: 768px) {
+            .fab-download {
+                bottom: 20px;
+                right: 20px;
+                padding: 14px 20px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -162,9 +199,13 @@
         </main>
     </div>
 
+    <button id="btn-descargar-pdf" class="fab-download" onclick="generarPDF()">
+        <i data-lucide="file-down"></i> Descargar Biométrico
+    </button>
+
     <script>
         // ==========================================
-        // CONFIGURACIÓN DE FIREBASE (LORETO)
+        // CONFIGURACIÓN DE FIREBASE
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyDkwUT5MrsJV2IMp18-RT20829M9c3-zfk",
@@ -191,7 +232,6 @@
                 const linkInicio = document.getElementById('link-inicio');
                 if(linkInicio) linkInicio.classList.remove('active');
                 
-                // Asegúrate de que en menu.html el enlace de biométricos tenga id="link-biometricos"
                 const linkBiometricos = document.getElementById('link-biometricos');
                 if(linkBiometricos) linkBiometricos.classList.add('active');
             });
@@ -201,7 +241,7 @@
         });
 
         const idUsuario = localStorage.getItem('usuario');
-        const nombreUsuario = localStorage.getItem('nombre') || 'U';
+        const nombreUsuario = localStorage.getItem('nombre') || 'Usuario Desconocido';
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
 
         // ==========================================
@@ -215,25 +255,18 @@
 
         let mesAnterior = mesActual - 1;
         let añoAnterior = añoActual;
-        if (mesAnterior < 0) {
-            mesAnterior = 11; // Diciembre
-            añoAnterior--;
-        }
+        if (mesAnterior < 0) { mesAnterior = 11; añoAnterior--; }
 
-        // Títulos de las tarjetas
         document.getElementById('title-mes-actual').innerText = `Mes Actual: ${meses[mesActual]} ${añoActual}`;
         document.getElementById('title-mes-anterior').innerText = `Mes Anterior: ${meses[mesAnterior]} ${añoAnterior}`;
 
-        // Cuántos días tiene cada mes
         function diasEnElMes(mes, año) { return new Date(año, mes + 1, 0).getDate(); }
         const maxDiasActual = diasEnElMes(mesActual, añoActual);
         const maxDiasAnterior = diasEnElMes(mesAnterior, añoAnterior);
 
-        // Arrays vacíos para llenar la información (el índice coincide con el día del mes)
         let datosActual = Array.from({length: maxDiasActual + 1}, () => ({sitio: '', entrada: '-', salida: '-', entradaExt: '-', salidaExt: '-', fechaStr: ''}));
         let datosAnterior = Array.from({length: maxDiasAnterior + 1}, () => ({sitio: '', entrada: '-', salida: '-', entradaExt: '-', salidaExt: '-', fechaStr: ''}));
 
-        // Llenar las fechas formateadas (ej. Lun 06)
         for(let i = 1; i <= maxDiasActual; i++) {
             let d = new Date(añoActual, mesActual, i);
             datosActual[i].fechaStr = d.toLocaleDateString('es-MX', { weekday: 'short', day: '2-digit' }).replace('.', '');
@@ -247,25 +280,14 @@
         // 3. CONSULTA A FIREBASE Y LLENADO
         // ==========================================
         async function cargarAsistencias() {
-            if(!idUsuario) {
-                alert("No se detectó un usuario activo.");
-                return;
-            }
+            if(!idUsuario) return;
 
             try {
-                // Traemos todos los registros de este usuario (Firebase es muy rápido con esto)
-                const snapshot = await db.collection("registro_asistencia")
-                                         .where("usuario_id", "==", idUsuario)
-                                         .get();
+                const snapshot = await db.collection("registro_asistencia").where("usuario_id", "==", idUsuario).get();
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    
-                    // Aseguramos tener la fecha real en la que se guardó
-                    let fechaRegistro = null;
-                    if(data.timestamp) {
-                        fechaRegistro = data.timestamp.toDate();
-                    }
+                    let fechaRegistro = data.timestamp ? data.timestamp.toDate() : null;
 
                     if(fechaRegistro) {
                         const m = fechaRegistro.getMonth();
@@ -277,10 +299,8 @@
                         else if(m === mesAnterior && y === añoAnterior) targetData = datosAnterior;
 
                         if(targetData) {
-                            // Asignamos la ubicación de la obra en ese día
                             if(!targetData[d].sitio) targetData[d].sitio = data.sitio_obra;
 
-                            // Acomodamos la hora en la columna que le corresponde
                             const tipo = data.tipo_registro;
                             const hora = data.hora;
 
@@ -300,20 +320,14 @@
             }
         }
 
-        // ==========================================
-        // 4. PINTAR EL HTML DE LAS TABLAS
-        // ==========================================
         function pintarTablas() {
             const generarHTML = (arrayDatos) => {
                 let html = '';
                 for(let i = 1; i < arrayDatos.length; i++) {
                     const fila = arrayDatos[i];
-                    
-                    // Comprobamos si hay al menos un registro en ese día
                     const tieneDatos = (fila.entrada !== '-' || fila.salida !== '-' || fila.entradaExt !== '-');
                     const claseFila = tieneDatos ? 'row-active' : '';
                     
-                    // Formato visual de celdas vacías vs llenas
                     const getCelda = (valor) => valor === '-' ? `<span class="cell-empty">-</span>` : valor;
                     const getSitio = (valor) => valor === '' ? `<span class="cell-empty">Sin registro</span>` : `<span style="font-weight:600;">${valor}</span>`;
 
@@ -335,14 +349,125 @@
             document.getElementById('tbody-mes-actual').innerHTML = generarHTML(datosActual);
             document.getElementById('tbody-mes-anterior').innerHTML = generarHTML(datosAnterior);
 
-            // Ocultar loader y mostrar tablas
+            // Ocultar loader, mostrar tablas y botón flotante
             document.getElementById('loader').style.display = 'none';
             document.getElementById('tablas-container').style.display = 'block';
+            document.getElementById('btn-descargar-pdf').style.display = 'flex';
             lucide.createIcons();
         }
 
-        // Iniciar la descarga de datos al abrir la página
         document.addEventListener('DOMContentLoaded', cargarAsistencias);
+
+        // ==========================================
+        // 4. LÓGICA DE GENERACIÓN DE PDF
+        // ==========================================
+        function generarPDF() {
+            const btn = document.getElementById('btn-descargar-pdf');
+            const originalText = btn.innerHTML;
+            
+            // Estado de carga en el botón
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando PDF...';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            const fechaHoraDescarga = new Date().toLocaleString('es-MX', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
+                hour: '2-digit', minute: '2-digit' 
+            });
+
+            // Creamos un contenedor "virtual" que html2pdf va a leer
+            const pdfWrap = document.createElement('div');
+            pdfWrap.style.width = '800px'; 
+            pdfWrap.style.backgroundColor = 'white';
+            pdfWrap.style.color = '#1e293b';
+
+            // Plantilla para cada hoja tamaño carta
+            const crearHoja = (titulo, tbodyId) => `
+                <div style="padding: 40px; background: white; font-family: 'Inter', sans-serif;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #263fa4; padding-bottom: 15px; margin-bottom: 25px;">
+                        <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 50px;">
+                        <div style="text-align: center; color: #263fa4;">
+                            <h2 style="margin: 0; font-size: 22px; font-weight: 800; text-transform: uppercase;">BIOMÉTRICO</h2>
+                            <h3 style="margin: 5px 0 0 0; font-size: 16px; color: #1e293b; font-weight: 700;">${nombreUsuario}</h3>
+                        </div>
+                        <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 50px; border-radius: 6px;">
+                    </div>
+                    
+                    <h3 style="color: #263fa4; font-size: 16px; margin-bottom: 15px; font-weight: bold;">${titulo}</h3>
+                    
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px;">
+                        <thead>
+                            <tr style="background-color: #eef2ff; color: #263fa4; text-transform: uppercase;">
+                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">#</th>
+                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">Día / Fecha</th>
+                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: left;">Sitio / Obra</th>
+                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">Entrada</th>
+                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">Salida</th>
+                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">Ent. Extra</th>
+                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">Sal. Extra</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${document.getElementById(tbodyId).innerHTML}
+                        </tbody>
+                    </table>
+
+                    <div style="text-align: center; font-size: 11px; color: #64748b; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 15px; font-weight: 600;">
+                        Documento generado y descargado el: ${fechaHoraDescarga}
+                    </div>
+                </div>
+            `;
+
+            // Construimos el HTML combinando la hoja 1, un salto de página forzado, y la hoja 2
+            pdfWrap.innerHTML = `
+                ${crearHoja(document.getElementById('title-mes-actual').innerText, 'tbody-mes-actual')}
+                <div class="html2pdf__page-break"></div>
+                ${crearHoja(document.getElementById('title-mes-anterior').innerText, 'tbody-mes-anterior')}
+            `;
+
+            // Aplicar estilos "inline" para garantizar que la tabla del PDF se vea bien
+            const celdas = pdfWrap.querySelectorAll('td');
+            celdas.forEach(td => {
+                td.style.padding = '8px';
+                td.style.border = '1px solid #e2e8f0';
+                td.style.textAlign = 'center';
+                if(td.querySelector('.cell-empty')) { td.style.color = '#cbd5e1'; }
+            });
+            
+            pdfWrap.querySelectorAll('.cell-fecha').forEach(td => td.style.color = '#64748b');
+            pdfWrap.querySelectorAll('.cell-dia').forEach(td => { td.style.fontWeight = 'bold'; td.style.color = '#263fa4'; });
+            
+            // Fila pintada de verde si hubo asistencia
+            pdfWrap.querySelectorAll('.row-active').forEach(tr => {
+                tr.style.backgroundColor = '#f0fdf4';
+                tr.querySelectorAll('td').forEach(td => {
+                    if(!td.querySelector('.cell-empty')) td.style.color = '#166534';
+                });
+            });
+
+            // Configuración exacta para tamaño Carta (Letter)
+            const opt = {
+                margin:       [0, 0, 0, 0], 
+                filename:     `Biometrico_${nombreUsuario.replace(/ /g, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'pt', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Generar PDF y restaurar botón
+            html2pdf().set(opt).from(pdfWrap).save().then(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                lucide.createIcons();
+            }).catch(err => {
+                console.error("Error generando el PDF:", err);
+                alert("Hubo un error al generar tu PDF.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                lucide.createIcons();
+            });
+        }
 
     </script>
 </body>
