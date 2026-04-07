@@ -61,16 +61,19 @@
 
         /* --- CONTENIDO PRINCIPAL --- */
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .form-container { max-width: 900px; margin: 0 auto; padding-bottom: 50px; }
         
-        .page-header { margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; text-align: center;}
+        /* Modificado: padding-bottom a 100px para que el botón de Guardar no quede debajo del flotante en móviles */
+        .form-container { max-width: 900px; margin: 0 auto; padding-bottom: 100px; }
+        
+        /* Modificado: Eliminado text-align: center para alinear a la izquierda como el resto de las pantallas */
+        .page-header { margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
         .page-header p { color: var(--text-muted); margin: 0; font-size: 14px; }
 
         .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
 
         /* ==========================================
-           DISEÑO EXACTO DE LA CREDENCIAL (PPT)
+           DISEÑO EXACTO DE LA CREDENCIAL
            ========================================== */
         .credencial-wrapper {
             display: flex;
@@ -162,7 +165,7 @@
         }
         
         .cred-qr-container { 
-            border: 2px solid #ef4444; /* Borde rojo estilo PPT */
+            border: 2px solid #ef4444; 
             border-radius: 12px; 
             padding: 5px; 
             width: 140px; 
@@ -174,7 +177,6 @@
             position: relative;
         }
         
-        /* Detalles rojos en las esquinas del QR imitando el diseño */
         .cred-qr-container::before, .cred-qr-container::after {
             content: ''; position: absolute; width: 10px; height: 10px; background: #ef4444; border-radius: 2px;
         }
@@ -246,7 +248,7 @@
 
                 <div id="loader" class="loader-container">
                     <i data-lucide="loader-2" class="animate-spin" style="width:40px; height:40px; margin-bottom: 15px;"></i>
-                    <p>Obteniendo foto y firma desde la base de datos...</p>
+                    <p>Obteniendo datos desde la base de datos...</p>
                 </div>
 
                 <div id="tablas-container" style="display: none;">
@@ -254,7 +256,7 @@
                     <div class="credencial-wrapper">
                         
                         <div class="credencial-card" id="credencial-front">
-                            <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" class="cred-banner" alt="Banner">
+                            <img src="https://i.ibb.co/7N2r6VDT/LOGOTIPO-3.jpg" class="cred-banner" alt="Banner Frontal">
                             
                             <div class="cred-name" id="lbl-name">[NOMBRE COMPLETO]</div>
                             <div class="cred-nss" id="lbl-nss">NSS: S/N</div>
@@ -272,7 +274,7 @@
                         </div>
 
                         <div class="credencial-card" id="credencial-back">
-                            <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" class="cred-trucks" alt="Trucks">
+                            <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" class="cred-trucks" alt="Logo Posterior">
                             
                             <div class="cred-qr-container">
                                 <div style="position:absolute; bottom:10px; left:10px; width:10px; height:10px; background:#ef4444; border-radius:2px;"></div>
@@ -357,11 +359,10 @@
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
 
         // ==========================================
-        // 2. EXTRAER FOTO Y FIRMA DESDE FIRESTORE
+        // 2. EXTRAER DATOS DESDE FIRESTORE
         // ==========================================
         async function cargarDatosCredencial() {
             try {
-                // Buscamos directamente en la base de datos para asegurar que traemos la foto y firma real
                 const doc = await db.collection("expedientes_personal").doc(idUsuario).get();
                 
                 if (doc.exists) {
@@ -372,7 +373,8 @@
                     document.getElementById('lbl-name').innerText = nombreStr || nombreUsuario;
                     
                     // NSS
-                    document.getElementById('lbl-nss').innerText = `NSS: ${datos.nss || 'S/N'}`;
+                    const nssStr = datos.nss || 'S/N';
+                    document.getElementById('lbl-nss').innerText = `NSS: ${nssStr}`;
                     
                     // Foto
                     if (datos.urls_fotos && datos.urls_fotos.selfie) {
@@ -386,7 +388,7 @@
                         document.getElementById('img-firma').style.display = 'block';
                     }
 
-                    // Cargo (Revisa si se guardó en Firebase o local)
+                    // Cargo
                     const cargoSaved = datos.cargo_credencial || localStorage.getItem('credencial_cargo_' + idUsuario);
                     if (cargoSaved) {
                         document.getElementById('lbl-cargo').innerText = cargoSaved;
@@ -395,14 +397,20 @@
                         document.getElementById('lbl-cargo').innerText = " ";
                     }
 
-                    // Generar QR Profesional
-                    const textQR = `LORETO INGENIERÍA S.A. de C.V. | Empleado: ${nombreStr} | contacto@loreto.mx | verify.loreto.mx`;
-                    const qrcodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(textQR)}`;
+                    // Extraer RFC y CURP para el QR
+                    const rfcStr = datos.rfc || 'S/N';
+                    const curpStr = datos.curp || 'S/N';
+                    const vigenciaStr = '01/01/2026 - 31/12/2026';
+
+                    // Modificado: Generar QR con el nuevo formato estructurado
+                    const textQR = `Loreto Ingeniería, Construcción, Edificación y Remodelación\nEmpleado: ${nombreStr}\nNSS: ${nssStr}\nRFC: ${rfcStr}\nCURP: ${curpStr}\nVigencia: ${vigenciaStr}`;
+                    
+                    // Usamos encodeURIComponent para respetar los saltos de línea (\n)
+                    const qrcodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(textQR)}`;
                     document.getElementById('img-qr').src = qrcodeUrl;
 
                     mostrarCredencial();
                 } else {
-                    // Si no hay nada en Firebase, mostramos alerta
                     document.getElementById('tablas-container').innerHTML = `
                         <div class="data-card" style="text-align:center; padding: 40px;">
                             <i data-lucide="alert-triangle" style="width:48px; height:48px; color:var(--danger); margin-bottom:15px;"></i>
@@ -438,7 +446,6 @@
             document.getElementById('lbl-cargo').innerText = inputCargo;
             localStorage.setItem('credencial_cargo_' + idUsuario, inputCargo);
             
-            // Subirlo a Firebase para que no se borre
             db.collection("expedientes_personal").doc(idUsuario).set({
                 cargo_credencial: inputCargo
             }, { merge: true });
@@ -458,13 +465,13 @@
             btn.disabled = true;
             lucide.createIcons();
 
-            // Contenedor "Virtual" para el PDF
+            const fechaHoraDescarga = new Date().toLocaleString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            
             const pdfWrap = document.createElement('div');
             pdfWrap.style.width = '100%';
             pdfWrap.style.padding = '40px 0';
             pdfWrap.style.backgroundColor = 'white';
             
-            // Ponemos flex-row para que las tarjetas se pongan una al lado de la otra en la misma hoja
             const cardsContainer = document.createElement('div');
             cardsContainer.style.display = 'flex';
             cardsContainer.style.flexDirection = 'row';
@@ -477,26 +484,26 @@
             [frontClone, backClone].forEach(clone => {
                 clone.style.width = '7cm';
                 clone.style.height = '10cm';
-                clone.style.boxShadow = 'none'; // Quitar sombra en impresión
-                clone.style.border = '1px solid #94a3b8'; // Borde gris sutil para recortar
+                clone.style.boxShadow = 'none'; 
+                clone.style.border = '1px solid #94a3b8'; 
                 clone.style.margin = '0';
                 cardsContainer.appendChild(clone);
             });
 
             pdfWrap.appendChild(cardsContainer);
             
-            // Pie de página de impresión
             const printFooter = document.createElement('div');
             printFooter.style.textAlign = 'center';
             printFooter.style.fontSize = '9px';
             printFooter.style.color = '#64748b';
             printFooter.style.marginTop = '40px';
+            printFooter.style.borderTop = '1px solid #e2e8f0';
+            printFooter.style.paddingTop = '10px';
             printFooter.style.fontFamily = "Arial, sans-serif";
             const fechaD = new Date().toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' });
             printFooter.innerHTML = `Identificación Oficial generada el: ${fechaD}. Loreto Ingeniería S.A. de C.V.`;
             pdfWrap.appendChild(printFooter);
 
-            // Configuramos html2pdf sin salto de página para que quepa todo en vertical (portrait)
             const opt = {
                 margin:       20,
                 filename:     `Credencial_${nombreUsuario.replace(/ /g, '_')}.pdf`,
