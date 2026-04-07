@@ -77,8 +77,9 @@
         .row-active { background-color: var(--success-bg) !important; }
         .row-active td { color: var(--success-text); }
         
-        .cell-dia { font-weight: 800 !important; color: var(--primary-blue) !important; font-size: 14px !important; }
-        .cell-fecha { text-transform: capitalize; color: var(--text-muted); font-size: 12px !important; }
+        /* Modificado: Quitado el !important en font-size para que el PDF pueda sobreescribirlo */
+        .cell-dia { font-weight: 800 !important; color: var(--primary-blue) !important; font-size: 14px; }
+        .cell-fecha { text-transform: capitalize; color: var(--text-muted); font-size: 12px; }
         .cell-empty { color: #cbd5e1 !important; font-weight: 400 !important; }
         .cell-horas-te { font-weight: 700; color: #0f766e; background-color: #d1fae5; border-radius: 4px; padding: 4px 8px; display: inline-block;}
 
@@ -411,7 +412,6 @@
             pdfWrap.style.backgroundColor = 'white';
             pdfWrap.style.color = '#1e293b';
 
-            // Ajustamos el padding de los TH para un diseño limpio
             const crearHoja = (titulo, tbodyId) => `
                 <div style="padding: 20px 30px; background: white; font-family: 'Inter', sans-serif;">
                     
@@ -456,24 +456,25 @@
                 ${crearHoja(document.getElementById('title-mes-anterior').innerText, 'tbody-mes-anterior')}
             `;
 
-            // Encontramos el punto dulce de padding: 5px verticales
+            // Forzar estilos consistentes en todas las celdas del PDF (tamaño 9px)
             const celdas = pdfWrap.querySelectorAll('td');
             celdas.forEach(td => {
-                td.style.padding = '5px 4px'; // Ajuste del 1% menos respecto al de 6px que era mucho
+                td.style.padding = '4px 4px'; // Reducimos 1px el padding vertical
                 td.style.border = '1px solid #e2e8f0';
                 td.style.textAlign = 'center';
                 td.style.fontSize = '9px'; 
                 if(td.querySelector('.cell-empty')) { td.style.color = '#cbd5e1'; }
             });
             
+            // Forzamos explícitamente el tamaño de 9px para las primeras dos columnas en el PDF
             pdfWrap.querySelectorAll('.cell-fecha').forEach(td => {
                 td.style.color = '#64748b';
-                td.style.fontSize = '9px'; 
+                td.style.setProperty('font-size', '9px', 'important');
             });
             pdfWrap.querySelectorAll('.cell-dia').forEach(td => { 
                 td.style.fontWeight = 'bold'; 
                 td.style.color = '#263fa4'; 
-                td.style.fontSize = '9px'; 
+                td.style.setProperty('font-size', '9px', 'important');
             });
             
             pdfWrap.querySelectorAll('.cell-horas-te').forEach(span => { 
