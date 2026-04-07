@@ -97,7 +97,6 @@
         /* --- FRONTAL --- */
         .cred-banner { width: 100%; height: auto; display: block; }
         
-        /* Modificado: Nombre en Negritas */
         .cred-name { 
             font-size: 13px; 
             text-align: center; 
@@ -107,7 +106,6 @@
             font-weight: bold; 
         }
         
-        /* Modificado: NSS en Negritas */
         .cred-nss { 
             font-size: 14px; 
             text-align: center; 
@@ -127,7 +125,6 @@
         }
         .cred-photo img { width: 100%; height: 100%; object-fit: cover; display: none; }
         
-        /* Modificado: Cargo en Negritas */
         .cred-cargo { 
             text-align: center; 
             font-size: 14px; 
@@ -159,13 +156,21 @@
 
         /* --- POSTERIOR --- */
         
-        /* Modificado: Logotipo 2 incrementado un 15% (60px -> 69px) manteniendo márgenes */
+        /* Modificado: Contenedor rígido para que el PDF no lo mueva ni estire */
+        .cred-trucks-wrapper {
+            width: 100%;
+            height: 76px; /* Aumentado otro 10% */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+        
         .cred-trucks { 
-            width: 90%; 
-            margin: 15px auto; 
-            display: block; 
+            max-height: 100%; 
+            max-width: 90%; 
             object-fit: contain; 
-            height: 69px; 
         }
         
         .cred-qr-container { 
@@ -174,7 +179,7 @@
             padding: 5px; 
             width: 140px; 
             height: 140px; 
-            margin: 10px auto; 
+            margin: 5px auto; 
             display: flex; 
             align-items: center; 
             justify-content: center;
@@ -195,7 +200,7 @@
             padding: 0 15px; 
             line-height: 1.5; 
             margin-top: auto; 
-            margin-bottom: 25px; 
+            margin-bottom: 20px; 
         }
 
 
@@ -260,30 +265,33 @@
                     <div class="credencial-wrapper">
                         
                         <div class="credencial-card" id="credencial-front">
-                            <img src="https://i.ibb.co/7N2r6VDT/LOGOTIPO-3.jpg" class="cred-banner" alt="Banner Frontal">
+                            <img src="https://i.ibb.co/7N2r6VDT/LOGOTIPO-3.jpg" class="cred-banner" alt="Banner Frontal" crossorigin="anonymous">
                             
                             <div class="cred-name" id="lbl-name">[NOMBRE COMPLETO]</div>
                             <div class="cred-nss" id="lbl-nss">NSS: S/N</div>
                             
                             <div class="cred-photo">
-                                <img id="img-photo" src="" alt="Fotografía">
+                                <img id="img-photo" src="" alt="Fotografía" crossorigin="anonymous">
                             </div>
 
                             <div class="cred-cargo">Cargo: <strong id="lbl-cargo"></strong></div>
                             
-                            <img id="img-firma" class="cred-firma" src="" alt="Firma">
+                            <img id="img-firma" class="cred-firma" src="" alt="Firma" crossorigin="anonymous">
                             
                             <hr class="cred-line">
                             <div class="cred-valid">Válido:<br>01/01/2026 - 31/12/2026</div>
                         </div>
 
                         <div class="credencial-card" id="credencial-back">
-                            <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" class="cred-trucks" alt="Logo Posterior">
+                            
+                            <div class="cred-trucks-wrapper">
+                                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" class="cred-trucks" alt="Logo Posterior" crossorigin="anonymous">
+                            </div>
                             
                             <div class="cred-qr-container">
                                 <div style="position:absolute; bottom:10px; left:10px; width:10px; height:10px; background:#ef4444; border-radius:2px;"></div>
                                 <div style="position:absolute; bottom:10px; right:10px; width:10px; height:10px; background:#ef4444; border-radius:2px;"></div>
-                                <img id="img-qr" src="" alt="QR Code">
+                                <img id="img-qr" src="" alt="QR Code" crossorigin="anonymous">
                             </div>
 
                             <div class="cred-back-text">
@@ -363,53 +371,39 @@
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
 
         // ==========================================
-        // UTILERÍA: CONVERTIR URL DE IMAGEN A BASE64
-        // (Solución para que aparezcan en PDF)
-        // ==========================================
-        const imageUrlToBase64 = async (url) => {
-            if (!url) return null;
-            if (url.startsWith('data:')) return url; // Ya es base64
-            try {
-                const response = await fetch(url);
-                const blob = await response.blob();
-                return await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(blob);
-                });
-            } catch (e) {
-                console.error("Error convirtiendo imagen a base64", e);
-                return null; 
-            }
-        };
-
-        // ==========================================
-        // 2. EXTRAER DATOS DESDE FIRESTORE
+        // 2. EXTRAER DATOS
         // ==========================================
         async function cargarDatosCredencial() {
             try {
                 const doc = await db.collection("expedientes_personal").doc(idUsuario).get();
                 
+                // Extraemos también el expediente guardado localmente (esto asegura que las fotos Base64 funcionen en el PDF sin bloqueos de CORS)
+                const localDataStr = localStorage.getItem('expediente_guardado_' + idUsuario);
+                const localData = localDataStr ? JSON.parse(localDataStr) : {};
+
                 if (doc.exists) {
                     const datos = doc.data();
                     
-                    // Nombre Completo
                     const nombreStr = `${datos.nombre || ''} ${datos.paterno || ''} ${datos.materno || ''}`.trim();
                     document.getElementById('lbl-name').innerText = nombreStr || nombreUsuario;
                     
-                    // NSS
                     const nssStr = datos.nss || 'S/N';
                     document.getElementById('lbl-nss').innerText = `NSS: ${nssStr}`;
                     
-                    // Foto
-                    if (datos.urls_fotos && datos.urls_fotos.selfie) {
+                    // FOTO: Priorizamos Base64 local para evitar errores en PDF. Si no, usamos Firebase URL.
+                    if (localData.fotos && localData.fotos.selfie && localData.fotos.selfie[0]) {
+                        document.getElementById('img-photo').src = localData.fotos.selfie[0];
+                        document.getElementById('img-photo').style.display = 'block';
+                    } else if (datos.urls_fotos && datos.urls_fotos.selfie) {
                         document.getElementById('img-photo').src = datos.urls_fotos.selfie;
                         document.getElementById('img-photo').style.display = 'block';
                     }
 
-                    // Firma
-                    if (datos.url_firma) {
+                    // FIRMA: Priorizamos Base64 local.
+                    if (localData.firma) {
+                        document.getElementById('img-firma').src = localData.firma;
+                        document.getElementById('img-firma').style.display = 'block';
+                    } else if (datos.url_firma) {
                         document.getElementById('img-firma').src = datos.url_firma;
                         document.getElementById('img-firma').style.display = 'block';
                     }
@@ -428,7 +422,6 @@
                     const curpStr = datos.curp || 'S/N';
                     const vigenciaStr = '01/01/2026 - 31/12/2026';
 
-                    // Generar QR Profesional
                     const textQR = `Loreto Ingeniería, Construcción, Edificación y Remodelación\nEmpleado: ${nombreStr}\nNSS: ${nssStr}\nRFC: ${rfcStr}\nCURP: ${curpStr}\nVigencia: ${vigenciaStr}`;
                     const qrcodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(textQR)}`;
                     document.getElementById('img-qr').src = qrcodeUrl;
@@ -480,24 +473,17 @@
         document.addEventListener('DOMContentLoaded', cargarDatosCredencial);
 
         // ==========================================
-        // 4. GENERAR PDF (En Una Sola Hoja)
+        // 4. GENERAR PDF
         // ==========================================
-        // Modificado: Función asíncrona para manejar Base64
-        async function generarPDF() {
+        function generarPDF() {
             const btn = document.getElementById('btn-descargar-pdf');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando PDF...';
             btn.disabled = true;
             lucide.createIcons();
 
-            // --- PASO CRUCIAL: Convertir imágenes actuales a Base64 para el PDF ---
-            const photoSrc = document.getElementById('img-photo').src;
-            const firmaSrc = document.getElementById('img-firma').src;
+            const fechaHoraDescarga = new Date().toLocaleString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             
-            const photoBase64 = await imageUrlToBase64(photoSrc);
-            const firmaBase64 = await imageUrlToBase64(firmaSrc);
-
-            // Contenedor "Virtual" para el PDF
             const pdfWrap = document.createElement('div');
             pdfWrap.style.width = '100%';
             pdfWrap.style.padding = '40px 0';
@@ -512,17 +498,9 @@
             const frontClone = document.getElementById('credencial-front').cloneNode(true);
             const backClone = document.getElementById('credencial-back').cloneNode(true);
 
-            // --- PASO CRUCIAL 2: Inyectar Base64 en los clones ---
-            if (photoBase64) {
-                const clonedPhoto = frontClone.querySelector('#img-photo');
-                clonedPhoto.src = photoBase64;
-                clonedPhoto.style.display = 'block';
-            }
-            if (firmaBase64) {
-                const clonedFirma = frontClone.querySelector('#img-firma');
-                clonedFirma.src = firmaBase64;
-                clonedFirma.style.display = 'block';
-            }
+            // Asegurar que los src de las imágenes se pasen correctamente al clon (Especialmente Base64)
+            frontClone.querySelector('#img-photo').src = document.getElementById('img-photo').src;
+            frontClone.querySelector('#img-firma').src = document.getElementById('img-firma').src;
 
             [frontClone, backClone].forEach(clone => {
                 clone.style.width = '7cm';
@@ -530,12 +508,28 @@
                 clone.style.boxShadow = 'none'; 
                 clone.style.border = '1px solid #94a3b8'; 
                 clone.style.margin = '0';
+                
+                // Forzar estilos inline de imágenes y contenedores para el PDF
+                const backLogoWrapper = clone.querySelector('.cred-trucks-wrapper');
+                if (backLogoWrapper) {
+                    backLogoWrapper.style.width = '100%';
+                    backLogoWrapper.style.height = '76px';
+                    backLogoWrapper.style.display = 'flex';
+                    backLogoWrapper.style.alignItems = 'center';
+                    backLogoWrapper.style.justifyContent = 'center';
+                }
+                const backLogo = clone.querySelector('.cred-trucks');
+                if (backLogo) {
+                    backLogo.style.maxHeight = '100%';
+                    backLogo.style.maxWidth = '90%';
+                    backLogo.style.objectFit = 'contain';
+                }
+
                 cardsContainer.appendChild(clone);
             });
 
             pdfWrap.appendChild(cardsContainer);
             
-            // Pie de página de impresión
             const printFooter = document.createElement('div');
             printFooter.style.textAlign = 'center';
             printFooter.style.fontSize = '9px';
@@ -549,10 +543,10 @@
             pdfWrap.appendChild(printFooter);
 
             const opt = {
-                margin:       15, // Reducido un poco para centrar mejor en carta
+                margin:       15,
                 filename:     `Credencial_${nombreUsuario.replace(/ /g, '_')}.pdf`,
-                image:        { type: 'jpeg', quality: 1 }, // Máxima calidad
-                html2canvas:  { scale: 2, useCORS: true }, // scale 2 es suficiente y rápido
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' } 
             };
 
