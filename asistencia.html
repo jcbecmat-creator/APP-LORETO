@@ -23,33 +23,17 @@
         }
 
         body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color);
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
-        /* --- HEADER --- */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            background: white;
-            border-bottom: 1px solid var(--border-color);
-            z-index: 50;
-        }
-
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: white; border-bottom: 1px solid var(--border-color); z-index: 50; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .menu-btn { background: none; border: none; cursor: pointer; color: var(--text-main); }
         .header-title { margin: 0; font-size: 15px; font-weight: 700; color: var(--primary-blue); }
         .header-right { display: flex; align-items: center; gap: 12px; }
         .user-initial { width: 35px; height: 35px; border-radius: 50%; background-color: var(--primary-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-        /* --- LAYOUT PRINCIPAL --- */
         .main-layout { display: flex; flex: 1; overflow: hidden; }
         .sidebar { width: 260px; background: white; border-right: 1px solid var(--border-color); overflow-y: auto; transition: transform 0.3s ease; display: flex; flex-direction: column; }
         
@@ -59,7 +43,6 @@
             .header-title { display: none; }
         }
 
-        /* --- ESTILOS DEL MENÚ DINÁMICO --- */
         .sidebar-nav { padding: 15px 10px; }
         .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .sidebar-section:last-child { border-bottom: none; }
@@ -69,114 +52,43 @@
         .nav-item.active { background-color: var(--light-blue); color: var(--primary-blue); font-weight: 700; border-left: 4px solid var(--primary-blue); }
         .nav-item.active i { color: var(--primary-blue); }
 
-        /* --- CONTENIDO ASISTENCIA --- */
         .content { flex: 1; padding: 20px; overflow-y: auto; display: flex; justify-content: center; }
         
         .asistencia-card {
-            background: white;
-            width: 100%;
-            max-width: 500px;
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            border: 1px solid var(--border-color);
-            height: fit-content;
+            background: white; width: 100%; max-width: 500px; border-radius: 16px; padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid var(--border-color); height: fit-content;
         }
 
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
         
         .form-control {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--bg-color);
-            font-size: 15px;
-            box-sizing: border-box;
-            outline: none;
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);
+            background-color: var(--bg-color); font-size: 15px; box-sizing: border-box; outline: none;
         }
 
-        /* --- BOTONES Y HORAS --- */
-        .grid-botones {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 25px;
-        }
-
-        .btn-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+        .grid-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
+        .btn-wrapper { display: flex; flex-direction: column; gap: 6px; }
 
         .btn-check {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 20px 10px;
-            border-radius: 12px;
-            border: none;
-            background-color: var(--primary-blue);
-            color: white;
-            font-weight: 700;
-            font-size: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            width: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            padding: 20px 10px; border-radius: 12px; border: none; background-color: var(--primary-blue);
+            color: white; font-weight: 700; font-size: 12px; text-align: center; cursor: pointer;
+            transition: all 0.3s; width: 100%;
         }
 
         .btn-check:hover { background-color: #1a2a6e; transform: translateY(-2px); }
-        
-        .btn-check:disabled {
-            background-color: var(--border-color);
-            color: var(--text-muted);
-            cursor: not-allowed;
-            transform: none;
-        }
+        .btn-check:disabled { background-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; transform: none; }
 
-        /* Cajita que muestra la hora y la geolocalización debajo del botón */
-        .time-display {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--primary-blue);
-            text-align: center;
-            min-height: 15px; 
-            line-height: 1.4;
-        }
+        .time-display { font-size: 11px; font-weight: 700; color: var(--primary-blue); text-align: center; min-height: 15px; line-height: 1.4; }
 
-        /* --- MODAL PERSONALIZADO --- */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;
-        }
-        
-        .modal-content {
-            background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 320px;
-            text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease-in-out;
-        }
-
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-
         .modal-content p { margin: 0 0 20px 0; font-size: 15px; color: var(--text-main); font-weight: 600; }
-        .btn-modal {
-            background: var(--primary-blue); color: white; border: none; padding: 10px 25px;
-            border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;
-        }
+        .btn-modal { background: var(--primary-blue); color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
         .btn-modal:hover { background: #1a2a6e; }
-
-        .nota-advertencia {
-            margin-top: 25px;
-            font-size: 12px;
-            color: #b91c1c; 
-            font-weight: 600;
-            text-align: center;
-            line-height: 1.5;
-        }
+        .nota-advertencia { margin-top: 25px; font-size: 12px; color: #b91c1c; font-weight: 600; text-align: center; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -211,8 +123,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Fecha</label>
-                    <input type="text" class="form-control" id="fecha-hoy" readonly>
+                    <label>Fecha de la Jornada Activa</label>
+                    <input type="text" class="form-control" id="fecha-hoy" readonly value="Cargando jornada...">
                 </div>
 
                 <div class="grid-botones">
@@ -245,38 +157,19 @@
     </div>
 
     <div id="customAlert" class="modal-overlay">
-        <div class="modal-content">
-            <i data-lucide="alert-circle" style="color: #ef4444; width: 48px; height: 48px; margin-bottom: 15px;"></i>
-            <p id="customAlertMessage">Mensaje de alerta</p>
-            <button class="btn-modal" onclick="cerrarAlerta()">Aceptar</button>
-        </div>
+        <div class="modal-content"><i data-lucide="alert-circle" style="color: #ef4444; width: 48px; height: 48px; margin-bottom: 15px;"></i><p id="customAlertMessage">Mensaje</p><button class="btn-modal" onclick="cerrarAlerta()">Aceptar</button></div>
     </div>
-
     <div id="successAlert" class="modal-overlay">
-        <div class="modal-content">
-            <i data-lucide="check-circle" style="color: #10b981; width: 48px; height: 48px; margin-bottom: 15px;"></i>
-            <p id="successAlertMessage">Registro guardado exitosamente.</p>
-            <button class="btn-modal" style="background:#10b981;" onclick="cerrarSuccess()">Aceptar</button>
-        </div>
+        <div class="modal-content"><i data-lucide="check-circle" style="color: #10b981; width: 48px; height: 48px; margin-bottom: 15px;"></i><p id="successAlertMessage">Éxito</p><button class="btn-modal" style="background:#10b981;" onclick="cerrarSuccess()">Aceptar</button></div>
     </div>
 
     <script>
-        // Funciones para los Modales
-        function mostrarAlerta(mensaje) {
-            document.getElementById('customAlertMessage').innerText = mensaje;
-            document.getElementById('customAlert').style.display = 'flex';
-        }
+        function mostrarAlerta(m) { document.getElementById('customAlertMessage').innerText = m; document.getElementById('customAlert').style.display = 'flex'; }
         function cerrarAlerta() { document.getElementById('customAlert').style.display = 'none'; }
-        
-        function mostrarExito(mensaje) {
-            document.getElementById('successAlertMessage').innerText = mensaje;
-            document.getElementById('successAlert').style.display = 'flex';
-        }
+        function mostrarExito(m) { document.getElementById('successAlertMessage').innerText = m; document.getElementById('successAlert').style.display = 'flex'; }
         function cerrarSuccess() { document.getElementById('successAlert').style.display = 'none'; }
 
-        // ==========================================
-        // CONFIGURACIÓN DE FIREBASE
-        // ==========================================
+        // CONFIGURACIÓN FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDkwUT5MrsJV2IMp18-RT20829M9c3-zfk",
             authDomain: "loreto-ingenieria.firebaseapp.com",
@@ -285,91 +178,108 @@
             messagingSenderId: "873434501512",
             appId: "1:873434501512:web:963903379a5e72cb092a3d"
         };
-        
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        // ==========================================
-        // 1. CARGAR MENÚ DINÁMICO
-        // ==========================================
-        fetch('menu.html')
-            .then(res => res.text())
-            .then(html => {
-                document.getElementById('sidebar').innerHTML = html;
-                lucide.createIcons();
-                const linkInicio = document.getElementById('link-inicio');
-                if(linkInicio) linkInicio.classList.remove('active');
-                const linkAsistencia = document.getElementById('link-asistencia');
-                if(linkAsistencia) linkAsistencia.classList.add('active');
-            });
-
-        // ==========================================
-        // 2. PONER FECHA DE HOY
-        // ==========================================
-        const hoy = new Date();
-        const fechaString = hoy.toLocaleDateString('es-MX', { 
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+        fetch('menu.html').then(res => res.text()).then(html => {
+            document.getElementById('sidebar').innerHTML = html; lucide.createIcons();
+            const linkInicio = document.getElementById('link-inicio'); if(linkInicio) linkInicio.classList.remove('active');
+            const linkAsistencia = document.getElementById('link-asistencia'); if(linkAsistencia) linkAsistencia.classList.add('active');
         });
-        document.getElementById('fecha-hoy').value = fechaString;
 
-        // ==========================================
-        // 3. REVISAR EN FIREBASE SI YA CHECÓ HOY
-        // ==========================================
         const idUsuario = localStorage.getItem('usuario');
         const nombreUsuario = localStorage.getItem('nombre') || 'Usuario Desconocido';
+        if (nombreUsuario !== 'Usuario Desconocido') document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
+
+        // LÓGICA INTELIGENTE DE JORNADA
+        window.jornadaActualFecha = "";
 
         if (idUsuario) {
-            db.collection("registro_asistencia")
-                .where("usuario_id", "==", idUsuario)
-                .where("fecha", "==", fechaString)
-                .get()
-                .then((querySnapshot) => {
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const tipo = data.tipo_registro;
-                        const hora = data.hora; 
-                        const coords = data.coordenadas; // Recuperamos las coordenadas guardadas
+            const hoy = new Date();
+            const ayer = new Date(hoy); ayer.setDate(ayer.getDate() - 1);
+            const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const strHoy = hoy.toLocaleDateString('es-MX', opts);
+            const strAyer = ayer.toLocaleDateString('es-MX', opts);
+
+            // Buscamos registros de hoy y de ayer
+            const p1 = db.collection("registro_asistencia").where("usuario_id", "==", idUsuario).where("fecha", "==", strHoy).get();
+            const p2 = db.collection("registro_asistencia").where("usuario_id", "==", idUsuario).where("fecha", "==", strAyer).get();
+
+            Promise.all([p1, p2]).then(responses => {
+                let recordsHoy = []; responses[0].forEach(doc => recordsHoy.push(doc.data()));
+                let recordsAyer = []; responses[1].forEach(doc => recordsAyer.push(doc.data()));
+
+                let targetJornada = strHoy;
+                let targetRecords = recordsHoy;
+
+                // Si hoy no hay registros, revisamos si ayer se quedó un turno incompleto
+                if (recordsHoy.length === 0) {
+                    const hasEntradaAyer = recordsAyer.some(r => r.tipo_registro === 'Entrada');
+                    const hasSalidaAyer = recordsAyer.some(r => r.tipo_registro === 'Salida');
+                    const hasEntradaTEAyer = recordsAyer.some(r => r.tipo_registro.includes('Entrada Tiempo Extra'));
+                    const hasSalidaTEAyer = recordsAyer.some(r => r.tipo_registro.includes('Salida Tiempo Extra'));
+
+                    const pendingNormal = hasEntradaAyer && !hasSalidaAyer;
+                    const pendingTE = hasEntradaTEAyer && !hasSalidaTEAyer;
+
+                    // Si dejó abierto algo ayer, mantenemos la jornada de ayer
+                    if (pendingNormal || pendingTE) {
+                        targetJornada = strAyer;
+                        targetRecords = recordsAyer;
+                    }
+                }
+
+                window.jornadaActualFecha = targetJornada;
+                document.getElementById('fecha-hoy').value = targetJornada;
+
+                // SECUENCIA OBLIGATORIA
+                const hasEntrada = targetRecords.some(r => r.tipo_registro === 'Entrada');
+                const hasSalida = targetRecords.some(r => r.tipo_registro === 'Salida');
+                const hasEntradaTE = targetRecords.some(r => r.tipo_registro.includes('Entrada Tiempo Extra'));
+                const hasSalidaTE = targetRecords.some(r => r.tipo_registro.includes('Salida Tiempo Extra'));
+
+                const btnEntrada = document.getElementById('btn-Entrada');
+                const btnSalida = document.getElementById('btn-Salida');
+                const btnEntradaTE = document.getElementById('btn-Entrada-Tiempo-Extra');
+                const btnSalidaTE = document.getElementById('btn-Salida-Tiempo-Extra');
+
+                btnEntrada.disabled = hasEntrada;
+                btnSalida.disabled = !hasEntrada || hasSalida;
+                btnEntradaTE.disabled = !hasSalida || hasEntradaTE;
+                btnSalidaTE.disabled = !hasEntradaTE || hasSalidaTE;
+
+                const paintChecked = (btn, tipoObj) => {
+                    const rec = targetRecords.find(r => r.tipo_registro === tipoObj);
+                    if (rec) {
+                        btn.innerHTML = `<i data-lucide="check-circle"></i> Registrado`;
+                        const locHTML = rec.coordenadas ? `<br><span style="font-size:9px; font-weight:normal; color:#64748b;">📍 ${rec.coordenadas}</span>` : '';
+                        document.getElementById("time-" + tipoObj.replace(/ /g, "-")).innerHTML = `Checada: ${rec.hora}${locHTML}`;
                         
-                        const idBase = tipo.replace(/ /g, "-");
-                        const idBoton = "btn-" + idBase;
-                        const idTime = "time-" + idBase;
-                        
-                        const btn = document.getElementById(idBoton);
-                        const timeDisplay = document.getElementById(idTime);
-                        
-                        if(btn) {
-                            btn.disabled = true;
-                            btn.innerHTML = `<i data-lucide="check-circle"></i> Registrado`;
-                        }
-                        if(timeDisplay && hora) {
-                            // Inyectamos la hora y debajo las coordenadas en texto gris y pequeño
-                            let locHTML = coords ? `<br><span style="font-size:9px; font-weight:normal; color:#64748b;">📍 ${coords}</span>` : '';
-                            timeDisplay.innerHTML = `Checada: ${hora}${locHTML}`;
-                        }
-                    });
-                    lucide.createIcons();
-                })
-                .catch((error) => console.error("Error al cargar asistencias previas:", error));
+                        // Autocompletar el sitio para que no lo tenga que volver a elegir
+                        const sitioSelect = document.getElementById('sitio');
+                        if (sitioSelect.value === "") sitioSelect.value = rec.sitio_obra;
+                    }
+                };
+
+                if (hasEntrada) paintChecked(btnEntrada, 'Entrada');
+                if (hasSalida) paintChecked(btnSalida, 'Salida');
+                if (hasEntradaTE) paintChecked(btnEntradaTE, 'Entrada Tiempo Extra');
+                if (hasSalidaTE) paintChecked(btnSalidaTE, 'Salida Tiempo Extra');
+
+                lucide.createIcons();
+            });
         }
 
-        // ==========================================
-        // 4. LÓGICA DE REGISTRO Y GEOLOCALIZACIÓN
-        // ==========================================
+        // REGISTRO
         function marcar(tipo, boton) {
             const sitio = document.getElementById('sitio').value;
-            if(!sitio) {
-                mostrarAlerta("Por favor, selecciona primero el Sitio/Obra en el que te encuentras.");
-                return;
-            }
+            if(!sitio) { mostrarAlerta("Por favor, selecciona primero el Sitio/Obra."); return; }
 
             boton.disabled = true;
             const textoOriginal = boton.innerHTML;
             boton.innerHTML = "Guardando...";
 
             const ahora = new Date();
-            // Formato de hora, ej: 08:30 a.m.
             const horaString = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
 
             if (navigator.geolocation) {
@@ -386,7 +296,7 @@
                             nombre: nombreUsuario,
                             sitio_obra: sitio,
                             tipo_registro: tipo,
-                            fecha: fechaString,
+                            fecha: window.jornadaActualFecha, // Usa la jornada inteligente
                             hora: horaString,
                             coordenadas: coordsTexto,
                             latitud: lat,
@@ -394,45 +304,29 @@
                             timestamp: firebase.firestore.FieldValue.serverTimestamp()
                         });
 
-                        // Mostrar la hora y las coordenadas justo debajo del botón
                         const idTime = "time-" + tipo.replace(/ /g, "-");
                         document.getElementById(idTime).innerHTML = `Checada: ${horaString}<br><span style="font-size:9px; font-weight:normal; color:#64748b;">📍 ${coordsTexto}</span>`;
 
-                        // Alerta visual verde
                         mostrarExito(`Has registrado tu ${tipo} con éxito a las ${horaString}`);
-
-                        // Dejar el botón inactivo
                         boton.innerHTML = `<i data-lucide="check-circle"></i> Registrado`;
-                        lucide.createIcons();
+                        
+                        // Recargar la página después de 2 segundos para aplicar la secuencia obligatoria al siguiente botón
+                        setTimeout(() => { window.location.reload(); }, 2000);
 
                     } catch (error) {
-                        console.error("Error guardando en Firebase:", error);
                         mostrarAlerta("Error al guardar. Revisa tu conexión a internet.");
-                        boton.disabled = false;
-                        boton.innerHTML = textoOriginal;
+                        boton.disabled = false; boton.innerHTML = textoOriginal;
                     }
-
                 }, (err) => {
-                    mostrarAlerta("Es obligatorio permitir el acceso al GPS para registrar la asistencia. Revisa los permisos de tu navegador o celular.");
-                    boton.disabled = false;
-                    boton.innerHTML = textoOriginal;
+                    mostrarAlerta("Es obligatorio permitir el GPS para registrar la asistencia.");
+                    boton.disabled = false; boton.innerHTML = textoOriginal;
                 });
             } else {
-                mostrarAlerta("GPS no soportado en este dispositivo/navegador.");
-                boton.disabled = false;
-                boton.innerHTML = textoOriginal;
+                mostrarAlerta("GPS no soportado."); boton.disabled = false; boton.innerHTML = textoOriginal;
             }
         }
 
-        // Hamburguesa móvil
-        document.getElementById('toggle-menu').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('open');
-        });
-
-        if (nombreUsuario !== 'Usuario Desconocido') {
-            document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
-        }
-
+        document.getElementById('toggle-menu').addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('open'); });
         lucide.createIcons();
     </script>
 </body>
