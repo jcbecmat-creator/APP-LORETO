@@ -77,8 +77,8 @@
         .row-active { background-color: var(--success-bg) !important; }
         .row-active td { color: var(--success-text); }
         
-        .cell-dia { font-weight: 800 !important; color: var(--primary-blue) !important; }
-        .cell-fecha { text-transform: capitalize; color: var(--text-muted); }
+        .cell-dia { font-weight: 800 !important; color: var(--primary-blue) !important; font-size: 14px !important; }
+        .cell-fecha { text-transform: capitalize; color: var(--text-muted); font-size: 12px !important; }
         .cell-empty { color: #cbd5e1 !important; font-weight: 400 !important; }
         .cell-horas-te { font-weight: 700; color: #0f766e; background-color: #d1fae5; border-radius: 4px; padding: 4px 8px; display: inline-block;}
 
@@ -353,7 +353,7 @@
                 for(let i = 1; i < arrayDatos.length; i++) {
                     const fila = arrayDatos[i];
                     
-                    // Ahora la fila se pinta de verde ÚNICAMENTE si es el día de hoy
+                    // Fila se pinta de verde ÚNICAMENTE si es el día de hoy
                     const esHoy = (esMesActual && i === diaActual);
                     const claseFila = esHoy ? 'row-active' : '';
                     
@@ -379,7 +379,6 @@
                 return html;
             };
 
-            // Pasamos "true" para la primera tabla (mes actual) y "false" para la segunda
             document.getElementById('tbody-mes-actual').innerHTML = generarHTML(datosActual, true);
             document.getElementById('tbody-mes-anterior').innerHTML = generarHTML(datosAnterior, false);
 
@@ -412,6 +411,7 @@
             pdfWrap.style.backgroundColor = 'white';
             pdfWrap.style.color = '#1e293b';
 
+            // Ajustamos el padding de los TH para hacer la fila ligeramente más alta (8px arriba/abajo)
             const crearHoja = (titulo, tbodyId) => `
                 <div style="padding: 20px 30px; background: white; font-family: 'Inter', sans-serif;">
                     
@@ -429,14 +429,14 @@
                     <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 10px;">
                         <thead>
                             <tr style="background-color: #eef2ff; color: #263fa4; text-transform: uppercase;">
-                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">#</th>
-                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Día / Fecha</th>
-                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Sitio / Obra</th>
-                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Entrada</th>
-                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Salida</th>
-                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Ent. Extra</th>
-                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">Sal. Extra</th>
-                                <th style="padding: 6px 4px; border: 1px solid #e2e8f0; text-align: center;">HORAS T.E.</th>
+                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">#</th>
+                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">Día / Fecha</th>
+                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">Sitio / Obra</th>
+                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">Entrada</th>
+                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">Salida</th>
+                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">Ent. Extra</th>
+                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">Sal. Extra</th>
+                                <th style="padding: 8px 4px; border: 1px solid #e2e8f0; text-align: center;">HORAS T.E.</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -456,10 +456,10 @@
                 ${crearHoja(document.getElementById('title-mes-anterior').innerText, 'tbody-mes-anterior')}
             `;
 
-            // Forzar estilos consistentes en todas las celdas del PDF (tamaño 9px)
+            // Aumentamos el padding de los TD para dar un ~8% más de altura a cada fila
             const celdas = pdfWrap.querySelectorAll('td');
             celdas.forEach(td => {
-                td.style.padding = '4px';
+                td.style.padding = '6px 4px'; // Antes era 4px, ahora 6px arriba y abajo
                 td.style.border = '1px solid #e2e8f0';
                 td.style.textAlign = 'center';
                 td.style.fontSize = '9px'; 
