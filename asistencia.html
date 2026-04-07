@@ -139,13 +139,14 @@
             transform: none;
         }
 
-        /* Cajita que muestra la hora debajo del botón */
+        /* Cajita que muestra la hora y la geolocalización debajo del botón */
         .time-display {
             font-size: 11px;
             font-weight: 700;
             color: var(--primary-blue);
             text-align: center;
-            min-height: 15px; /* Mantiene el espacio aunque esté vacío */
+            min-height: 15px; 
+            line-height: 1.4;
         }
 
         /* --- MODAL PERSONALIZADO --- */
@@ -326,8 +327,10 @@
                 .get()
                 .then((querySnapshot) => {
                     querySnapshot.forEach((doc) => {
-                        const tipo = doc.data().tipo_registro;
-                        const hora = doc.data().hora; // Recuperamos la hora guardada
+                        const data = doc.data();
+                        const tipo = data.tipo_registro;
+                        const hora = data.hora; 
+                        const coords = data.coordenadas; // Recuperamos las coordenadas guardadas
                         
                         const idBase = tipo.replace(/ /g, "-");
                         const idBoton = "btn-" + idBase;
@@ -341,7 +344,9 @@
                             btn.innerHTML = `<i data-lucide="check-circle"></i> Registrado`;
                         }
                         if(timeDisplay && hora) {
-                            timeDisplay.innerText = `Checada: ${hora}`;
+                            // Inyectamos la hora y debajo las coordenadas en texto gris y pequeño
+                            let locHTML = coords ? `<br><span style="font-size:9px; font-weight:normal; color:#64748b;">📍 ${coords}</span>` : '';
+                            timeDisplay.innerHTML = `Checada: ${hora}${locHTML}`;
                         }
                     });
                     lucide.createIcons();
@@ -350,7 +355,7 @@
         }
 
         // ==========================================
-        // 4. LÓGICA DE REGISTRO
+        // 4. LÓGICA DE REGISTRO Y GEOLOCALIZACIÓN
         // ==========================================
         function marcar(tipo, boton) {
             const sitio = document.getElementById('sitio').value;
@@ -389,9 +394,9 @@
                             timestamp: firebase.firestore.FieldValue.serverTimestamp()
                         });
 
-                        // Mostrar la hora justo debajo del botón
+                        // Mostrar la hora y las coordenadas justo debajo del botón
                         const idTime = "time-" + tipo.replace(/ /g, "-");
-                        document.getElementById(idTime).innerText = `Checada: ${horaString}`;
+                        document.getElementById(idTime).innerHTML = `Checada: ${horaString}<br><span style="font-size:9px; font-weight:normal; color:#64748b;">📍 ${coordsTexto}</span>`;
 
                         // Alerta visual verde
                         mostrarExito(`Has registrado tu ${tipo} con éxito a las ${horaString}`);
