@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Credencial Digital | Loreto Ingeniería</title>
+    <title>Credencial | Loreto Ingeniería</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -22,7 +21,6 @@
             --text-main: #1e293b;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            --success-bg: #f0fdf4;
             --success-text: #166534;
             --danger: #dc2626;
         }
@@ -45,7 +43,7 @@
             .header-title { display: none; }
         }
 
-        /* --- ESTILOS DEL MENÚ DINÁMICO (CORREGIDO) --- */
+        /* --- ESTILOS DEL MENÚ DINÁMICO --- */
         .sidebar-nav { padding: 15px 10px; }
         .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .sidebar-section:last-child { border-bottom: none; }
@@ -69,263 +67,146 @@
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
         .page-header p { color: var(--text-muted); margin: 0; font-size: 14px; }
 
-        /* Loader */
         .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
 
-        /* --- CREDENCIAL DISEÑO (10cm H x 7cm W) --- */
+        /* ==========================================
+           DISEÑO EXACTO DE LA CREDENCIAL (PPT)
+           ========================================== */
         .credencial-wrapper {
             display: flex;
-            flex-direction: column;
-            gap: 30px;
-            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
             margin-bottom: 30px;
         }
 
-        .card {
+        .credencial-card {
             width: 7cm;
             height: 10cm;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            position: relative;
+            border: 1px solid #d1d5db;
             box-sizing: border-box;
+            position: relative;
+            font-family: Arial, sans-serif;
+            color: black;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        /* Frontal */
-        .card-front {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px;
+        /* --- FRONTAL --- */
+        .cred-banner { width: 100%; height: auto; display: block; }
+        
+        .cred-name { 
+            font-size: 13px; 
+            text-align: center; 
+            text-transform: uppercase; 
+            margin-top: 12px; 
+            padding: 0 10px; 
+            font-weight: normal; 
+        }
+        
+        .cred-nss { 
+            font-size: 14px; 
+            text-align: center; 
+            margin-top: 5px; 
+            margin-bottom: 10px; 
+        }
+        
+        .cred-photo { 
+            width: 140px; 
+            height: 150px; 
+            margin: 0 auto; 
+            background: #f1f5f9; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .cred-photo img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        
+        .cred-cargo { 
+            text-align: center; 
+            font-size: 14px; 
+            margin-top: 10px; 
+        }
+        
+        .cred-firma { 
+            height: 40px; 
+            width: 80%; 
+            object-fit: contain; 
+            margin: 5px auto 0 auto; 
+            display: none; 
+        }
+        
+        .cred-line { 
+            width: 80%; 
+            border: 0; 
+            border-top: 1px solid black; 
+            margin: 5px auto; 
+        }
+        
+        .cred-valid { 
+            text-align: center; 
+            font-size: 11px; 
+            margin-bottom: 10px; 
+            line-height: 1.3;
         }
 
-        .top-banner {
-            width: 100%;
-            height: 0.8cm;
-            background-color: var(--primary-blue);
-            color: white;
-            display: flex;
-            align-items: center;
+        /* --- POSTERIOR --- */
+        .cred-trucks { 
+            width: 90%; 
+            margin: 15px auto; 
+            display: block; 
+            object-fit: contain; 
+            height: 60px; 
+        }
+        
+        .cred-qr-container { 
+            border: 2px solid #ef4444; /* Borde rojo estilo PPT */
+            border-radius: 12px; 
+            padding: 5px; 
+            width: 140px; 
+            height: 140px; 
+            margin: 10px auto; 
+            display: flex; 
+            align-items: center; 
             justify-content: center;
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        /* Detalles rojos en las esquinas del QR imitando el diseño */
+        .cred-qr-container::before, .cred-qr-container::after {
+            content: ''; position: absolute; width: 10px; height: 10px; background: #ef4444; border-radius: 2px;
+        }
+        .cred-qr-container::before { top: 10px; left: 10px; }
+        .cred-qr-container::after { top: 10px; right: 10px; }
+        
+        .cred-qr-container img { width: 100%; height: 100%; }
+        
+        .cred-back-text { 
+            text-align: center; 
+            font-size: 10px; 
+            padding: 0 15px; 
+            line-height: 1.5; 
+            margin-top: auto; 
+            margin-bottom: 25px; 
         }
 
-        .header-logos {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 10px;
-            margin-bottom: 10px;
-        }
-
-        .logo-1 { height: 18px; }
-        .logo-2 { height: 18px; }
-
-        .card-title {
-            color: var(--primary-blue);
-            font-size: 13px;
-            font-weight: 800;
-            text-transform: uppercase;
-            margin: 0 0 15px 0;
-            text-align: center;
-        }
-
-        .employee-photo-slot {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background-color: var(--bg-color);
-            border: 2px solid var(--primary-blue);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-        .employee-photo-slot img { width: 100%; height: 100%; object-fit: cover; }
-        .employee-photo-slot i { width: 60px; height: 60px; color: #cbd5e1; }
-
-        .data-section {
-            width: 100%;
-            padding: 0 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .data-item { display: flex; flex-direction: column; gap: 2px;}
-        .data-label { font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
-        .data-value { font-size: 12px; font-weight: 700; color: var(--text-main); margin: 0; }
-
-        .cargo-container {
-            margin-top: 10px;
-            width: 100%;
-            text-align: center;
-            padding: 0 10px;
-        }
-        .cargo-label { font-size: 11px; font-weight: 700; color: var(--primary-blue); text-transform: uppercase; }
-        .cargo-value { font-size: 14px; font-weight: 800; color: var(--primary-blue); margin: 3px 0 0 0; border-bottom: 2px solid var(--light-blue); display: inline-block; padding-bottom: 2px;}
-
-        .signature-section {
-            margin-top: auto;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-bottom: 10px;
-        }
-        .signature-line {
-            width: 80%;
-            border-top: 1px solid var(--text-main);
-            margin: 0 0 5px 0;
-        }
-        .signature-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-        .signature-slot {
-            width: 80%;
-            height: 40px;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .signature-slot img { width: 100%; height: 100%; object-fit: contain; }
-        .signature-slot i { width: 30px; height: 30px; color: #cbd5e1; }
-
-        /* Posterior */
-        .card-back {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 15px;
-        }
-
-        .back-logos {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .logo-1-sm { height: 15px; }
-        .logo-2-sm { height: 15px; }
-
-        .back-title {
-            color: var(--primary-blue);
-            font-size: 12px;
-            font-weight: 800;
-            margin: 0 0 20px 0;
-            text-align: center;
-        }
-
-        .info-section {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            flex: 1;
-        }
-
-        .info-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .info-label { font-size: 10px; font-weight: 700; color: var(--primary-blue); text-transform: uppercase; letter-spacing: 0.3px; }
-        .info-text { font-size: 11px; font-weight: 500; color: var(--text-main); margin: 0; line-height: 1.4; }
-
-        .emergency-group {
-            border: 1px dashed var(--border-color);
-            background: var(--bg-color);
-            border-radius: 6px;
-            padding: 10px;
-        }
-
-        .qr-section {
-            margin-top: auto;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            padding-bottom: 10px;
-        }
-        .qr-slot {
-            width: 2cm;
-            height: 2cm;
-            background-color: var(--bg-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-        }
-        .qr-slot img { width: 100%; height: 100%; }
-        .qr-slot i { width: 50px; height: 50px; color: #cbd5e1; }
 
         /* --- CARGO EDITABLE SECTION --- */
-        .cargo-editor {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
-            border: 1px solid var(--border-color);
-            margin-top: 25px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
+        .cargo-editor { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-color); margin-top: 20px; display: flex; flex-direction: column; gap: 15px; }
         .cargo-editor h3 { font-size: 18px; font-weight: 700; color: var(--primary-blue); margin: 0; display: flex; align-items: center; gap: 8px; }
-        
-        .form-group- cargo { margin-bottom: 0; }
         .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
         .form-input-cargo { width: 100%; padding: 12px 15px; background-color: var(--bg-color); border: 1px solid transparent; border-radius: 10px; font-size: 14px; color: var(--text-main); box-sizing: border-box; outline: none; transition: all 0.2s; font-family: inherit; }
         .form-input-cargo:focus { background-color: white; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(38,63,164,0.1); }
-
-        .btn-guardar {
-            background: var(--primary-blue);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(38,63,164,0.2);
-            transition: 0.2s;
-            width: 100%;
-        }
+        .btn-guardar { background: var(--primary-blue); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(38,63,164,0.2); transition: 0.2s; width: 100%; }
         .btn-guardar:hover { background: #1a2a6e; }
 
         /* --- BOTÓN FLOTANTE --- */
         .fab-download {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background-color: var(--danger);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 16px 24px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
-            display: none;
-            align-items: center;
-            gap: 10px;
-            z-index: 1000;
-            transition: transform 0.2s, background-color 0.2s;
+            position: fixed; bottom: 30px; right: 30px; background-color: var(--danger); color: white; border: none; border-radius: 50px;
+            padding: 16px 24px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+            display: none; align-items: center; gap: 10px; z-index: 1000; transition: transform 0.2s;
         }
         .fab-download:hover { transform: translateY(-5px); background-color: #b91c1c; }
         @media (max-width: 768px) { .fab-download { bottom: 20px; right: 20px; padding: 14px 20px; font-size: 14px; } }
@@ -365,68 +246,45 @@
 
                 <div id="loader" class="loader-container">
                     <i data-lucide="loader-2" class="animate-spin" style="width:40px; height:40px; margin-bottom: 15px;"></i>
-                    <p>Generando tu credencial desde el expediente...</p>
+                    <p>Obteniendo foto y firma desde la base de datos...</p>
                 </div>
 
                 <div id="tablas-container" style="display: none;">
                     
                     <div class="credencial-wrapper">
                         
-                        <div class="card card-front" id="credencial-front">
-                            <div class="top-banner">IDENTIFICACIÓN OFICIAL</div>
-                            <div class="header-logos">
-                                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" class="logo-1" alt="Logo 1">
-                                <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" class="logo-2" alt="Logo 2">
-                            </div>
-                            <h3 class="card-title">CREDENCIAL DE EMPLEADO</h3>
+                        <div class="credencial-card" id="credencial-front">
+                            <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" class="cred-banner" alt="Banner">
                             
-                            <div class="employee-photo-slot" id="slot-photo">
-                                <i data-lucide="user"></i>
+                            <div class="cred-name" id="lbl-name">[NOMBRE COMPLETO]</div>
+                            <div class="cred-nss" id="lbl-nss">NSS: S/N</div>
+                            
+                            <div class="cred-photo">
+                                <img id="img-photo" src="" alt="Fotografía">
                             </div>
 
-                            <div class="data-section">
-                                <div class="data-item"><p class="data-label">Nombre(s)</p><p class="data-value" id="label-nombre">[placeholder]</p></div>
-                                <div class="data-item"><p class="data-label">Apellido Paterno</p><p class="data-value" id="label-paterno">[placeholder]</p></div>
-                                <div class="data-item"><p class="data-label">Apellido Materno</p><p class="data-value" id="label-materno">[placeholder]</p></div>
-                                <div class="data-item"><p class="data-label">NSS</p><p class="data-value" id="label-nss">[placeholder]</p></div>
-                            </div>
-
-                            <div class="cargo-container">
-                                <p class="cargo-label">Cargo:</p>
-                                <p class="cargo-value" id="label-cargo">[placeholder]</p>
-                            </div>
-
-                            <div class="signature-section">
-                                <div class="signature-slot" id="slot-firma"><i data-lucide="pen-tool"></i></div>
-                                <div class="signature-line"></div>
-                                <p class="signature-label">FIRMA DEL TRABAJADOR</p>
-                            </div>
+                            <div class="cred-cargo">Cargo: <strong id="lbl-cargo"></strong></div>
+                            
+                            <img id="img-firma" class="cred-firma" src="" alt="Firma">
+                            
+                            <hr class="cred-line">
+                            <div class="cred-valid">Válido:<br>01/01/2026 - 31/12/2026</div>
                         </div>
 
-                        <div class="card card-back" id="credencial-back">
-                            <div class="back-logos">
-                                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" class="logo-1-sm" alt="Logo 1">
-                                <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" class="logo-2-sm" alt="Logo 2">
-                            </div>
-                            <h3 class="back-title">LORETO INGENIERÍA</h3>
-
-                            <div class="info-section">
-                                <div class="info-group emergency-group">
-                                    <p class="info-label">En caso de emergencia avisar a:</p>
-                                    <p class="info-text" id="label-emergencia-nombre">[placeholder]</p>
-                                    <p class="info-text">Teléfono: <span id="label-emergencia-tel">[placeholder]</span></p>
-                                </div>
-                                <div class="info-group">
-                                    <p class="info-label">Para aclaraciones sobre esta identificación contactar a:</p>
-                                    <p class="info-text">Loreto Ingeniería, S.A. de C.V.</p>
-                                    <p class="info-text">contacto@loreto.mx | verify.loreto.mx</p>
-                                </div>
+                        <div class="credencial-card" id="credencial-back">
+                            <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" class="cred-trucks" alt="Trucks">
+                            
+                            <div class="cred-qr-container">
+                                <div style="position:absolute; bottom:10px; left:10px; width:10px; height:10px; background:#ef4444; border-radius:2px;"></div>
+                                <div style="position:absolute; bottom:10px; right:10px; width:10px; height:10px; background:#ef4444; border-radius:2px;"></div>
+                                <img id="img-qr" src="" alt="QR Code">
                             </div>
 
-                            <div class="qr-section">
-                                <div class="qr-slot" id="slot-qr">
-                                    <i data-lucide="qr-code"></i>
-                                </div>
+                            <div class="cred-back-text">
+                                <div style="font-weight: bold; font-size: 12px; margin-bottom: 5px;">Loreto Ingeniería</div>
+                                Ubicación: Niños Héroes S/N°, San Juan Ixtacala.<br>
+                                Tlalnepantla de Baz, México. C.P. 54160<br><br>
+                                Tel. 5553678113
                             </div>
                         </div>
 
@@ -434,7 +292,7 @@
 
                     <div class="cargo-editor">
                         <h3><i data-lucide="edit-3"></i> Actualizar tu Cargo</h3>
-                        <div class="form-group- cargo">
+                        <div>
                             <label class="form-label">Introduce tu Cargo Actual</label>
                             <input type="text" class="form-input-cargo" id="input-cargo" placeholder="Ej: Residente de Obra, Arquitecto Junior">
                         </div>
@@ -448,7 +306,7 @@
     </div>
 
     <button id="btn-descargar-pdf" class="fab-download" onclick="generarPDF()">
-        <i data-lucide="file-pdf"></i> Descargar Credencial
+        <i data-lucide="download"></i> Descargar Credencial
     </button>
 
     <div id="modal-success-cargo" class="modal-overlay">
@@ -499,73 +357,67 @@
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
 
         // ==========================================
-        // 2. CARGAR DATOS DESDE EXPEDIENTE (localStorage)
+        // 2. EXTRAER FOTO Y FIRMA DESDE FIRESTORE
         // ==========================================
-        function dataURItoBlob(dataURI) {
-            if(!dataURI) return null;
-            const byteString = atob(dataURI.split(',')[1]);
-            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-            const ab = new ArrayBuffer(byteString.length);
-            const ia = new Uint8Array(ab);
-            for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-            return new Blob([ab], {type: mimeString});
-        }
-
         async function cargarDatosCredencial() {
-            const guardado = localStorage.getItem('expediente_guardado_' + idUsuario);
-            
-            if(guardado) {
-                const datos = JSON.parse(guardado);
-
-                // Llenar Frontal
-                if(datos.nombre) document.getElementById('label-nombre').innerText = datos.nombre;
-                if(datos.paterno) document.getElementById('label-paterno').innerText = datos.paterno;
-                if(datos.materno) document.getElementById('label-materno').innerText = datos.materno;
-                if(datos.nss) document.getElementById('label-nss').innerText = datos.nss;
+            try {
+                // Buscamos directamente en la base de datos para asegurar que traemos la foto y firma real
+                const doc = await db.collection("expedientes_personal").doc(idUsuario).get();
                 
-                // Cargar Foto (Selfie)
-                if(datos.fotos && datos.fotos.selfie && datos.fotos.selfie[0]) {
-                    document.getElementById('slot-photo').innerHTML = `<img src="${datos.fotos.selfie[0]}">`;
-                }
+                if (doc.exists) {
+                    const datos = doc.data();
+                    
+                    // Nombre Completo
+                    const nombreStr = `${datos.nombre || ''} ${datos.paterno || ''} ${datos.materno || ''}`.trim();
+                    document.getElementById('lbl-name').innerText = nombreStr || nombreUsuario;
+                    
+                    // NSS
+                    document.getElementById('lbl-nss').innerText = `NSS: ${datos.nss || 'S/N'}`;
+                    
+                    // Foto
+                    if (datos.urls_fotos && datos.urls_fotos.selfie) {
+                        document.getElementById('img-photo').src = datos.urls_fotos.selfie;
+                        document.getElementById('img-photo').style.display = 'block';
+                    }
 
-                // Cargar Firma
-                if(datos.firma) {
-                    document.getElementById('slot-firma').innerHTML = `<img src="${datos.firma}">`;
-                }
+                    // Firma
+                    if (datos.url_firma) {
+                        document.getElementById('img-firma').src = datos.url_firma;
+                        document.getElementById('img-firma').style.display = 'block';
+                    }
 
-                // Cargar Cargo (si ya existe)
-                const cargoSaved = localStorage.getItem('credencial_cargo_' + idUsuario);
-                if(cargoSaved) {
-                    document.getElementById('label-cargo').innerText = cargoSaved;
-                    document.getElementById('input-cargo').value = cargoSaved;
+                    // Cargo (Revisa si se guardó en Firebase o local)
+                    const cargoSaved = datos.cargo_credencial || localStorage.getItem('credencial_cargo_' + idUsuario);
+                    if (cargoSaved) {
+                        document.getElementById('lbl-cargo').innerText = cargoSaved;
+                        document.getElementById('input-cargo').value = cargoSaved;
+                    } else {
+                        document.getElementById('lbl-cargo').innerText = " ";
+                    }
+
+                    // Generar QR Profesional
+                    const textQR = `LORETO INGENIERÍA S.A. de C.V. | Empleado: ${nombreStr} | contacto@loreto.mx | verify.loreto.mx`;
+                    const qrcodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(textQR)}`;
+                    document.getElementById('img-qr').src = qrcodeUrl;
+
+                    mostrarCredencial();
                 } else {
-                    document.getElementById('label-cargo').innerText = "[Completa tu cargo]";
+                    // Si no hay nada en Firebase, mostramos alerta
+                    document.getElementById('tablas-container').innerHTML = `
+                        <div class="data-card" style="text-align:center; padding: 40px;">
+                            <i data-lucide="alert-triangle" style="width:48px; height:48px; color:var(--danger); margin-bottom:15px;"></i>
+                            <h2 style="color:var(--primary-blue);">Sin Expediente</h2>
+                            <p style="color:var(--text-muted);">No hemos encontrado tu expediente en la base de datos. Debes completar y <b>guardar</b> tu expediente personal primero.</p>
+                            <a href="expediente.html" style="display:inline-block; margin-top:15px; background:var(--primary-blue); color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold;">Ir a Expediente</a>
+                        </div>
+                    `;
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('tablas-container').style.display = 'block';
+                    lucide.createIcons();
                 }
-
-                // Llenar Posterior
-                if(datos.emergencia_nombre) document.getElementById('label-emergencia-nombre').innerText = datos.emergencia_nombre;
-                if(datos.emergencia_tel) document.getElementById('label-emergencia-tel').innerText = datos.emergencia_tel;
-
-                // Generar QR (basado en síntesis del contexto Loreto y image 3)
-                const textQR = `LORETO INGENIERÍA S.A. de C.V. | contacto@loreto.mx | verify.loreto.mx`;
-                const qrcodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(textQR)}`;
-                document.getElementById('slot-qr').innerHTML = `<img src="${qrcodeUrl}" alt="QR Code">`;
-
-                mostrarCredencial();
-
-            } else {
-                // No hay expediente, mostrar placeholders o modal de alerta
-                document.getElementById('tablas-container').innerHTML = `
-                    <div class="data-card" style="text-align:center; padding: 40px;">
-                        <i data-lucide="alert-triangle" style="width:48px; height:48px; color:var(--danger); margin-bottom:15px;"></i>
-                        <h2 style="color:var(--primary-blue);">Sin Expediente</h2>
-                        <p style="color:var(--text-muted);">No hemos encontrado un expediente guardado para tu usuario. Debes completar primero tu expediente personal en el menú correspondiente para generar tu credencial.</p>
-                        <a href="expediente.html" style="display:inline-block; margin-top:15px; background:var(--primary-blue); color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold;">Ir a Expediente</a>
-                    </div>
-                `;
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('tablas-container').style.display = 'block';
-                lucide.createIcons();
+            } catch (error) {
+                console.error("Error al obtener datos:", error);
+                alert("Error de conexión con la base de datos.");
             }
         }
 
@@ -581,22 +433,14 @@
         // ==========================================
         function guardarCargo() {
             const inputCargo = document.getElementById('input-cargo').value.trim();
-            if(inputCargo === '') {
-                // Alerta básica si está vacío
-                alert("Por favor, introduce tu cargo.");
-                return;
-            }
+            if(inputCargo === '') { alert("Por favor, introduce tu cargo."); return; }
 
-            // Actualizar vista credencial
-            document.getElementById('label-cargo').innerText = inputCargo;
-            
-            // Guardar en localStorage
+            document.getElementById('lbl-cargo').innerText = inputCargo;
             localStorage.setItem('credencial_cargo_' + idUsuario, inputCargo);
             
-            // Opcional: Guardar en Firestore también si lo requieres
+            // Subirlo a Firebase para que no se borre
             db.collection("expedientes_personal").doc(idUsuario).set({
-                cargo_credencial: inputCargo,
-                fecha_actualizacion_cargo: firebase.firestore.FieldValue.serverTimestamp()
+                cargo_credencial: inputCargo
             }, { merge: true });
 
             document.getElementById('modal-success-cargo').style.display = 'flex';
@@ -605,7 +449,7 @@
         document.addEventListener('DOMContentLoaded', cargarDatosCredencial);
 
         // ==========================================
-        // 4. GENERAR PDF (Formato Carta, Ambos Lados)
+        // 4. GENERAR PDF (En Una Sola Hoja)
         // ==========================================
         function generarPDF() {
             const btn = document.getElementById('btn-descargar-pdf');
@@ -614,97 +458,51 @@
             btn.disabled = true;
             lucide.createIcons();
 
-            const fechaHoraDescarga = new Date().toLocaleString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-            
-            // Contenedor para el PDF (fuera de la vista)
+            // Contenedor "Virtual" para el PDF
             const pdfWrap = document.createElement('div');
-            pdfWrap.style.width = '794px'; // ~Letter width en pt
+            pdfWrap.style.width = '100%';
+            pdfWrap.style.padding = '40px 0';
             pdfWrap.style.backgroundColor = 'white';
-            pdfWrap.style.color = '#1e293b';
-            pdfWrap.style.fontFamily = "'Inter', sans-serif";
-            pdfWrap.style.padding = '40px';
-            pdfWrap.style.display = 'flex';
-            pdfWrap.style.flexDirection = 'column';
-            pdfWrap.style.alignItems = 'center';
-            pdfWrap.style.gap = '40px';
-
-            // Clona la credencial frontal y posterior, asegurando las dimensiones
+            
+            // Ponemos flex-row para que las tarjetas se pongan una al lado de la otra en la misma hoja
+            const cardsContainer = document.createElement('div');
+            cardsContainer.style.display = 'flex';
+            cardsContainer.style.flexDirection = 'row';
+            cardsContainer.style.justifyContent = 'center';
+            cardsContainer.style.gap = '30px';
+            
             const frontClone = document.getElementById('credencial-front').cloneNode(true);
             const backClone = document.getElementById('credencial-back').cloneNode(true);
 
             [frontClone, backClone].forEach(clone => {
                 clone.style.width = '7cm';
                 clone.style.height = '10cm';
-                clone.style.boxShadow = 'none'; // Quitar sombra para impresión
-                clone.style.border = '1px solid #e2e8f0'; // Mantener borde fino
+                clone.style.boxShadow = 'none'; // Quitar sombra en impresión
+                clone.style.border = '1px solid #94a3b8'; // Borde gris sutil para recortar
                 clone.style.margin = '0';
-                clone.style.overflow = 'hidden';
-                clone.style.position = 'relative';
-                clone.style.display = 'flex';
-                clone.style.flexDirection = 'column';
-                clone.style.background = 'white';
-                
-                // Forzar color de banner
-                const banner = clone.querySelector('.top-banner');
-                if(banner) {
-                    banner.style.backgroundColor = '#263fa4';
-                    banner.style.color = 'white';
-                }
-                
-                // Forzar color de Cargo y títulos azules
-                clone.querySelectorAll('.cargo-value, .card-title, .back-title, .cargo-label, .info-label').forEach(el => {
-                    el.style.color = '#263fa4';
-                });
-                
-                // Forzar el QR (img)
-                const qrSlot = clone.querySelector('.qr-slot');
-                if(qrSlot) {
-                    qrSlot.style.display = 'flex';
-                    qrSlot.style.justifyContent = 'center';
-                    qrSlot.style.alignItems = 'center';
-                    qrSlot.style.padding = '5px';
-                    qrSlot.querySelector('img').style.width = '2cm';
-                    qrSlot.querySelector('img').style.height = '2cm';
-                }
-
-                // Forzar la firma y foto
-                const signatureSlot = clone.querySelector('.signature-slot');
-                if(signatureSlot && signatureSlot.querySelector('img')) {
-                    signatureSlot.querySelector('img').style.width = '100%';
-                    signatureSlot.querySelector('img').style.height = '100%';
-                    signatureSlot.querySelector('img').style.objectFit = 'contain';
-                }
-                const photoSlot = clone.querySelector('.employee-photo-slot');
-                if(photoSlot && photoSlot.querySelector('img')) {
-                    photoSlot.querySelector('img').style.width = '120px';
-                    photoSlot.querySelector('img').style.height = '120px';
-                    photoSlot.querySelector('img').style.objectFit = 'cover';
-                    photoSlot.style.borderRadius = '50%';
-                    photoSlot.style.border = '2px solid #263fa4';
-                }
+                cardsContainer.appendChild(clone);
             });
 
-            pdfWrap.appendChild(frontClone);
-            pdfWrap.appendChild(backClone);
+            pdfWrap.appendChild(cardsContainer);
             
-            // Pie de página para impresión
+            // Pie de página de impresión
             const printFooter = document.createElement('div');
             printFooter.style.textAlign = 'center';
             printFooter.style.fontSize = '9px';
             printFooter.style.color = '#64748b';
             printFooter.style.marginTop = '40px';
-            printFooter.style.borderTop = '1px solid #e2e8f0';
-            printFooter.style.paddingTop = '10px';
-            printFooter.innerHTML = `Identificación Oficial generada el: ${fechaHoraDescarga}. Loreto Ingeniería S.A. de C.V.`;
+            printFooter.style.fontFamily = "Arial, sans-serif";
+            const fechaD = new Date().toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' });
+            printFooter.innerHTML = `Identificación Oficial generada el: ${fechaD}. Loreto Ingeniería S.A. de C.V.`;
             pdfWrap.appendChild(printFooter);
 
-            // Opciones html2pdf
+            // Configuramos html2pdf sin salto de página para que quepa todo en vertical (portrait)
             const opt = {
-                margin:       [30, 30, 30, 30], // Márgenes de la hoja carta
+                margin:       20,
                 filename:     `Credencial_${nombreUsuario.replace(/ /g, '_')}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
+                image:        { type: 'jpeg', quality: 1 },
                 html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'pt', format: 'letter', orientation: 'portrait' }
+                jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' } 
             };
 
             html2pdf().set(opt).from(pdfWrap).save().then(() => {
@@ -719,7 +517,6 @@
                 lucide.createIcons();
             });
         }
-
     </script>
 </body>
 </html>
