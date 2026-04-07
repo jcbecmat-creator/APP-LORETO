@@ -51,7 +51,7 @@
 
         /* --- CONTENIDO PRINCIPAL --- */
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .container { max-width: 1050px; margin: 0 auto; padding-bottom: 50px; }
+        .container { max-width: 1200px; margin: 0 auto; padding-bottom: 50px; }
         
         .page-header { margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
@@ -61,11 +61,16 @@
         
         /* --- ESTILOS DE LA TABLA --- */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; border: 1px solid var(--border-color); }
-        .data-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        .data-table { width: 100%; border-collapse: collapse; min-width: 950px; }
         .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 14px 12px; text-align: left; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
         .data-table td { padding: 12px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-color); text-align: left; font-weight: 500; vertical-align: middle; }
         .data-table tr:last-child td { border-bottom: none; }
         .data-table tbody tr:hover { background-color: #f8fafc; }
+
+        /* Miniatura de la foto en la tabla */
+        .table-photo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; cursor: zoom-in; border: 1px solid var(--border-color); transition: transform 0.2s; }
+        .table-photo:hover { transform: scale(1.05); border-color: var(--primary-blue); }
+        .table-photo-empty { width: 45px; height: 45px; border-radius: 8px; background: var(--bg-color); display: flex; align-items: center; justify-content: center; color: #cbd5e1; border: 1px dashed #cbd5e1; margin: 0 auto;}
 
         /* Botón rojo de la tabla */
         .btn-ver-expediente {
@@ -78,10 +83,25 @@
             font-weight: 700;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             transition: background-color 0.2s;
+            width: 100%;
+            box-sizing: border-box;
         }
         .btn-ver-expediente:hover { background-color: #b91c1c; }
+
+        /* --- VISUALIZADOR DE IMÁGENES --- */
+        #image-viewer-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center;
+            cursor: zoom-out; backdrop-filter: blur(3px);
+        }
+        #image-viewer-img {
+            max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.5);
+            object-fit: contain; animation: popIn 0.2s ease-out;
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
     </style>
@@ -107,7 +127,7 @@
             <div class="container">
                 <div class="page-header">
                     <h1>Expedientes del Personal</h1>
-                    <p>Relación de todos los trabajadores que han registrado su expediente y su cargo.</p>
+                    <p>Relación de todos los trabajadores registrados. Da clic en la foto para ampliarla.</p>
                 </div>
 
                 <div id="loader" class="loader-container">
@@ -120,9 +140,13 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
+                                    <th style="width: 40px; text-align: center;">#</th>
+                                    <th style="width: 70px; text-align: center;">Foto</th>
                                     <th>Nombre del Trabajador</th>
                                     <th>Cargo</th>
-                                    <th style="text-align: center; width: 180px;">Acción</th>
+                                    <th>NSS</th>
+                                    <th>Cuenta CLABE</th>
+                                    <th style="text-align: center; width: 160px;">Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-expedientes">
@@ -133,6 +157,10 @@
 
             </div>
         </main>
+    </div>
+
+    <div id="image-viewer-overlay" onclick="closeImageViewer()">
+        <img id="image-viewer-img" src="" alt="Vista previa">
     </div>
 
     <script>
@@ -158,7 +186,6 @@
                 const linkInicio = document.getElementById('link-inicio');
                 if(linkInicio) linkInicio.classList.remove('active');
                 
-                // NOTA: Asegúrate de agregar el id "link-expedientes-admin" a la etiqueta <a> de este menú en tu archivo menu.html
                 const linkExpAdmin = document.getElementById('link-expedientes-admin');
                 if(linkExpAdmin) linkExpAdmin.classList.add('active');
             });
@@ -166,6 +193,16 @@
         document.getElementById('toggle-menu').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('open');
         });
+
+        // FUNCIONES DEL VISUALIZADOR DE IMÁGENES
+        function openImageViewer(src) {
+            document.getElementById('image-viewer-img').src = src;
+            document.getElementById('image-viewer-overlay').style.display = 'flex';
+        }
+        function closeImageViewer() {
+            document.getElementById('image-viewer-overlay').style.display = 'none';
+            document.getElementById('image-viewer-img').src = '';
+        }
 
         // CARGAR Y ORDENAR EXPEDIENTES
         async function cargarExpedientes() {
@@ -180,7 +217,10 @@
                     listaTrabajadores.push({
                         id: doc.id,
                         nombre: nombreCompleto || 'SIN NOMBRE REGISTRADO',
-                        cargo: data.cargo_credencial || 'SIN CARGO'
+                        cargo: data.cargo_credencial || '-',
+                        nss: data.nss || '-',
+                        clabe: data.cuenta_clabe || '-',
+                        fotoUrl: (data.urls_fotos && data.urls_fotos.selfie) ? data.urls_fotos.selfie : null
                     });
                 });
 
@@ -188,11 +228,22 @@
                 listaTrabajadores.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
                 let html = '';
+                let contador = 1; // Inicializamos el contador
+
                 listaTrabajadores.forEach(trabajador => {
+                    // Preparamos la imagen o el icono por defecto
+                    const fotoHtml = trabajador.fotoUrl 
+                        ? `<img src="${trabajador.fotoUrl}" class="table-photo" onclick="openImageViewer(this.src)" title="Clic para ampliar">` 
+                        : `<div class="table-photo-empty"><i data-lucide="user"></i></div>`;
+
                     html += `
                         <tr>
+                            <td style="text-align: center; font-weight: 700; color: var(--text-muted);">${contador}</td>
+                            <td style="text-align: center;">${fotoHtml}</td>
                             <td style="font-weight: 700; color: var(--primary-blue);">${trabajador.nombre}</td>
                             <td>${trabajador.cargo}</td>
+                            <td style="font-family: monospace; font-size: 14px; letter-spacing: 0.5px;">${trabajador.nss}</td>
+                            <td style="font-family: monospace; font-size: 14px; letter-spacing: 0.5px;">${trabajador.clabe}</td>
                             <td style="text-align: center;">
                                 <a href="expediente.html?viewUid=${trabajador.id}" class="btn-ver-expediente">
                                     <i data-lucide="file-text"></i> Ver expediente
@@ -200,12 +251,13 @@
                             </td>
                         </tr>
                     `;
+                    contador++; // Aumentamos el contador en 1 para la siguiente fila
                 });
 
                 document.getElementById('tbody-expedientes').innerHTML = html;
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('tabla-container').style.display = 'block';
-                lucide.createIcons();
+                lucide.createIcons(); // Renderizamos los iconos inyectados en la tabla
 
             } catch (error) {
                 console.error("Error al cargar los expedientes:", error);
