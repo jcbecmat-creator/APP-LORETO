@@ -47,7 +47,6 @@
         .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .sidebar-section:last-child { border-bottom: none; }
         
-        /* CORRECCIÓN: Evita el choque de estilos con los títulos de la página principal */
         .sidebar .section-title { 
             font-size: 11px; font-weight: 800; color: var(--text-muted); 
             text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px;
@@ -93,6 +92,18 @@
         .doc-item label { font-size: 11px; font-weight: 700; color: var(--primary-blue); display: block; margin-bottom: 10px; height: 30px; }
         .doc-item .photo-slot { max-width: 100%; aspect-ratio: 4/3; margin-bottom: 10px; }
 
+        /* --- VISUALIZADOR DE IMÁGENES (NUEVO) --- */
+        #image-viewer-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center;
+            cursor: zoom-out; backdrop-filter: blur(3px);
+        }
+        #image-viewer-img {
+            max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.5);
+            object-fit: contain; animation: popIn 0.2s ease-out;
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
         /* --- FIRMA --- */
         .signature-container { border: 2px dashed #cbd5e1; border-radius: 12px; background: white; margin-bottom: 10px; width: 100%; overflow: hidden; }
         .signature-pad { width: 100%; height: 200px; cursor: crosshair; touch-action: none; display: block; } 
@@ -107,7 +118,6 @@
         .btn-cancelar { background: var(--danger); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
         .btn-cancelar:hover { background: #b91c1c; }
 
-        /* Botón Actualizar Expediente (Verde) */
         .btn-actualizar { background: var(--success); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: 0.2s; }
         .btn-actualizar:hover { background: #059669; }
 
@@ -121,7 +131,6 @@
         /* --- MODALES --- */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
         .modal-content { background: white; padding: 25px; border-radius: 16px; width: 100%; max-width: 350px; text-align: center; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         .modal-content p { font-size: 15px; color: var(--text-main); margin-bottom: 20px; font-weight: 600; line-height: 1.5; }
         .modal-buttons { display: flex; gap: 10px; }
         .btn-modal { flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
@@ -269,6 +278,67 @@
                     </div>
 
                     <div class="form-card">
+                        <h3 class="section-title"><i data-lucide="landmark"></i> Cuenta Bancaria</h3>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label class="form-label">Número de Tarjeta (16 dígitos)</label>
+                                <input type="text" class="form-input" id="num_tarjeta" maxlength="16" placeholder="0000 0000 0000 0000" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Cuenta CLABE (18 dígitos)</label>
+                                <input type="text" class="form-input" id="cuenta_clabe" maxlength="18" placeholder="000000000000000000" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Institución Financiera</label>
+                                <select class="form-select" id="institucion_financiera">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="ABC Capital">ABC Capital</option>
+                                    <option value="Afirme">Afirme</option>
+                                    <option value="Albo">Albo</option>
+                                    <option value="Banca Mifel">Banca Mifel</option>
+                                    <option value="Banco Azteca">Banco Azteca</option>
+                                    <option value="Banco Base">Banco Base</option>
+                                    <option value="BanBajío">BanBajío</option>
+                                    <option value="BanCoppel">BanCoppel</option>
+                                    <option value="Banjército">Banjército</option>
+                                    <option value="Banobras">Banobras</option>
+                                    <option value="Banorte">Banorte</option>
+                                    <option value="Banregio">Banregio</option>
+                                    <option value="Bansi">Bansi</option>
+                                    <option value="BBVA México">BBVA México</option>
+                                    <option value="Broxel">Broxel</option>
+                                    <option value="CIBanco">CIBanco</option>
+                                    <option value="Citibanamex">Citibanamex</option>
+                                    <option value="Clara">Clara</option>
+                                    <option value="Compartamos Banco">Compartamos Banco</option>
+                                    <option value="Consubanco">Consubanco</option>
+                                    <option value="Cuenca">Cuenca</option>
+                                    <option value="Finsus">Finsus</option>
+                                    <option value="Fondeadora">Fondeadora</option>
+                                    <option value="Hey Banco">Hey Banco</option>
+                                    <option value="HSBC México">HSBC México</option>
+                                    <option value="Inbursa">Inbursa</option>
+                                    <option value="Invex Banco">Invex Banco</option>
+                                    <option value="Klar">Klar</option>
+                                    <option value="Kubo Financiero">Kubo Financiero</option>
+                                    <option value="Mercado Pago">Mercado Pago</option>
+                                    <option value="Nu México">Nu México</option>
+                                    <option value="Sabadell">Sabadell</option>
+                                    <option value="Santander">Santander</option>
+                                    <option value="Scotiabank">Scotiabank</option>
+                                    <option value="Spin by Oxxo">Spin by Oxxo</option>
+                                    <option value="Stori">Stori</option>
+                                    <option value="Ualá">Ualá</option>
+                                    <option value="Ve por Más (Bx+)">Ve por Más (Bx+)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <p style="font-size:12px; color:var(--danger); font-weight:600; margin-top:15px; line-height: 1.4;">
+                            ⚠️ IMPORTANTE: Captura cuidadosamente estos datos sin espacios, ya que con esta información se te pagará tu nómina o realizarán tus transferencias. Si por alguna situación cambias a otro banco, debes avisar inmediatamente a la administración.
+                        </p>
+                    </div>
+
+                    <div class="form-card">
                         <h3 class="section-title"><i data-lucide="files"></i> Documentos Adjuntos</h3>
                         <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Toma una foto clara o sube el archivo de cada documento solicitado.</p>
                         
@@ -306,6 +376,10 @@
     <input type="file" id="fileInputGlobal" accept="image/*" style="display:none" onchange="processFile(this)">
     <canvas id="tempCanvas" style="display:none"></canvas>
 
+    <div id="image-viewer-overlay" onclick="closeImageViewer()">
+        <img id="image-viewer-img" src="" alt="Vista previa">
+    </div>
+
     <div id="camera-overlay" class="modal-overlay" style="flex-direction: column;">
         <div id="camera-stream"><video id="camera-video" autoplay playsinline></video></div>
         <div class="camera-controls">
@@ -335,13 +409,15 @@
     </div>
 
     <script>
+        // ACTUALIZACIÓN DE CAMPOS: Se agregan las variables de Cuenta Bancaria
         const formCampos = [
             'nombre', 'paterno', 'materno', 'sexo', 'edad', 'fecha_nac', 'lugar_nac', 
             'nacionalidad', 'estado_civil', 'calle', 'num_ext', 'num_int', 'colonia', 
             'municipio', 'ciudad', 'estado', 'cp', 'telefono', 'correo', 'rfc', 'curp', 
             'nss', 'umf', 'consultorio', 'escolaridad', 'cedula_prof', 'colegio', 
             'padre', 'madre', 'conyuge', 'hijos', 'emergencia_nombre', 
-            'emergencia_parentesco', 'emergencia_tel'
+            'emergencia_parentesco', 'emergencia_tel', 
+            'num_tarjeta', 'cuenta_clabe', 'institucion_financiera'
         ];
 
         const firebaseConfig = {
@@ -408,13 +484,28 @@
 
         function removeFoto(target) { fotos[target][0] = null; renderSlots(target); }
 
+        // FUNCIONES DEL VISUALIZADOR DE IMÁGENES
+        function openImageViewer(src) {
+            document.getElementById('image-viewer-img').src = src;
+            document.getElementById('image-viewer-overlay').style.display = 'flex';
+        }
+        function closeImageViewer() {
+            document.getElementById('image-viewer-overlay').style.display = 'none';
+            document.getElementById('image-viewer-img').src = '';
+        }
+
         function renderSlots(target) {
             const slot = document.getElementById(`slot-${target}-0`); if(!slot) return;
-            if (fotos[target][0]) { slot.innerHTML = `<img src="${fotos[target][0]}"><span class="remove-photo" onclick="removeFoto('${target}')">&times;</span>`; slot.style.border = "1px solid var(--border-color)"; } 
+            if (fotos[target][0]) { 
+                // Al darle click a la imagen se hace zoom, y el botón X se separa con event.stopPropagation()
+                slot.innerHTML = `<img src="${fotos[target][0]}" onclick="openImageViewer(this.src)"><span class="remove-photo" onclick="event.stopPropagation(); removeFoto('${target}')">&times;</span>`; 
+                slot.style.border = "1px solid var(--border-color)"; 
+            } 
             else { 
                 let icon = 'image'; if(target==='selfie') icon='user'; if(target.includes('ine')) icon='credit-card'; if(target==='cuenta') icon='landmark'; if(target==='comprobante') icon='home'; if(target==='cedula') icon='award'; if(target==='titulo') icon='graduation-cap';
                 slot.innerHTML = `<i data-lucide="${icon}" style="width:40px; height:40px; color:#cbd5e1;"></i>`; slot.style.border = "2px dashed #cbd5e1"; 
-            } lucide.createIcons();
+            } 
+            lucide.createIcons();
         }
 
         let canvasFirma, ctxFirma;
