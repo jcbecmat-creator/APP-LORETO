@@ -156,10 +156,9 @@
 
         /* --- POSTERIOR --- */
         
-        /* Modificado: Contenedor rígido para que el PDF no lo mueva ni estire */
         .cred-trucks-wrapper {
             width: 100%;
-            height: 76px; /* Aumentado otro 10% */
+            height: 76px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -203,7 +202,6 @@
             margin-bottom: 20px; 
         }
 
-
         /* --- CARGO EDITABLE SECTION --- */
         .cargo-editor { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-color); margin-top: 20px; display: flex; flex-direction: column; gap: 15px; }
         .cargo-editor h3 { font-size: 18px; font-weight: 700; color: var(--primary-blue); margin: 0; display: flex; align-items: center; gap: 8px; }
@@ -213,14 +211,25 @@
         .btn-guardar { background: var(--primary-blue); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(38,63,164,0.2); transition: 0.2s; width: 100%; }
         .btn-guardar:hover { background: #1a2a6e; }
 
-        /* --- BOTÓN FLOTANTE --- */
+        /* --- BOTONES FLOTANTES --- */
         .fab-download {
             position: fixed; bottom: 30px; right: 30px; background-color: var(--danger); color: white; border: none; border-radius: 50px;
             padding: 16px 24px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
             display: none; align-items: center; gap: 10px; z-index: 1000; transition: transform 0.2s;
         }
         .fab-download:hover { transform: translateY(-5px); background-color: #b91c1c; }
-        @media (max-width: 768px) { .fab-download { bottom: 20px; right: 20px; padding: 14px 20px; font-size: 14px; } }
+        
+        .fab-admin-close {
+            position: fixed; bottom: 30px; left: 30px; background-color: var(--text-muted); color: white; border: none; border-radius: 50px;
+            padding: 16px 24px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
+            display: none; align-items: center; gap: 10px; z-index: 1000; transition: transform 0.2s;
+        }
+        .fab-admin-close:hover { transform: translateY(-5px); background-color: #475569; }
+
+        @media (max-width: 768px) { 
+            .fab-download { bottom: 20px; right: 20px; padding: 14px 20px; font-size: 14px; }
+            .fab-admin-close { bottom: 20px; left: 20px; padding: 14px 20px; font-size: 14px; }
+        }
         
         /* Modales */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
@@ -237,9 +246,9 @@
         <div class="header-left">
             <button class="menu-btn" id="toggle-menu"><i data-lucide="menu"></i></button>
             <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Logo" style="height: 35px; object-fit: contain;">
-            <h1 class="header-title">Credencial Digital</h1>
+            <h1 class="header-title" id="titulo-pagina">Credencial Digital</h1>
         </div>
-        <div class="header-right">
+        <div class="header-right" id="header-right">
             <div class="user-initial" id="user-initial">U</div>
             <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="User" height="35" style="border-radius:4px;">
         </div>
@@ -251,8 +260,8 @@
         <main class="content">
             <div class="form-container">
                 <div class="page-header">
-                    <h1>Tu Identificación Oficial</h1>
-                    <p>Visualiza y gestiona tu credencial digital. Completa el Cargo para activarla.</p>
+                    <h1 id="titulo-principal">Tu Identificación Oficial</h1>
+                    <p id="subtitulo-principal">Visualiza y gestiona tu credencial digital. Completa el Cargo para activarla.</p>
                 </div>
 
                 <div id="loader" class="loader-container">
@@ -304,7 +313,7 @@
 
                     </div>
 
-                    <div class="cargo-editor">
+                    <div class="cargo-editor" id="cargo-editor-section">
                         <h3><i data-lucide="edit-3"></i> Actualizar tu Cargo</h3>
                         <div>
                             <label class="form-label">Introduce tu Cargo Actual</label>
@@ -321,6 +330,10 @@
 
     <button id="btn-descargar-pdf" class="fab-download" onclick="generarPDF()">
         <i data-lucide="download"></i> Descargar Credencial
+    </button>
+    
+    <button id="btn-cerrar-credencial" class="fab-admin-close" onclick="window.location.href='credenciales.html'">
+        <i data-lucide="arrow-left-circle"></i> Cerrar Credencial
     </button>
 
     <div id="modal-success-cargo" class="modal-overlay">
@@ -348,6 +361,16 @@
         const db = firebase.firestore();
 
         // ==========================================
+        // LÓGICA DE ADMINISTRADOR VS TRABAJADOR
+        // ==========================================
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewUid = urlParams.get('viewUid');
+        const isAdminView = !!viewUid;
+
+        const idUsuario = isAdminView ? viewUid : (localStorage.getItem('usuario') || 'SinID');
+        const nombreUsuario = isAdminView ? 'Admin' : (localStorage.getItem('nombre') || 'Usuario Desconocido');
+
+        // ==========================================
         // 1. CARGAR MENÚ DINÁMICO
         // ==========================================
         fetch('menu.html')
@@ -358,17 +381,51 @@
                 const linkInicio = document.getElementById('link-inicio');
                 if(linkInicio) linkInicio.classList.remove('active');
                 
-                const linkCredencial = document.getElementById('link-credencial');
-                if(linkCredencial) linkCredencial.classList.add('active');
+                if (isAdminView) {
+                    const linkCredAdmin = document.getElementById('link-credenciales-admin');
+                    if(linkCredAdmin) linkCredAdmin.classList.add('active');
+                } else {
+                    const linkCredencial = document.getElementById('link-credencial');
+                    if(linkCredencial) linkCredencial.classList.add('active');
+                }
             });
 
         document.getElementById('toggle-menu').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('open');
         });
 
-        const idUsuario = localStorage.getItem('usuario') || 'SinID';
-        const nombreUsuario = localStorage.getItem('nombre') || 'U';
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
+
+        // Ajustes de Interfaz para el Administrador
+        if (isAdminView) {
+            document.getElementById('titulo-pagina').innerText = "Visor de Credencial";
+            document.getElementById('titulo-principal').innerText = "Visor de Credencial (Solo Lectura)";
+            document.getElementById('subtitulo-principal').innerText = "Estás visualizando la credencial de un trabajador registrado en el sistema. Puedes descargarla en PDF.";
+            document.getElementById('header-right').style.display = 'none';
+            document.getElementById('cargo-editor-section').style.display = 'none'; // Oculta la edición del cargo
+            document.getElementById('btn-cerrar-credencial').style.display = 'flex'; // Muestra botón regresar
+        }
+
+        // ==========================================
+        // UTILERÍA: CONVERTIR URL DE IMAGEN A BASE64
+        // ==========================================
+        const imageUrlToBase64 = async (url) => {
+            if (!url) return null;
+            if (url.startsWith('data:')) return url;
+            try {
+                const response = await fetch(url + "?t=" + new Date().getTime(), { mode: 'cors' });
+                const blob = await response.blob();
+                return await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) {
+                console.error("Error convirtiendo imagen a base64", e);
+                return null; 
+            }
+        };
 
         // ==========================================
         // 2. EXTRAER DATOS
@@ -377,54 +434,69 @@
             try {
                 const doc = await db.collection("expedientes_personal").doc(idUsuario).get();
                 
-                // Extraemos también el expediente guardado localmente (esto asegura que las fotos Base64 funcionen en el PDF sin bloqueos de CORS)
-                const localDataStr = localStorage.getItem('expediente_guardado_' + idUsuario);
+                // Si es admin, no consultamos el localStorage porque el expediente está en la PC del trabajador
+                const localDataStr = !isAdminView ? localStorage.getItem('expediente_guardado_' + idUsuario) : null;
                 const localData = localDataStr ? JSON.parse(localDataStr) : {};
 
                 if (doc.exists) {
                     const datos = doc.data();
                     
                     const nombreStr = `${datos.nombre || ''} ${datos.paterno || ''} ${datos.materno || ''}`.trim();
-                    document.getElementById('lbl-name').innerText = nombreStr || nombreUsuario;
+                    document.getElementById('lbl-name').innerText = nombreStr || (isAdminView ? 'SIN NOMBRE' : nombreUsuario);
                     
                     const nssStr = datos.nss || 'S/N';
                     document.getElementById('lbl-nss').innerText = `NSS: ${nssStr}`;
                     
-                    // FOTO: Priorizamos Base64 local para evitar errores en PDF. Si no, usamos Firebase URL.
+                    // FOTO: Si hay base64 local, lo usamos. Si no (o si es admin), lo convertimos desde Firebase.
                     if (localData.fotos && localData.fotos.selfie && localData.fotos.selfie[0]) {
                         document.getElementById('img-photo').src = localData.fotos.selfie[0];
                         document.getElementById('img-photo').style.display = 'block';
                     } else if (datos.urls_fotos && datos.urls_fotos.selfie) {
-                        document.getElementById('img-photo').src = datos.urls_fotos.selfie;
+                        const base64Photo = await imageUrlToBase64(datos.urls_fotos.selfie);
+                        if(base64Photo) {
+                            document.getElementById('img-photo').src = base64Photo;
+                        } else {
+                             document.getElementById('img-photo').src = datos.urls_fotos.selfie;
+                        }
                         document.getElementById('img-photo').style.display = 'block';
                     }
 
-                    // FIRMA: Priorizamos Base64 local.
+                    // FIRMA
                     if (localData.firma) {
                         document.getElementById('img-firma').src = localData.firma;
                         document.getElementById('img-firma').style.display = 'block';
                     } else if (datos.url_firma) {
-                        document.getElementById('img-firma').src = datos.url_firma;
+                        const base64Firma = await imageUrlToBase64(datos.url_firma);
+                        if(base64Firma) {
+                             document.getElementById('img-firma').src = base64Firma;
+                        } else {
+                             document.getElementById('img-firma').src = datos.url_firma;
+                        }
                         document.getElementById('img-firma').style.display = 'block';
                     }
 
                     // Cargo
-                    const cargoSaved = datos.cargo_credencial || localStorage.getItem('credencial_cargo_' + idUsuario);
+                    const cargoSaved = datos.cargo_credencial || (!isAdminView ? localStorage.getItem('credencial_cargo_' + idUsuario) : null);
                     if (cargoSaved) {
                         document.getElementById('lbl-cargo').innerText = cargoSaved;
-                        document.getElementById('input-cargo').value = cargoSaved;
+                        if(!isAdminView) document.getElementById('input-cargo').value = cargoSaved;
                     } else {
                         document.getElementById('lbl-cargo').innerText = " ";
                     }
 
-                    // Extraer RFC y CURP para el QR
                     const rfcStr = datos.rfc || 'S/N';
                     const curpStr = datos.curp || 'S/N';
                     const vigenciaStr = '01/01/2026 - 31/12/2026';
 
                     const textQR = `Loreto Ingeniería, Construcción, Edificación y Remodelación\nEmpleado: ${nombreStr}\nNSS: ${nssStr}\nRFC: ${rfcStr}\nCURP: ${curpStr}\nVigencia: ${vigenciaStr}`;
                     const qrcodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(textQR)}`;
-                    document.getElementById('img-qr').src = qrcodeUrl;
+                    
+                    const base64QR = await imageUrlToBase64(qrcodeUrl);
+                    if(base64QR){
+                        document.getElementById('img-qr').src = base64QR;
+                    } else {
+                        document.getElementById('img-qr').src = qrcodeUrl;
+                    }
 
                     mostrarCredencial();
                 } else {
@@ -432,8 +504,8 @@
                         <div class="data-card" style="text-align:center; padding: 40px;">
                             <i data-lucide="alert-triangle" style="width:48px; height:48px; color:var(--danger); margin-bottom:15px;"></i>
                             <h2 style="color:var(--primary-blue);">Sin Expediente</h2>
-                            <p style="color:var(--text-muted);">No hemos encontrado tu expediente en la base de datos. Debes completar y <b>guardar</b> tu expediente personal primero.</p>
-                            <a href="expediente.html" style="display:inline-block; margin-top:15px; background:var(--primary-blue); color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold;">Ir a Expediente</a>
+                            <p style="color:var(--text-muted);">No se encontró el expediente en la base de datos.</p>
+                            ${!isAdminView ? '<a href="expediente.html" style="display:inline-block; margin-top:15px; background:var(--primary-blue); color:white; padding:10px 20px; border-radius:8px; text-decoration:none; font-weight:bold;">Ir a Expediente</a>' : ''}
                         </div>
                     `;
                     document.getElementById('loader').style.display = 'none';
@@ -454,9 +526,10 @@
         }
 
         // ==========================================
-        // 3. EDITAR Y GUARDAR CARGO
+        // 3. EDITAR Y GUARDAR CARGO (Solo Trabajador)
         // ==========================================
         function guardarCargo() {
+            if(isAdminView) return; // Seguridad extra
             const inputCargo = document.getElementById('input-cargo').value.trim();
             if(inputCargo === '') { alert("Por favor, introduce tu cargo."); return; }
 
@@ -498,7 +571,6 @@
             const frontClone = document.getElementById('credencial-front').cloneNode(true);
             const backClone = document.getElementById('credencial-back').cloneNode(true);
 
-            // Asegurar que los src de las imágenes se pasen correctamente al clon (Especialmente Base64)
             frontClone.querySelector('#img-photo').src = document.getElementById('img-photo').src;
             frontClone.querySelector('#img-firma').src = document.getElementById('img-firma').src;
 
@@ -509,7 +581,6 @@
                 clone.style.border = '1px solid #94a3b8'; 
                 clone.style.margin = '0';
                 
-                // Forzar estilos inline de imágenes y contenedores para el PDF
                 const backLogoWrapper = clone.querySelector('.cred-trucks-wrapper');
                 if (backLogoWrapper) {
                     backLogoWrapper.style.width = '100%';
@@ -542,9 +613,11 @@
             printFooter.innerHTML = `Identificación Oficial generada el: ${fechaD}. Loreto Ingeniería S.A. de C.V.`;
             pdfWrap.appendChild(printFooter);
 
+            const nombreExport = document.getElementById('lbl-name').innerText.replace(/ /g, '_');
+
             const opt = {
                 margin:       15,
-                filename:     `Credencial_${nombreUsuario.replace(/ /g, '_')}.pdf`,
+                filename:     `Credencial_${nombreExport}.pdf`,
                 image:        { type: 'jpeg', quality: 1 },
                 html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' } 
