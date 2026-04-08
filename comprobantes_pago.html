@@ -124,15 +124,8 @@
         .cell-date { font-family: monospace; font-size: 12px; color: var(--text-main); font-weight: 600; white-space: pre-line; line-height: 1.4;}
 
         /* --- VISUALIZADOR DE IMÁGENES --- */
-        #image-viewer-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center;
-            cursor: zoom-out; backdrop-filter: blur(3px);
-        }
-        #image-viewer-img {
-            max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.5);
-            object-fit: contain; animation: popIn 0.2s ease-out;
-        }
+        #image-viewer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; cursor: zoom-out; backdrop-filter: blur(3px); }
+        #image-viewer-img { max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.5); object-fit: contain; animation: popIn 0.2s ease-out; }
         
         /* --- MODALES PERSONALIZADOS --- */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
@@ -257,42 +250,17 @@
         });
 
         // FUNCIONES DE INTERFAZ (Visor e Infos)
-        function openImageViewer(src) {
-            document.getElementById('image-viewer-img').src = src;
-            document.getElementById('image-viewer-overlay').style.display = 'flex';
-        }
-        function closeImageViewer() {
-            document.getElementById('image-viewer-overlay').style.display = 'none';
-            document.getElementById('image-viewer-img').src = '';
-        }
+        function openImageViewer(src) { document.getElementById('image-viewer-img').src = src; document.getElementById('image-viewer-overlay').style.display = 'flex'; }
+        function closeImageViewer() { document.getElementById('image-viewer-overlay').style.display = 'none'; document.getElementById('image-viewer-img').src = ''; }
         
-        function mostrarAlerta(mensaje) {
-            document.getElementById('modal-error-text').innerText = mensaje;
-            document.getElementById('modal-error').style.display = 'flex';
-            lucide.createIcons();
-        }
-
-        function mostrarExito(mensaje) {
-            document.getElementById('modal-success-text').innerText = mensaje;
-            document.getElementById('modal-success').style.display = 'flex';
-            lucide.createIcons();
-        }
+        function mostrarAlerta(mensaje) { document.getElementById('modal-error-text').innerText = mensaje; document.getElementById('modal-error').style.display = 'flex'; lucide.createIcons(); }
+        function mostrarExito(mensaje) { document.getElementById('modal-success-text').innerText = mensaje; document.getElementById('modal-success').style.display = 'flex'; lucide.createIcons(); }
 
         // Formateador de Fecha
         function formatearFecha(timestampObj) {
             if (!timestampObj) return '<span class="cell-empty">Sin comprobante</span>';
-            
-            let date;
-            if (timestampObj.toDate) {
-                date = timestampObj.toDate();
-            } else {
-                date = new Date(timestampObj);
-            }
-            
-            return date.toLocaleString('es-MX', { 
-                day: '2-digit', month: '2-digit', year: 'numeric', 
-                hour: '2-digit', minute: '2-digit', hour12: true 
-            }).replace(', ', '\n');
+            let date = timestampObj.toDate ? timestampObj.toDate() : new Date(timestampObj);
+            return date.toLocaleString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }).replace(', ', '\n');
         }
 
         // VARIABLES GLOBALES PARA CARGA
@@ -311,8 +279,7 @@
             
             if (file.type !== "application/pdf") {
                 mostrarAlerta("Formato inválido. Por favor selecciona únicamente archivos PDF.");
-                event.target.value = '';
-                return;
+                event.target.value = ''; return;
             }
 
             document.getElementById('loader-text').innerText = `Subiendo comprobante de pago ${currentCompNum}...`;
@@ -386,6 +353,7 @@
                     const btn2Class = trabajador.comp2_url ? "btn-cargar success" : "btn-cargar";
                     const btn2Text = trabajador.comp2_url ? "Actualizar" : "Cargar";
 
+                    // --- MODIFICACIÓN CLAVE AQUÍ: El botón ahora es un enlace a la vista del trabajador ---
                     html += `
                         <tr>
                             <td style="text-align: center; font-weight: 700; color: var(--text-muted);">${contador}</td>
@@ -409,9 +377,9 @@
                             <td style="text-align: center;" class="cell-date">${formatearFecha(trabajador.comp2_ts)}</td>
                             
                             <td style="text-align: center;">
-                                <button class="btn-ver-historial" onclick="mostrarAlerta('La funcionalidad de Ver Historial estará disponible próximamente.')">
+                                <a href="comprobante_pago.html?viewUid=${trabajador.id}" class="btn-ver-historial">
                                     <i data-lucide="history"></i> Ver Historial
-                                </button>
+                                </a>
                             </td>
                         </tr>
                     `;
