@@ -63,8 +63,6 @@
         
         /* --- ESTILOS DE LA TABLA --- */
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; border: 1px solid var(--border-color); }
-        
-        /* Aumentado a 1400px para que las 10 columnas quepan sin aplastarse */
         .data-table { width: 100%; border-collapse: collapse; min-width: 1400px; }
         
         .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 14px 12px; text-align: center; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
@@ -76,7 +74,7 @@
         .table-photo:hover { transform: scale(1.05); border-color: var(--primary-blue); }
         .table-photo-empty { width: 45px; height: 45px; border-radius: 8px; background: var(--bg-color); display: flex; align-items: center; justify-content: center; color: #cbd5e1; border: 1px dashed #cbd5e1; margin: 0 auto;}
 
-        /* Botón Azul de Cargar PDF */
+        /* Botones de la tabla */
         .btn-cargar {
             background-color: var(--primary-blue);
             color: white;
@@ -99,7 +97,6 @@
         .btn-cargar:hover { background-color: #1a2a6e; }
         .btn-cargar.success { background-color: var(--success); }
 
-        /* Botón Rojo de Acción */
         .btn-ver-historial {
             background-color: var(--danger);
             color: white;
@@ -136,6 +133,14 @@
             max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.5);
             object-fit: contain; animation: popIn 0.2s ease-out;
         }
+        
+        /* --- MODALES PERSONALIZADOS --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 100%; max-width: 350px; text-align: center; animation: popIn 0.3s; }
+        .modal-content p { font-size: 15px; color: var(--text-main); margin-bottom: 20px; font-weight: 600; line-height: 1.5; }
+        .btn-modal { width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-modal:hover { opacity: 0.9; }
+
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
@@ -203,6 +208,22 @@
         <img id="image-viewer-img" src="" alt="Vista previa">
     </div>
 
+    <div id="modal-success" class="modal-overlay">
+        <div class="modal-content">
+            <i data-lucide="check-circle" style="color: var(--success); width: 48px; height: 48px; margin-bottom: 15px;"></i>
+            <p id="modal-success-text">Comprobante subido exitosamente.</p>
+            <button class="btn-modal" style="background:var(--success); color:white;" onclick="document.getElementById('modal-success').style.display='none'">Aceptar</button>
+        </div>
+    </div>
+
+    <div id="modal-error" class="modal-overlay">
+        <div class="modal-content">
+            <i data-lucide="alert-triangle" style="color: var(--danger); width: 48px; height: 48px; margin-bottom: 15px;"></i>
+            <p id="modal-error-text">Hubo un error.</p>
+            <button class="btn-modal" style="background:var(--danger); color:white;" onclick="document.getElementById('modal-error').style.display='none'">Aceptar</button>
+        </div>
+    </div>
+
     <script>
         // CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
@@ -227,7 +248,6 @@
                 const linkInicio = document.getElementById('link-inicio');
                 if(linkInicio) linkInicio.classList.remove('active');
                 
-                // NOTA: Asegúrate de tener un enlace en menu.html con id="link-comprobantes-admin"
                 const linkCompAdmin = document.getElementById('link-comprobantes-admin');
                 if(linkCompAdmin) linkCompAdmin.classList.add('active');
             });
@@ -236,7 +256,7 @@
             document.getElementById('sidebar').classList.toggle('open');
         });
 
-        // FUNCIONES DEL VISUALIZADOR DE IMÁGENES
+        // FUNCIONES DE INTERFAZ (Visor e Infos)
         function openImageViewer(src) {
             document.getElementById('image-viewer-img').src = src;
             document.getElementById('image-viewer-overlay').style.display = 'flex';
@@ -245,8 +265,20 @@
             document.getElementById('image-viewer-overlay').style.display = 'none';
             document.getElementById('image-viewer-img').src = '';
         }
+        
+        function mostrarAlerta(mensaje) {
+            document.getElementById('modal-error-text').innerText = mensaje;
+            document.getElementById('modal-error').style.display = 'flex';
+            lucide.createIcons();
+        }
 
-        // Formateador de Fecha a un formato agradable
+        function mostrarExito(mensaje) {
+            document.getElementById('modal-success-text').innerText = mensaje;
+            document.getElementById('modal-success').style.display = 'flex';
+            lucide.createIcons();
+        }
+
+        // Formateador de Fecha
         function formatearFecha(timestampObj) {
             if (!timestampObj) return '<span class="cell-empty">Sin comprobante</span>';
             
@@ -260,7 +292,7 @@
             return date.toLocaleString('es-MX', { 
                 day: '2-digit', month: '2-digit', year: 'numeric', 
                 hour: '2-digit', minute: '2-digit', hour12: true 
-            }).replace(', ', '\n'); // Salto de línea entre fecha y hora
+            }).replace(', ', '\n');
         }
 
         // VARIABLES GLOBALES PARA CARGA
@@ -278,42 +310,36 @@
             if (!file) return;
             
             if (file.type !== "application/pdf") {
-                alert("Por favor selecciona únicamente archivos PDF.");
+                mostrarAlerta("Formato inválido. Por favor selecciona únicamente archivos PDF.");
                 event.target.value = '';
                 return;
             }
 
-            // Mostrar estado de carga
             document.getElementById('loader-text').innerText = `Subiendo comprobante de pago ${currentCompNum}...`;
             document.getElementById('loader').style.display = 'flex';
             document.getElementById('tabla-container').style.display = 'none';
 
             try {
-                // 1. Subir a Storage
                 const ref = storage.ref(`comprobantes_pago/${currentUploadUserId}/comprobante_${currentCompNum}_${Date.now()}.pdf`);
                 await ref.put(file);
                 const url = await ref.getDownloadURL();
 
-                // 2. Guardar en Firestore (dentro del mismo expediente del trabajador)
                 const updateData = {};
                 updateData[`comp_pago_${currentCompNum}_url`] = url;
                 updateData[`comp_pago_${currentCompNum}_ts`] = firebase.firestore.FieldValue.serverTimestamp();
 
-                // Actualizamos (merge) en la colección expedientes_personal
                 await db.collection("expedientes_personal").doc(currentUploadUserId).set(updateData, { merge: true });
                 
-                alert("Comprobante subido exitosamente.");
-                // Recargar tabla para mostrar la fecha nueva
+                mostrarExito("El comprobante se ha subido y guardado exitosamente.");
                 cargarExpedientes();
 
             } catch (error) {
                 console.error("Error al subir el PDF:", error);
-                alert("Hubo un error al intentar subir el archivo. Revisa tu conexión.");
+                mostrarAlerta("Hubo un error al intentar subir el archivo. Revisa tu conexión a internet.");
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('tabla-container').style.display = 'block';
             }
             
-            // Resetear el input para que detecte si se sube el mismo archivo de nuevo
             event.target.value = '';
         }
 
@@ -337,7 +363,6 @@
                         cargo: data.cargo_credencial || '-',
                         clabe: data.cuenta_clabe || '-',
                         fotoUrl: (data.urls_fotos && data.urls_fotos.selfie) ? data.urls_fotos.selfie : null,
-                        // Tiempos y URLs de los comprobantes
                         comp1_url: data.comp_pago_1_url || null,
                         comp1_ts: data.comp_pago_1_ts || null,
                         comp2_url: data.comp_pago_2_url || null,
@@ -345,7 +370,6 @@
                     });
                 });
 
-                // Ordenar alfabéticamente
                 listaTrabajadores.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
                 let html = '';
@@ -356,7 +380,6 @@
                         ? `<img src="${trabajador.fotoUrl}" class="table-photo" onclick="openImageViewer(this.src)" title="Clic para ampliar">` 
                         : `<div class="table-photo-empty"><i data-lucide="user"></i></div>`;
 
-                    // Botones inteligentes (cambian a verde si ya tienen archivo)
                     const btn1Class = trabajador.comp1_url ? "btn-cargar success" : "btn-cargar";
                     const btn1Text = trabajador.comp1_url ? "Actualizar" : "Cargar";
                     
@@ -386,7 +409,7 @@
                             <td style="text-align: center;" class="cell-date">${formatearFecha(trabajador.comp2_ts)}</td>
                             
                             <td style="text-align: center;">
-                                <button class="btn-ver-historial" onclick="alert('Funcionalidad de historial próximamente.')">
+                                <button class="btn-ver-historial" onclick="mostrarAlerta('La funcionalidad de Ver Historial estará disponible próximamente.')">
                                     <i data-lucide="history"></i> Ver Historial
                                 </button>
                             </td>
@@ -402,7 +425,7 @@
 
             } catch (error) {
                 console.error("Error al cargar la tabla:", error);
-                alert("Hubo un error al descargar la lista.");
+                mostrarAlerta("Hubo un error al descargar la lista de trabajadores.");
             }
         }
 
