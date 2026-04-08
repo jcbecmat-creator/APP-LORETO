@@ -219,8 +219,9 @@
         }
         .fab-download:hover { transform: translateY(-5px); background-color: #b91c1c; }
         
+        /* Modificado: Botón de Cerrar posicionado justo encima del de Descargar */
         .fab-admin-close {
-            position: fixed; bottom: 30px; left: 30px; background-color: var(--text-muted); color: white; border: none; border-radius: 50px;
+            position: fixed; bottom: 95px; right: 30px; background-color: var(--text-muted); color: white; border: none; border-radius: 50px;
             padding: 16px 24px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
             display: none; align-items: center; gap: 10px; z-index: 1000; transition: transform 0.2s;
         }
@@ -228,7 +229,7 @@
 
         @media (max-width: 768px) { 
             .fab-download { bottom: 20px; right: 20px; padding: 14px 20px; font-size: 14px; }
-            .fab-admin-close { bottom: 20px; left: 20px; padding: 14px 20px; font-size: 14px; }
+            .fab-admin-close { bottom: 75px; right: 20px; padding: 14px 20px; font-size: 14px; }
         }
         
         /* Modales */
@@ -274,18 +275,18 @@
                     <div class="credencial-wrapper">
                         
                         <div class="credencial-card" id="credencial-front">
-                            <img src="https://i.ibb.co/7N2r6VDT/LOGOTIPO-3.jpg" class="cred-banner" alt="Banner Frontal" crossorigin="anonymous">
+                            <img src="https://i.ibb.co/7N2r6VDT/LOGOTIPO-3.jpg" class="cred-banner" alt="Banner Frontal">
                             
                             <div class="cred-name" id="lbl-name">[NOMBRE COMPLETO]</div>
                             <div class="cred-nss" id="lbl-nss">NSS: S/N</div>
                             
                             <div class="cred-photo">
-                                <img id="img-photo" src="" alt="Fotografía" crossorigin="anonymous">
+                                <img id="img-photo" src="" alt="Fotografía">
                             </div>
 
                             <div class="cred-cargo">Cargo: <strong id="lbl-cargo"></strong></div>
                             
-                            <img id="img-firma" class="cred-firma" src="" alt="Firma" crossorigin="anonymous">
+                            <img id="img-firma" class="cred-firma" src="" alt="Firma">
                             
                             <hr class="cred-line">
                             <div class="cred-valid">Válido:<br>01/01/2026 - 31/12/2026</div>
@@ -294,13 +295,13 @@
                         <div class="credencial-card" id="credencial-back">
                             
                             <div class="cred-trucks-wrapper">
-                                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" class="cred-trucks" alt="Logo Posterior" crossorigin="anonymous">
+                                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" class="cred-trucks" alt="Logo Posterior">
                             </div>
                             
                             <div class="cred-qr-container">
                                 <div style="position:absolute; bottom:10px; left:10px; width:10px; height:10px; background:#ef4444; border-radius:2px;"></div>
                                 <div style="position:absolute; bottom:10px; right:10px; width:10px; height:10px; background:#ef4444; border-radius:2px;"></div>
-                                <img id="img-qr" src="" alt="QR Code" crossorigin="anonymous">
+                                <img id="img-qr" src="" alt="QR Code">
                             </div>
 
                             <div class="cred-back-text">
@@ -333,7 +334,7 @@
     </button>
     
     <button id="btn-cerrar-credencial" class="fab-admin-close" onclick="window.location.href='credenciales.html'">
-        <i data-lucide="arrow-left-circle"></i> Cerrar Credencial
+        <i data-lucide="x"></i> Cerrar Credencial
     </button>
 
     <div id="modal-success-cargo" class="modal-overlay">
@@ -402,8 +403,8 @@
             document.getElementById('titulo-principal').innerText = "Visor de Credencial (Solo Lectura)";
             document.getElementById('subtitulo-principal').innerText = "Estás visualizando la credencial de un trabajador registrado en el sistema. Puedes descargarla en PDF.";
             document.getElementById('header-right').style.display = 'none';
-            document.getElementById('cargo-editor-section').style.display = 'none'; // Oculta la edición del cargo
-            document.getElementById('btn-cerrar-credencial').style.display = 'flex'; // Muestra botón regresar
+            document.getElementById('cargo-editor-section').style.display = 'none';
+            document.getElementById('btn-cerrar-credencial').style.display = 'flex';
         }
 
         // ==========================================
@@ -413,7 +414,7 @@
             if (!url) return null;
             if (url.startsWith('data:')) return url;
             try {
-                const response = await fetch(url + "?t=" + new Date().getTime(), { mode: 'cors' });
+                const response = await fetch(url + "?t=" + new Date().getTime());
                 const blob = await response.blob();
                 return await new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -434,7 +435,6 @@
             try {
                 const doc = await db.collection("expedientes_personal").doc(idUsuario).get();
                 
-                // Si es admin, no consultamos el localStorage porque el expediente está en la PC del trabajador
                 const localDataStr = !isAdminView ? localStorage.getItem('expediente_guardado_' + idUsuario) : null;
                 const localData = localDataStr ? JSON.parse(localDataStr) : {};
 
@@ -447,7 +447,7 @@
                     const nssStr = datos.nss || 'S/N';
                     document.getElementById('lbl-nss').innerText = `NSS: ${nssStr}`;
                     
-                    // FOTO: Si hay base64 local, lo usamos. Si no (o si es admin), lo convertimos desde Firebase.
+                    // FOTO: Modificado para asegurar que se pinte en HTML aun si falla el base64
                     if (localData.fotos && localData.fotos.selfie && localData.fotos.selfie[0]) {
                         document.getElementById('img-photo').src = localData.fotos.selfie[0];
                         document.getElementById('img-photo').style.display = 'block';
@@ -461,7 +461,7 @@
                         document.getElementById('img-photo').style.display = 'block';
                     }
 
-                    // FIRMA
+                    // FIRMA: Modificado
                     if (localData.firma) {
                         document.getElementById('img-firma').src = localData.firma;
                         document.getElementById('img-firma').style.display = 'block';
@@ -529,7 +529,7 @@
         // 3. EDITAR Y GUARDAR CARGO (Solo Trabajador)
         // ==========================================
         function guardarCargo() {
-            if(isAdminView) return; // Seguridad extra
+            if(isAdminView) return;
             const inputCargo = document.getElementById('input-cargo').value.trim();
             if(inputCargo === '') { alert("Por favor, introduce tu cargo."); return; }
 
