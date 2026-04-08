@@ -91,18 +91,53 @@
         }
         .btn-descargar-pdf:hover { background-color: #b91c1c; }
         
-        /* Botón Deshabilitado (Cuando no hay comprobante) */
-        .btn-disabled {
-            background-color: #cbd5e1;
+        /* Botón Eliminar (Solo Admin) */
+        .btn-eliminar {
+            background-color: var(--primary-blue);
             color: white;
-            cursor: not-allowed;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+            width: 100%;
+            max-width: 120px;
+            box-sizing: border-box;
+            margin: 0 auto;
+            white-space: nowrap;
+            border: none;
+            cursor: pointer;
         }
+        .btn-eliminar:hover { background-color: #1a2a6e; }
+
+        /* Botón Flotante Regresar (Solo Admin) */
+        .fab-regresar {
+            position: fixed; bottom: 30px; right: 30px; background-color: var(--text-muted); color: white; border: none; border-radius: 50px;
+            padding: 16px 24px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
+            display: none; align-items: center; gap: 10px; z-index: 1000; transition: transform 0.2s;
+        }
+        .fab-regresar:hover { transform: translateY(-5px); background-color: #475569; }
+
+        .btn-disabled { background-color: #cbd5e1; color: white; cursor: not-allowed; }
         .btn-disabled:hover { background-color: #cbd5e1; }
 
         .cell-empty { color: var(--text-muted); font-size: 11px; font-style: italic; }
         .cell-date { font-family: monospace; font-size: 12px; color: var(--text-main); font-weight: 600; white-space: pre-line; line-height: 1.4;}
 
         .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
+        
+        /* --- MODALES PERSONALIZADOS --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 100%; max-width: 350px; text-align: center; animation: popIn 0.3s; }
+        .modal-content p { font-size: 15px; color: var(--text-main); margin-bottom: 20px; font-weight: 600; line-height: 1.5; }
+        .btn-modal { width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; flex: 1;}
+        .btn-modal:hover { opacity: 0.9; }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -111,9 +146,9 @@
         <div class="header-left">
             <button class="menu-btn" id="toggle-menu"><i data-lucide="menu"></i></button>
             <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Logo" style="height: 35px; object-fit: contain;">
-            <h1 class="header-title">Mis Comprobantes</h1>
+            <h1 class="header-title" id="titulo-pagina">Mis Comprobantes</h1>
         </div>
-        <div class="header-right">
+        <div class="header-right" id="header-right">
             <div class="user-initial" id="user-initial">U</div>
             <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="User" height="35" style="border-radius:4px;">
         </div>
@@ -125,13 +160,13 @@
         <main class="content">
             <div class="container">
                 <div class="page-header">
-                    <h1>Mis Comprobantes de Pago</h1>
-                    <p>Visualiza y descarga tus recibos de nómina y transferencias bancarias más recientes.</p>
+                    <h1 id="titulo-principal">Mis Comprobantes de Pago</h1>
+                    <p id="subtitulo-principal">Visualiza y descarga tus recibos de nómina y transferencias bancarias más recientes.</p>
                 </div>
 
                 <div id="loader" class="loader-container">
                     <i data-lucide="loader-2" class="animate-spin" style="width:40px; height:40px; margin-bottom: 15px;"></i>
-                    <p>Buscando tus comprobantes...</p>
+                    <p>Buscando comprobantes...</p>
                 </div>
 
                 <div class="data-card" id="tabla-container" style="display: none;">
@@ -144,6 +179,7 @@
                                     <th style="width: 27%;">Comp. de pago 1</th>
                                     <th style="width: 20%;">Fecha / Hora</th>
                                     <th style="width: 28%;">Comp. de pago 2</th>
+                                    <th id="col-accion" style="width: 15%; display: none;">Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-comprobantes">
@@ -154,6 +190,21 @@
 
             </div>
         </main>
+    </div>
+
+    <button id="fab-regresar" class="fab-regresar" onclick="window.location.href='comprobantes_pago.html'">
+        <i data-lucide="arrow-left"></i> Regresar
+    </button>
+
+    <div id="modal-confirm-delete" class="modal-overlay">
+        <div class="modal-content">
+            <i data-lucide="alert-triangle" style="color: var(--danger); width: 48px; height: 48px; margin-bottom: 15px;"></i>
+            <p>¿Estás seguro que deseas eliminar este registro de comprobantes? Esta acción borrará los archivos actuales y no se puede deshacer.</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-modal" style="background:var(--bg-color); color:var(--text-main);" onclick="document.getElementById('modal-confirm-delete').style.display='none'">Cancelar</button>
+                <button class="btn-modal" style="background:var(--primary-blue); color:white;" onclick="ejecutarEliminar()">Sí, Eliminar</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -170,8 +221,26 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
 
-        const idUsuario = localStorage.getItem('usuario') || 'SinID';
-        const nombreUsuario = localStorage.getItem('nombre') || 'Usuario';
+        // -------------------------------------------------------------
+        // LOGICA DE ADMINISTRADOR VS TRABAJADOR
+        // -------------------------------------------------------------
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewUid = urlParams.get('viewUid');
+        const isAdminView = !!viewUid;
+
+        const idUsuario = isAdminView ? viewUid : (localStorage.getItem('usuario') || 'SinID');
+        const nombreUsuario = isAdminView ? 'Admin' : (localStorage.getItem('nombre') || 'Usuario');
+        
+        // Ajustes UI Admin
+        if (isAdminView) {
+            document.getElementById('titulo-pagina').innerText = "Historial de Pagos";
+            document.getElementById('titulo-principal').innerText = "Historial de Comprobantes";
+            document.getElementById('subtitulo-principal').innerText = "Historial de comprobantes cargados a este trabajador. Puedes eliminar registros en caso de error.";
+            document.getElementById('header-right').style.display = 'none';
+            document.getElementById('col-accion').style.display = 'table-cell'; // Mostrar columna Acción
+            document.getElementById('fab-regresar').style.display = 'flex'; // Mostrar botón regresar
+        }
+
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
 
         // CARGAR MENÚ DINÁMICO
@@ -183,9 +252,13 @@
                 const linkInicio = document.getElementById('link-inicio');
                 if(linkInicio) linkInicio.classList.remove('active');
                 
-                // NOTA: Asegúrate de tener el id "link-comprobante-pago" en tu menu.html en la sección TRABAJADOR
-                const linkCompTrabajador = document.getElementById('link-comprobante-pago');
-                if(linkCompTrabajador) linkCompTrabajador.classList.add('active');
+                if (isAdminView) {
+                    const linkCompAdmin = document.getElementById('link-comprobantes-admin');
+                    if(linkCompAdmin) linkCompAdmin.classList.add('active');
+                } else {
+                    const linkCompTrabajador = document.getElementById('link-comprobante-pago');
+                    if(linkCompTrabajador) linkCompTrabajador.classList.add('active');
+                }
             });
 
         document.getElementById('toggle-menu').addEventListener('click', () => {
@@ -195,18 +268,8 @@
         // Formateador de Fecha
         function formatearFecha(timestampObj) {
             if (!timestampObj) return '<span class="cell-empty">Sin registro</span>';
-            
-            let date;
-            if (timestampObj.toDate) {
-                date = timestampObj.toDate();
-            } else {
-                date = new Date(timestampObj);
-            }
-            
-            return date.toLocaleString('es-MX', { 
-                day: '2-digit', month: '2-digit', year: 'numeric', 
-                hour: '2-digit', minute: '2-digit', hour12: true 
-            }).replace(', ', '\n');
+            let date = timestampObj.toDate ? timestampObj.toDate() : new Date(timestampObj);
+            return date.toLocaleString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }).replace(', ', '\n');
         }
 
         // CARGAR COMPROBANTES DEL TRABAJADOR
@@ -214,21 +277,19 @@
             try {
                 const doc = await db.collection("expedientes_personal").doc(idUsuario).get();
                 let html = '';
+                const colspanEmpty = isAdminView ? 6 : 5; // Ajustar el ancho del mensaje vacío
 
                 if (doc.exists) {
                     const data = doc.data();
                     
-                    // Extraer datos de los comprobantes
                     const comp1_url = data.comp_pago_1_url || null;
                     const comp1_ts = data.comp_pago_1_ts || null;
                     const comp2_url = data.comp_pago_2_url || null;
                     const comp2_ts = data.comp_pago_2_ts || null;
 
-                    // Si no hay ninguno, mostrar un mensaje de vacío
                     if (!comp1_url && !comp2_url) {
-                        html = `<tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">Aún no tienes comprobantes de pago registrados.</td></tr>`;
+                        html = `<tr><td colspan="${colspanEmpty}" style="text-align: center; padding: 30px; color: var(--text-muted);">Aún no hay comprobantes de pago registrados para este periodo.</td></tr>`;
                     } else {
-                        // Construir botones de descarga
                         const btn1Html = comp1_url 
                             ? `<a href="${comp1_url}" target="_blank" class="btn-descargar-pdf"><i data-lucide="file-down"></i> Descargar PDF</a>`
                             : `<button class="btn-descargar-pdf btn-disabled" disabled><i data-lucide="file-x"></i> No Disponible</button>`;
@@ -237,7 +298,11 @@
                             ? `<a href="${comp2_url}" target="_blank" class="btn-descargar-pdf"><i data-lucide="file-down"></i> Descargar PDF</a>`
                             : `<button class="btn-descargar-pdf btn-disabled" disabled><i data-lucide="file-x"></i> No Disponible</button>`;
 
-                        // Construir la fila. Por el momento es 1 fila con los últimos comprobantes registrados.
+                        let actionCellHtml = '';
+                        if (isAdminView) {
+                            actionCellHtml = `<td style="text-align: center;"><button class="btn-eliminar" onclick="confirmarEliminar()"><i data-lucide="trash-2"></i> Eliminar</button></td>`;
+                        }
+
                         html = `
                             <tr>
                                 <td style="text-align: center; font-weight: 700; color: var(--text-muted);">1</td>
@@ -245,11 +310,12 @@
                                 <td style="text-align: center;">${btn1Html}</td>
                                 <td style="text-align: center;" class="cell-date">${formatearFecha(comp2_ts)}</td>
                                 <td style="text-align: center;">${btn2Html}</td>
+                                ${actionCellHtml}
                             </tr>
                         `;
                     }
                 } else {
-                    html = `<tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--text-muted);">Aún no tienes un expediente ni comprobantes registrados.</td></tr>`;
+                    html = `<tr><td colspan="${colspanEmpty}" style="text-align: center; padding: 30px; color: var(--text-muted);">No se encontró el expediente del trabajador.</td></tr>`;
                 }
 
                 document.getElementById('tbody-comprobantes').innerHTML = html;
@@ -259,7 +325,36 @@
 
             } catch (error) {
                 console.error("Error al cargar los comprobantes:", error);
-                alert("Hubo un error al buscar tus comprobantes. Revisa tu conexión.");
+                alert("Hubo un error al buscar los comprobantes. Revisa tu conexión.");
+            }
+        }
+
+        // FUNCIONES DE ELIMINACIÓN (Solo Admin)
+        function confirmarEliminar() {
+            document.getElementById('modal-confirm-delete').style.display = 'flex';
+        }
+
+        async function ejecutarEliminar() {
+            document.getElementById('modal-confirm-delete').style.display = 'none';
+            document.getElementById('loader').style.display = 'flex';
+            document.getElementById('tabla-container').style.display = 'none';
+
+            try {
+                // Se borran las URL y las Fechas de los comprobantes del expediente
+                await db.collection("expedientes_personal").doc(idUsuario).update({
+                    comp_pago_1_url: firebase.firestore.FieldValue.delete(),
+                    comp_pago_1_ts: firebase.firestore.FieldValue.delete(),
+                    comp_pago_2_url: firebase.firestore.FieldValue.delete(),
+                    comp_pago_2_ts: firebase.firestore.FieldValue.delete()
+                });
+                
+                // Recargamos la tabla, lo cual mostrará que ya no hay documentos
+                cargarMisComprobantes();
+            } catch (error) {
+                console.error("Error al eliminar los comprobantes:", error);
+                alert("Hubo un error al intentar eliminar el registro.");
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('tabla-container').style.display = 'block';
             }
         }
 
