@@ -36,7 +36,6 @@
         .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .sidebar-section:last-child { border-bottom: none; }
         
-        /* CORRECCIÓN: Evita el choque de estilos con los títulos de la página principal */
         .sidebar .section-title { 
             font-size: 11px; font-weight: 800; color: var(--text-muted); 
             text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px;
@@ -49,7 +48,7 @@
         .nav-item.active i { color: var(--primary-blue); }
 
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .biometricos-container { max-width: 1050px; margin: 0 auto; padding-bottom: 80px; }
+        .biometricos-container { max-width: 1100px; margin: 0 auto; padding-bottom: 80px; }
         
         .page-header { margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
@@ -59,7 +58,7 @@
         .section-title { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: var(--primary-blue); margin: 0 0 20px 0; padding-bottom: 12px; border-bottom: 1px solid var(--bg-color); }
         
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; border: 1px solid var(--border-color); }
-        .data-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        .data-table { width: 100%; border-collapse: collapse; min-width: 850px; }
         .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 14px 12px; text-align: center; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
         .data-table td { padding: 12px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-color); text-align: center; font-weight: 500; }
         
@@ -72,6 +71,9 @@
         .cell-dia { font-weight: 800 !important; color: var(--primary-blue) !important; font-size: 14px; }
         .cell-fecha { text-transform: capitalize; color: var(--text-muted); font-size: 12px; }
         .cell-empty { color: #cbd5e1 !important; font-weight: 400 !important; }
+        
+        /* Modificado: Estilo para las HORAS JOR */
+        .cell-horas-jor { font-weight: 700; color: var(--primary-blue); background-color: var(--light-blue); border-radius: 4px; padding: 4px 8px; display: inline-block;}
         .cell-horas-te { font-weight: 700; color: #0f766e; background-color: #d1fae5; border-radius: 4px; padding: 4px 8px; display: inline-block;}
 
         .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
@@ -122,6 +124,7 @@
                                         <th>Sitio / Obra</th>
                                         <th>Entrada</th>
                                         <th>Salida</th>
+                                        <th>HORAS JOR</th>
                                         <th>Entrada T.E.</th>
                                         <th>Salida T.E.</th>
                                         <th>HORAS T.E.</th>
@@ -143,6 +146,7 @@
                                         <th>Sitio / Obra</th>
                                         <th>Entrada</th>
                                         <th>Salida</th>
+                                        <th>HORAS JOR</th>
                                         <th>Entrada T.E.</th>
                                         <th>Salida T.E.</th>
                                         <th>HORAS T.E.</th>
@@ -183,7 +187,8 @@
         const nombreUsuario = localStorage.getItem('nombre') || 'Usuario Desconocido';
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
 
-        function calcularDiferenciaTE(entrada, salida) {
+        // Modificado: Se renombra la función para que sea genérica y calcule cualquier diferencia de horas
+        function calcularDiferenciaHoras(entrada, salida) {
             if (entrada === '-' || salida === '-') return '-';
             function parseTime(timeStr) {
                 const match = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(a\.?m\.?|p\.?m\.?|am|pm)?/i);
@@ -279,10 +284,15 @@
                     const getCelda = (valor) => valor === '-' ? `<span class="cell-empty">-</span>` : valor;
                     const getSitio = (valor) => valor === '' ? `<span class="cell-empty">Sin registro</span>` : `<span style="font-weight:600;">${valor}</span>`;
                     
-                    const horasTE = calcularDiferenciaTE(fila.entradaExt, fila.salidaExt);
+                    // Modificado: Se calculan tanto las horas de jornada como las horas extra
+                    const horasJor = calcularDiferenciaHoras(fila.entrada, fila.salida);
+                    const htmlHorasJor = horasJor === '-' ? `<span class="cell-empty">-</span>` : `<span class="cell-horas-jor">${horasJor}</span>`;
+
+                    const horasTE = calcularDiferenciaHoras(fila.entradaExt, fila.salidaExt);
                     const htmlHorasTE = horasTE === '-' ? `<span class="cell-empty">-</span>` : `<span class="cell-horas-te">${horasTE}</span>`;
 
-                    html += `<tr class="${claseFila}"><td class="cell-dia">${i}</td><td class="cell-fecha">${fila.fechaStr}</td><td>${getSitio(fila.sitio)}</td><td>${getCelda(fila.entrada)}</td><td>${getCelda(fila.salida)}</td><td>${getCelda(fila.entradaExt)}</td><td>${getCelda(fila.salidaExt)}</td><td>${htmlHorasTE}</td></tr>`;
+                    // Modificado: Se inyecta la columna de HORAS JOR en la tabla
+                    html += `<tr class="${claseFila}"><td class="cell-dia">${i}</td><td class="cell-fecha">${fila.fechaStr}</td><td>${getSitio(fila.sitio)}</td><td>${getCelda(fila.entrada)}</td><td>${getCelda(fila.salida)}</td><td>${htmlHorasJor}</td><td>${getCelda(fila.entradaExt)}</td><td>${getCelda(fila.salidaExt)}</td><td>${htmlHorasTE}</td></tr>`;
                 }
                 return html;
             };
@@ -306,6 +316,7 @@
             const pdfWrap = document.createElement('div');
             pdfWrap.style.width = '750px'; pdfWrap.style.backgroundColor = 'white'; pdfWrap.style.color = '#1e293b';
 
+            // Modificado: Se actualizan los encabezados del PDF
             const crearHoja = (titulo, tbodyId) => `
                 <div style="padding: 20px 30px; background: white; font-family: 'Inter', sans-serif;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #263fa4; padding-bottom: 10px; margin-bottom: 15px;">
@@ -325,6 +336,7 @@
                                 <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">Sitio / Obra</th>
                                 <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">Entrada</th>
                                 <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">Salida</th>
+                                <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">HORAS JOR</th>
                                 <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">Ent. Extra</th>
                                 <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">Sal. Extra</th>
                                 <th style="padding: 7px 4px; border: 1px solid #e2e8f0; text-align: center;">HORAS T.E.</th>
@@ -340,10 +352,12 @@
 
             pdfWrap.innerHTML = `${crearHoja(document.getElementById('title-mes-actual').innerText, 'tbody-mes-actual')} <div class="html2pdf__page-break"></div> ${crearHoja(document.getElementById('title-mes-anterior').innerText, 'tbody-mes-anterior')}`;
 
+            // Modificado: Se aseguran los estilos para el PDF
             const celdas = pdfWrap.querySelectorAll('td');
             celdas.forEach(td => { td.style.padding = '5px 4px'; td.style.border = '1px solid #e2e8f0'; td.style.textAlign = 'center'; td.style.fontSize = '9px'; if(td.querySelector('.cell-empty')) { td.style.color = '#cbd5e1'; } });
             pdfWrap.querySelectorAll('.cell-fecha').forEach(td => { td.style.color = '#64748b'; td.style.setProperty('font-size', '9px', 'important'); });
             pdfWrap.querySelectorAll('.cell-dia').forEach(td => { td.style.fontWeight = 'bold'; td.style.color = '#263fa4'; td.style.setProperty('font-size', '9px', 'important'); });
+            pdfWrap.querySelectorAll('.cell-horas-jor').forEach(span => { span.style.color = '#263fa4'; span.style.fontWeight = 'bold'; });
             pdfWrap.querySelectorAll('.cell-horas-te').forEach(span => { span.style.color = '#0f766e'; span.style.fontWeight = 'bold'; });
             pdfWrap.querySelectorAll('.row-active').forEach(tr => { tr.style.backgroundColor = '#f0fdf4'; tr.querySelectorAll('td').forEach(td => { if(!td.querySelector('.cell-empty')) td.style.color = '#166534'; }); });
 
