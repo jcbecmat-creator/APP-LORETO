@@ -212,24 +212,26 @@
         .btn-guardar:hover { background: #1a2a6e; }
 
         /* --- BOTONES FLOTANTES --- */
+        /* Modificado: Anchos fijos (width: 260px) y centrados para que ambos botones sean idénticos */
         .fab-download {
             position: fixed; bottom: 30px; right: 30px; background-color: var(--danger); color: white; border: none; border-radius: 50px;
             padding: 16px 24px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
-            display: none; align-items: center; gap: 10px; z-index: 1000; transition: transform 0.2s;
+            display: none; align-items: center; justify-content: center; gap: 10px; z-index: 1000; transition: transform 0.2s;
+            width: 260px; box-sizing: border-box;
         }
         .fab-download:hover { transform: translateY(-5px); background-color: #b91c1c; }
         
-        /* Modificado: Botón de Cerrar posicionado justo encima del de Descargar */
         .fab-admin-close {
             position: fixed; bottom: 95px; right: 30px; background-color: var(--text-muted); color: white; border: none; border-radius: 50px;
             padding: 16px 24px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
-            display: none; align-items: center; gap: 10px; z-index: 1000; transition: transform 0.2s;
+            display: none; align-items: center; justify-content: center; gap: 10px; z-index: 1000; transition: transform 0.2s;
+            width: 260px; box-sizing: border-box;
         }
         .fab-admin-close:hover { transform: translateY(-5px); background-color: #475569; }
 
         @media (max-width: 768px) { 
-            .fab-download { bottom: 20px; right: 20px; padding: 14px 20px; font-size: 14px; }
-            .fab-admin-close { bottom: 75px; right: 20px; padding: 14px 20px; font-size: 14px; }
+            .fab-download { bottom: 20px; right: 20px; padding: 14px 20px; font-size: 14px; width: 230px; }
+            .fab-admin-close { bottom: 75px; right: 20px; padding: 14px 20px; font-size: 14px; width: 230px; }
         }
         
         /* Modales */
@@ -447,7 +449,6 @@
                     const nssStr = datos.nss || 'S/N';
                     document.getElementById('lbl-nss').innerText = `NSS: ${nssStr}`;
                     
-                    // FOTO: Modificado para asegurar que se pinte en HTML aun si falla el base64
                     if (localData.fotos && localData.fotos.selfie && localData.fotos.selfie[0]) {
                         document.getElementById('img-photo').src = localData.fotos.selfie[0];
                         document.getElementById('img-photo').style.display = 'block';
@@ -461,7 +462,6 @@
                         document.getElementById('img-photo').style.display = 'block';
                     }
 
-                    // FIRMA: Modificado
                     if (localData.firma) {
                         document.getElementById('img-firma').src = localData.firma;
                         document.getElementById('img-firma').style.display = 'block';
@@ -475,7 +475,6 @@
                         document.getElementById('img-firma').style.display = 'block';
                     }
 
-                    // Cargo
                     const cargoSaved = datos.cargo_credencial || (!isAdminView ? localStorage.getItem('credencial_cargo_' + idUsuario) : null);
                     if (cargoSaved) {
                         document.getElementById('lbl-cargo').innerText = cargoSaved;
