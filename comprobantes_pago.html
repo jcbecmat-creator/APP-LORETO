@@ -143,7 +143,7 @@
             <i data-lucide="help-circle" style="color: var(--primary-blue); width: 48px; height: 48px; margin-bottom: 15px;"></i>
             <p>Este trabajador ya tiene un archivo aquí. ¿Qué deseas hacer?</p>
             <div style="display: flex; flex-direction: column; gap: 10px;">
-                <button class="btn-modal" style="background:var(--success); color:white;" onclick="seleccionarArchivo('replace')">Reemplazar archivo actual (corregir)</button>
+                <button class="btn-modal" style="background:var(--success); color:white;" onclick="seleccionarArchivo('replace')">Reemplazar archivo actual (corregir error)</button>
                 <button class="btn-modal" style="background:var(--primary-blue); color:white;" onclick="seleccionarArchivo('new')">Crear NUEVO registro (nuevo periodo)</button>
                 <button class="btn-modal" style="background:var(--bg-color); color:var(--text-main);" onclick="document.getElementById('modal-tipo-carga').style.display='none'">Cancelar</button>
             </div>
@@ -227,17 +227,21 @@
                 const url = await ref.getDownloadURL();
 
                 if (actionType === 'new') {
-                    // Guardamos lo actual en el historial y limpiamos la fila principal
+                    // MODIFICACIÓN AQUÍ: No podemos usar serverTimestamp() dentro de un arrayUnion.
+                    // Usamos la fecha del cliente para el historial y serverTimestamp() para el nuevo registro principal.
+                    const now = new Date(); // Fecha y hora de la computadora actual
+                    
                     const historyItem = {
                         comp_pago_1_url: currentData.comp_pago_1_url || null,
                         comp_pago_1_ts: currentData.comp_pago_1_ts || null,
                         comp_pago_2_url: currentData.comp_pago_2_url || null,
                         comp_pago_2_ts: currentData.comp_pago_2_ts || null,
-                        archivado_ts: firebase.firestore.FieldValue.serverTimestamp()
+                        archivado_ts: now // Usamos fecha de cliente para el historial
                     };
 
                     const updateData = {
                         historial_pagos: firebase.firestore.FieldValue.arrayUnion(historyItem),
+                        // El nuevo registro principal SI usa hora del servidor
                         comp_pago_1_url: currentCompNum === 1 ? url : null,
                         comp_pago_1_ts: currentCompNum === 1 ? firebase.firestore.FieldValue.serverTimestamp() : null,
                         comp_pago_2_url: currentCompNum === 2 ? url : null,
@@ -245,7 +249,7 @@
                     };
                     await docRef.set(updateData, { merge: true });
                 } else {
-                    // Simplemente reemplazamos el archivo actual
+                    // Reemplazo normal (usa serverTimestamp sin problemas)
                     const updateData = {};
                     updateData[`comp_pago_${currentCompNum}_url`] = url;
                     updateData[`comp_pago_${currentCompNum}_ts`] = firebase.firestore.FieldValue.serverTimestamp();
@@ -256,6 +260,8 @@
                 cargarExpedientes();
             } catch (error) {
                 console.error("Error al subir el PDF:", error);
+                // Si el error persiste, limpia el input para permitir reintentar
+                event.target.value = '';
                 mostrarAlerta("Hubo un error al intentar subir el archivo.");
                 document.getElementById('loader').style.display = 'none'; document.getElementById('tabla-container').style.display = 'block';
             }
