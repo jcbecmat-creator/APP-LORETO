@@ -48,7 +48,7 @@
         .sidebar-nav { padding: 15px 10px; }
         .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .sidebar-section:last-child { border-bottom: none; }
-        .sidebar .section-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px; padding-bottom: 0; border-bottom: none; display: block; }
+        .sidebar .section-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px; padding-bottom: 0; display: block; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 8px; margin-bottom: 2px; transition: all 0.2s; }
         .nav-item:hover { background-color: var(--bg-color); }
         .nav-item.active { background-color: var(--light-blue); color: var(--primary-blue); font-weight: 700; border-left: 4px solid var(--primary-blue); }
@@ -134,7 +134,7 @@
         .camera-controls { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
     </style>
 </head>
-<body>
+<body class="is chameleon">
 
     <header class="header">
         <div class="header-left">
@@ -331,7 +331,7 @@
 
                     <div class="form-card">
                         <h3 class="section-title"><i data-lucide="files"></i> Documentos Adjuntos</h3>
-                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Toma una foto clara o sube el archivo de cada documento solicitado.</p>
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Tómate una foto clara o sube el archivo de cada documento solicitado.</p>
                         
                         <div class="docs-grid">
                             <div class="doc-item"><label>INE (Frente)</label><div id="slot-ine_frente-0" class="photo-slot"><i data-lucide="credit-card" style="color:#cbd5e1;"></i></div><div class="photo-controls" style="margin-top:10px;"><button type="button" class="btn-photo" onclick="triggerCamera('ine_frente')"><i data-lucide="camera"></i></button><button type="button" class="btn-photo-sec" onclick="triggerFile('ine_frente')"><i data-lucide="upload"></i></button></div></div>
@@ -589,12 +589,12 @@
                 guardarDatosLocales();
                 document.getElementById('modal-success').style.display = 'flex'; btnGuardar.disabled = false; btnGuardar.innerHTML = textoOriginal; bloquearEdicion(); lucide.createIcons();
             } catch (err) {
-                console.error("Error guardando en Firebase:", err); alert("Error al guardar el avance. Revisa tu conexión a internet."); btnGuardar.disabled = false; btnGuardar.innerHTML = textoOriginal; lucide.createIcons();
+                console.error("Error guardando en Firebase:", err); alert("Error al guardar. Revisa tu conexión."); btnGuardar.disabled = false; btnGuardar.innerHTML = textoOriginal; lucide.createIcons();
             }
         });
 
         // ==========================================
-        // GENERADOR DE PDF DE EXPEDIENTE (Compacto y Alineado)
+        // GENERADOR PDF (Compacto, Alineado y Membretado)
         // ==========================================
         function generarPDFExpediente() {
             const btn = document.getElementById('btn-descargar-expediente');
@@ -617,22 +617,22 @@
             pdfWrap.innerHTML = `
                 <style>
                     .pdf-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 8px; table-layout: fixed; }
-                    .pdf-table td { padding: 3px 5px; vertical-align: middle; word-wrap: break-word; } /* SIN LINEAS (Sin border-bottom) */
+                    .pdf-table td { padding: 3px 5px; vertical-align: middle; word-wrap: break-word; } /* SIN LINEAS */
                     .pdf-th { font-weight: bold; color: #1e293b; text-align: left; }
                     .pdf-section { background: #eef2ff; color: #263fa4; padding: 4px 8px; font-weight: bold; font-size: 10px; margin-bottom: 6px; border-left: 3px solid #263fa4; text-transform: uppercase; }
                 </style>
                 
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #263fa4; padding-bottom: 8px; margin-bottom: 12px;">
-                    <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 60px; max-width: 150px; object-fit: contain; border-radius: 4px;" crossorigin="anonymous">
-                    <div style="text-align: center; flex: 1; padding: 0 10px;">
-                        <h1 style="margin: 0; font-size: 24px; color: #263fa4; text-transform: uppercase;">Loreto</h1>
+                <div style="position: relative; border-bottom: 2px solid #263fa4; padding-bottom: 8px; margin-bottom: 12px; height: 70px; display: flex; align-items: center; justify-content: center;">
+                    <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="position: absolute; left: 0; top: 0; height: 60px; max-width: 130px; object-fit: contain; border-radius: 4px;" crossorigin="anonymous">
+                    <div style="text-align: center;">
+                        <h1 style="margin: 0; font-size: 24px; color: #263fa4; text-transform: uppercase; font-weight: 800;">Loreto</h1>
                         <h2 style="margin: 0; font-size: 15px; font-weight: normal; color: #475569;">Ingeniería, Construcción, Edificación y Remodelación</h2>
                         <h3 style="margin: 5px 0 0 0; font-size: 18px; font-weight: bold; letter-spacing: 1px;">EXPEDIENTE PERSONAL</h3>
                     </div>
-                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 60px; max-width: 150px; object-fit: contain;" crossorigin="anonymous">
+                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="position: absolute; right: 0; top: 0; height: 60px; max-width: 130px; object-fit: contain;" crossorigin="anonymous">
                 </div>
 
-                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                <div style="display: flex; gap: 15px; align-items: flex-start; margin-bottom: 8px;">
                     <div style="width: 100px; flex-shrink: 0; text-align: center;">
                         <div style="width: 100px; height: 120px; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; margin-top: 22px;">
                             <img src="${fotoSelfie}" style="width: 100%; height: 100%; object-fit: cover;">
@@ -648,16 +648,16 @@
                             <tr><td class="pdf-th">Edad:</td><td>${v('edad')} años</td><td class="pdf-th">Lugar Nac.:</td><td>${v('lugar_nac')}</td></tr>
                             <tr><td class="pdf-th">Nacionalidad:</td><td>${v('nacionalidad')}</td><td class="pdf-th">Edo. Civil:</td><td>${v('estado_civil')}</td></tr>
                         </table>
-
-                        <div class="pdf-section">2. DOMICILIO Y CONTACTO</div>
-                        <table class="pdf-table">
-                            <tr><td class="pdf-th" style="width: 20%;">Calle y Nums:</td><td colspan="3">${v('calle')} #Ext: ${v('num_ext')} #Int: ${v('num_int')}</td></tr>
-                            <tr><td class="pdf-th">Colonia / Mun:</td><td colspan="3">${v('colonia')} / ${v('municipio')}</td></tr>
-                            <tr><td class="pdf-th">Ciudad / Edo:</td><td style="width: 30%;">${v('ciudad')}, ${v('estado')}</td><td class="pdf-th" style="width: 15%;">C.P.:</td><td style="width: 35%;">${v('cp')}</td></tr>
-                            <tr><td class="pdf-th">Teléfono:</td><td>${v('telefono')}</td><td class="pdf-th">Correo:</td><td>${v('correo')}</td></tr>
-                        </table>
                     </div>
                 </div>
+
+                <div class="pdf-section">2. DOMICILIO Y CONTACTO</div>
+                <table class="pdf-table">
+                    <tr><td class="pdf-th" style="width: 20%;">Calle y Nums:</td><td colspan="3">${v('calle')} #Ext: ${v('num_ext')} #Int: ${v('num_int')}</td></tr>
+                    <tr><td class="pdf-th">Colonia / Mun:</td><td colspan="3">${v('colonia')} / ${v('municipio')}</td></tr>
+                    <tr><td class="pdf-th">Ciudad / Edo:</td><td style="width: 30%;">${v('ciudad')}, ${v('estado')}</td><td class="pdf-th" style="width: 15%;">C.P.:</td><td style="width: 35%;">${v('cp')}</td></tr>
+                    <tr><td class="pdf-th">Teléfono:</td><td>${v('telefono')}</td><td class="pdf-th">Correo:</td><td>${v('correo')}</td></tr>
+                </table>
 
                 <div class="pdf-section">3. DATOS PROFESIONALES Y GUBERNAMENTALES</div>
                 <table class="pdf-table">
@@ -710,7 +710,7 @@
 
             const nombreExport = `${v('nombre')}_${v('paterno')}`.replace(/ /g, '_');
             
-            // Márgenes simétricos exactos en milímetros
+            // Configuración PDF
             const opt = {
                 margin:       [15, 15, 15, 15], 
                 filename:     `Expediente_${nombreExport}.pdf`,
@@ -724,8 +724,8 @@
                 btn.disabled = false;
                 lucide.createIcons();
             }).catch(err => {
-                console.error("Error al generar PDF:", err);
-                alert("Hubo un error al generar el PDF. Revisa tu conexión a internet.");
+                console.error("Error PDF:", err);
+                alert("Hubo un error al generar el PDF.");
                 btn.innerHTML = originalText;
                 btn.disabled = false;
                 lucide.createIcons();
