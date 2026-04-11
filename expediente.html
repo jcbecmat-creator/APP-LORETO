@@ -134,7 +134,7 @@
         .camera-controls { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
     </style>
 </head>
-<body>
+<body class="is chameleon">
 
     <header class="header">
         <div class="header-left">
@@ -631,7 +631,7 @@
                     <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="position: absolute; right: 0; top: 0; height: 75px; max-width: 150px; object-fit: contain;" crossorigin="anonymous">
                 </div>
                 
-                <div style="text-align: center; margin-bottom: 15px;">
+                <div style="text-align: center; margin-top: 20px; margin-bottom: 15px;">
                     <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #1e293b; letter-spacing: 2px;">EXPEDIENTE PERSONAL</h3>
                 </div>
 
@@ -646,8 +646,9 @@
                     <div style="flex: 1;">
                         <div class="pdf-section">1. DATOS PERSONALES</div>
                         <table class="pdf-table" style="margin-bottom: 0;">
-                            <tr><td class="pdf-th" style="width: 18%;">Nombre:</td><td colspan="3">${v('nombre')} ${v('paterno')} ${v('materno')}</td></tr>
-                            <tr><td class="pdf-th">Sexo:</td><td style="width: 32%;">${v('sexo')}</td><td class="pdf-th" style="width: 18%;">Fecha Nac.:</td><td style="width: 32%;">${v('fecha_nac')}</td></tr>
+                            <colgroup><col style="width:15%"><col style="width:35%"><col style="width:14%"><col style="width:36%"></colgroup>
+                            <tr><td class="pdf-th">Nombre:</td><td colspan="3">${v('nombre')} ${v('paterno')} ${v('materno')}</td></tr>
+                            <tr><td class="pdf-th">Sexo:</td><td>${v('sexo')}</td><td class="pdf-th">Fecha Nac.:</td><td>${v('fecha_nac')}</td></tr>
                             <tr><td class="pdf-th">Edad:</td><td>${v('edad')} ${v('edad') !== '-' ? 'años' : ''}</td><td class="pdf-th">Lugar Nac.:</td><td>${v('lugar_nac')}</td></tr>
                             <tr><td class="pdf-th">Nacionalidad:</td><td>${v('nacionalidad')}</td><td class="pdf-th">Edo. Civil:</td><td>${v('estado_civil')}</td></tr>
                         </table>
@@ -656,17 +657,19 @@
 
                 <div class="pdf-section">2. DOMICILIO Y CONTACTO</div>
                 <table class="pdf-table">
-                    <tr><td class="pdf-th" style="width: 15%;">Calle y Nums:</td><td colspan="3">${v('calle')} #Ext: ${v('num_ext')} #Int: ${v('num_int')}</td></tr>
+                    <colgroup><col style="width:15%"><col style="width:35%"><col style="width:15%"><col style="width:35%"></colgroup>
+                    <tr><td class="pdf-th">Calle y Nums:</td><td colspan="3">${v('calle')} #Ext: ${v('num_ext')} #Int: ${v('num_int')}</td></tr>
                     <tr><td class="pdf-th">Colonia / Mun:</td><td colspan="3">${v('colonia')} / ${v('municipio')}</td></tr>
-                    <tr><td class="pdf-th">Ciudad / Edo:</td><td style="width: 35%;">${v('ciudad')}, ${v('estado')}</td><td class="pdf-th" style="width: 15%;">C.P.:</td><td style="width: 35%;">${v('cp')}</td></tr>
+                    <tr><td class="pdf-th">Ciudad / Edo:</td><td>${v('ciudad')}, ${v('estado')}</td><td class="pdf-th">C.P.:</td><td>${v('cp')}</td></tr>
                     <tr><td class="pdf-th">Teléfono:</td><td>${v('telefono')}</td><td class="pdf-th">Correo:</td><td>${v('correo')}</td></tr>
                 </table>
 
                 <div class="pdf-section">3. DATOS PROFESIONALES Y GUBERNAMENTALES</div>
                 <table class="pdf-table">
+                    <colgroup><col style="width:15%"><col style="width:35%"><col style="width:15%"><col style="width:35%"></colgroup>
                     <tr>
-                        <td class="pdf-th" style="width: 15%;">RFC:</td><td style="width: 35%; text-transform: uppercase;">${v('rfc')}</td>
-                        <td class="pdf-th" style="width: 15%;">CURP:</td><td style="width: 35%; text-transform: uppercase;">${v('curp')}</td>
+                        <td class="pdf-th">RFC:</td><td style="text-transform: uppercase;">${v('rfc')}</td>
+                        <td class="pdf-th">CURP:</td><td style="text-transform: uppercase;">${v('curp')}</td>
                     </tr>
                     <tr>
                         <td class="pdf-th">NSS:</td><td>${v('nss')}</td>
