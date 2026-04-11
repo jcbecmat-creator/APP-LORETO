@@ -88,8 +88,16 @@
         .doc-item label { font-size: 11px; font-weight: 700; color: var(--primary-blue); display: block; margin-bottom: 10px; height: 30px; }
         .doc-item .photo-slot { max-width: 100%; aspect-ratio: 4/3; margin-bottom: 10px; }
 
-        #image-viewer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; cursor: zoom-out; backdrop-filter: blur(3px); }
-        #image-viewer-img { max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.5); object-fit: contain; animation: popIn 0.2s ease-out; }
+        /* --- VISUALIZADOR DE IMÁGENES --- */
+        #image-viewer-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center;
+            cursor: zoom-out; backdrop-filter: blur(3px);
+        }
+        #image-viewer-img {
+            max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.5);
+            object-fit: contain; animation: popIn 0.2s ease-out;
+        }
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         /* --- FIRMA --- */
@@ -134,7 +142,7 @@
         .camera-controls { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
     </style>
 </head>
-<body class="is chameleon">
+<body>
 
     <header class="header">
         <div class="header-left">
@@ -331,7 +339,7 @@
 
                     <div class="form-card">
                         <h3 class="section-title"><i data-lucide="files"></i> Documentos Adjuntos</h3>
-                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Tómate una foto clara o sube el archivo de cada documento solicitado.</p>
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Toma una foto clara o sube el archivo de cada documento solicitado.</p>
                         
                         <div class="docs-grid">
                             <div class="doc-item"><label>INE (Frente)</label><div id="slot-ine_frente-0" class="photo-slot"><i data-lucide="credit-card" style="color:#cbd5e1;"></i></div><div class="photo-controls" style="margin-top:10px;"><button type="button" class="btn-photo" onclick="triggerCamera('ine_frente')"><i data-lucide="camera"></i></button><button type="button" class="btn-photo-sec" onclick="triggerFile('ine_frente')"><i data-lucide="upload"></i></button></div></div>
@@ -616,25 +624,25 @@
 
             pdfWrap.innerHTML = `
                 <style>
-                    .pdf-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 8px; table-layout: fixed; }
+                    .pdf-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 15px; table-layout: fixed; }
                     .pdf-table td { padding: 3px 5px; vertical-align: middle; word-wrap: break-word; } /* SIN LINEAS */
                     .pdf-th { font-weight: bold; color: #1e293b; text-align: left; }
-                    .pdf-section { background: #eef2ff; color: #263fa4; padding: 4px 8px; font-weight: bold; font-size: 10px; margin-bottom: 6px; border-left: 3px solid #263fa4; text-transform: uppercase; }
+                    .pdf-section { background: #eef2ff; color: #263fa4; padding: 4px 8px; font-weight: bold; font-size: 11.5px; margin-bottom: 6px; border-left: 3px solid #263fa4; text-transform: uppercase; }
                 </style>
                 
-                <div style="position: relative; border-bottom: 2px solid #263fa4; padding-bottom: 8px; margin-bottom: 12px; height: 70px; display: flex; align-items: center; justify-content: center;">
-                    <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="position: absolute; left: 0; top: 0; height: 60px; max-width: 130px; object-fit: contain; border-radius: 4px;" crossorigin="anonymous">
+                <div style="position: relative; border-bottom: 2px solid #263fa4; padding-bottom: 8px; margin-bottom: 15px; height: 90px; display: flex; align-items: center; justify-content: center;">
+                    <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="position: absolute; left: 0; top: 0; height: 80px; max-width: 150px; object-fit: contain; border-radius: 4px;" crossorigin="anonymous">
                     <div style="text-align: center;">
-                        <h1 style="margin: 0; font-size: 24px; color: #263fa4; text-transform: uppercase; font-weight: 800;">Loreto</h1>
-                        <h2 style="margin: 0; font-size: 15px; font-weight: normal; color: #475569;">Ingeniería, Construcción, Edificación y Remodelación</h2>
-                        <h3 style="margin: 5px 0 0 0; font-size: 18px; font-weight: bold; letter-spacing: 1px;">EXPEDIENTE PERSONAL</h3>
+                        <h1 style="margin: 0; font-size: 28px; color: #263fa4; text-transform: uppercase; font-weight: 800;">Loreto</h1>
+                        <h2 style="margin: 0; font-size: 16px; font-weight: normal; color: #475569;">Ingeniería, Construcción, Edificación y Remodelación</h2>
+                        <h3 style="margin: 5px 0 0 0; font-size: 20px; font-weight: bold; letter-spacing: 1px;">EXPEDIENTE PERSONAL</h3>
                     </div>
-                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="position: absolute; right: 0; top: 0; height: 60px; max-width: 130px; object-fit: contain;" crossorigin="anonymous">
+                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="position: absolute; right: 0; top: 0; height: 80px; max-width: 150px; object-fit: contain;" crossorigin="anonymous">
                 </div>
 
-                <div style="display: flex; gap: 15px; align-items: flex-start; margin-bottom: 8px;">
+                <div style="display: flex; gap: 15px; align-items: flex-start; margin-bottom: 15px;">
                     <div style="width: 100px; flex-shrink: 0; text-align: center;">
-                        <div style="width: 100px; height: 120px; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; margin-top: 22px;">
+                        <div style="width: 100px; height: 120px; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; margin-top: 0;">
                             <img src="${fotoSelfie}" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div style="font-size: 8px; color: #64748b; margin-top: 4px; font-weight: bold;">FOTOGRAFÍA</div>
@@ -642,9 +650,9 @@
                     
                     <div style="flex: 1;">
                         <div class="pdf-section">1. DATOS PERSONALES</div>
-                        <table class="pdf-table">
-                            <tr><td class="pdf-th" style="width: 20%;">Nombre:</td><td colspan="3">${v('nombre')} ${v('paterno')} ${v('materno')}</td></tr>
-                            <tr><td class="pdf-th">Sexo:</td><td style="width: 30%;">${v('sexo')}</td><td class="pdf-th" style="width: 15%;">Fecha Nac.:</td><td style="width: 35%;">${v('fecha_nac')}</td></tr>
+                        <table class="pdf-table" style="margin-bottom: 0;">
+                            <tr><td class="pdf-th" style="width: 15%;">Nombre:</td><td colspan="3">${v('nombre')} ${v('paterno')} ${v('materno')}</td></tr>
+                            <tr><td class="pdf-th">Sexo:</td><td style="width: 35%;">${v('sexo')}</td><td class="pdf-th" style="width: 18%;">Fecha Nac.:</td><td style="width: 32%;">${v('fecha_nac')}</td></tr>
                             <tr><td class="pdf-th">Edad:</td><td>${v('edad')} años</td><td class="pdf-th">Lugar Nac.:</td><td>${v('lugar_nac')}</td></tr>
                             <tr><td class="pdf-th">Nacionalidad:</td><td>${v('nacionalidad')}</td><td class="pdf-th">Edo. Civil:</td><td>${v('estado_civil')}</td></tr>
                         </table>
@@ -653,17 +661,17 @@
 
                 <div class="pdf-section">2. DOMICILIO Y CONTACTO</div>
                 <table class="pdf-table">
-                    <tr><td class="pdf-th" style="width: 20%;">Calle y Nums:</td><td colspan="3">${v('calle')} #Ext: ${v('num_ext')} #Int: ${v('num_int')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 15%;">Calle y Nums:</td><td colspan="3">${v('calle')} #Ext: ${v('num_ext')} #Int: ${v('num_int')}</td></tr>
                     <tr><td class="pdf-th">Colonia / Mun:</td><td colspan="3">${v('colonia')} / ${v('municipio')}</td></tr>
-                    <tr><td class="pdf-th">Ciudad / Edo:</td><td style="width: 30%;">${v('ciudad')}, ${v('estado')}</td><td class="pdf-th" style="width: 15%;">C.P.:</td><td style="width: 35%;">${v('cp')}</td></tr>
+                    <tr><td class="pdf-th">Ciudad / Edo:</td><td style="width: 35%;">${v('ciudad')}, ${v('estado')}</td><td class="pdf-th" style="width: 12%;">C.P.:</td><td style="width: 38%;">${v('cp')}</td></tr>
                     <tr><td class="pdf-th">Teléfono:</td><td>${v('telefono')}</td><td class="pdf-th">Correo:</td><td>${v('correo')}</td></tr>
                 </table>
 
                 <div class="pdf-section">3. DATOS PROFESIONALES Y GUBERNAMENTALES</div>
                 <table class="pdf-table">
                     <tr>
-                        <td class="pdf-th" style="width: 15%;">RFC:</td><td style="width: 35%; text-transform: uppercase;">${v('rfc')}</td>
-                        <td class="pdf-th" style="width: 15%;">CURP:</td><td style="width: 35%; text-transform: uppercase;">${v('curp')}</td>
+                        <td class="pdf-th" style="width: 13%;">RFC:</td><td style="width: 37%; text-transform: uppercase;">${v('rfc')}</td>
+                        <td class="pdf-th" style="width: 13%;">CURP:</td><td style="width: 37%; text-transform: uppercase;">${v('curp')}</td>
                     </tr>
                     <tr>
                         <td class="pdf-th">NSS:</td><td>${v('nss')}</td>
@@ -680,20 +688,20 @@
 
                 <div class="pdf-section">4. CUENTA BANCARIA</div>
                 <table class="pdf-table">
-                    <tr><td class="pdf-th" style="width: 30%;">Institución Financiera:</td><td>${v('institucion_financiera')}</td></tr>
-                    <tr><td class="pdf-th" style="width: 30%;">Número de Tarjeta (16 dígitos):</td><td>${v('num_tarjeta')}</td></tr>
-                    <tr><td class="pdf-th" style="width: 30%;">Cuenta CLABE (18 dígitos):</td><td>${v('cuenta_clabe')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 25%;">Institución Financiera:</td><td>${v('institucion_financiera')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 25%;">Número de Tarjeta (16 dígitos):</td><td>${v('num_tarjeta')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 25%;">Cuenta CLABE (18 dígitos):</td><td>${v('cuenta_clabe')}</td></tr>
                 </table>
 
                 <div class="pdf-section">5. FAMILIARES Y EMERGENCIA</div>
                 <table class="pdf-table">
-                    <tr><td class="pdf-th" style="width: 30%;">Nombre del Padre:</td><td>${v('padre')}</td></tr>
-                    <tr><td class="pdf-th" style="width: 30%;">Nombre de la Madre:</td><td>${v('madre')}</td></tr>
-                    <tr><td class="pdf-th" style="width: 30%;">Nombre del Cónyuge:</td><td>${v('conyuge')}</td></tr>
-                    <tr><td class="pdf-th" style="width: 30%;">Número de Hijos:</td><td>${v('hijos')}</td></tr>
-                    <tr><td class="pdf-th" style="width: 30%; color: #dc2626;">En caso de accidente avisar a (Nombre):</td><td>${v('emergencia_nombre')}</td></tr>
-                    <tr><td class="pdf-th" style="width: 30%;">Parentesco:</td><td>${v('emergencia_parentesco')}</td></tr>
-                    <tr><td class="pdf-th" style="width: 30%;">Teléfono:</td><td>${v('emergencia_tel')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 25%;">Nombre del Padre:</td><td>${v('padre')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 25%;">Nombre de la Madre:</td><td>${v('madre')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 25%;">Nombre del Cónyuge:</td><td>${v('conyuge')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 25%;">Número de Hijos:</td><td>${v('hijos')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 25%; color: #dc2626;">En caso de accidente avisar a (Nombre):</td><td>${v('emergencia_nombre')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 25%;">Parentesco:</td><td>${v('emergencia_parentesco')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 25%;">Teléfono:</td><td>${v('emergencia_tel')}</td></tr>
                 </table>
 
                 <div style="margin-top: 15px; text-align: center; page-break-inside: avoid;">
