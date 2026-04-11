@@ -11,7 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -48,13 +48,7 @@
         .sidebar-nav { padding: 15px 10px; }
         .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .sidebar-section:last-child { border-bottom: none; }
-        
-        .sidebar .section-title { 
-            font-size: 11px; font-weight: 800; color: var(--text-muted); 
-            text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px;
-            padding-bottom: 0; border-bottom: none; display: block;
-        }
-
+        .sidebar .section-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px; padding-bottom: 0; display: block; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 8px; margin-bottom: 2px; transition: all 0.2s; }
         .nav-item:hover { background-color: var(--bg-color); }
         .nav-item.active { background-color: var(--light-blue); color: var(--primary-blue); font-weight: 700; border-left: 4px solid var(--primary-blue); }
@@ -62,7 +56,7 @@
 
         /* --- FORMULARIOS ESTILO TARJETAS --- */
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .form-container { max-width: 900px; margin: 0 auto; padding-bottom: 50px; }
+        .form-container { max-width: 900px; margin: 0 auto; padding-bottom: 100px; }
         
         .page-header { margin-bottom: 30px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
@@ -94,16 +88,8 @@
         .doc-item label { font-size: 11px; font-weight: 700; color: var(--primary-blue); display: block; margin-bottom: 10px; height: 30px; }
         .doc-item .photo-slot { max-width: 100%; aspect-ratio: 4/3; margin-bottom: 10px; }
 
-        /* --- VISUALIZADOR DE IMÁGENES --- */
-        #image-viewer-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center;
-            cursor: zoom-out; backdrop-filter: blur(3px);
-        }
-        #image-viewer-img {
-            max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.5);
-            object-fit: contain; animation: popIn 0.2s ease-out;
-        }
+        #image-viewer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; cursor: zoom-out; backdrop-filter: blur(3px); }
+        #image-viewer-img { max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.5); object-fit: contain; animation: popIn 0.2s ease-out; }
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         /* --- FIRMA --- */
@@ -113,17 +99,14 @@
 
         /* --- BOTONES FINALES --- */
         .action-buttons { display: flex; gap: 15px; margin-top: 30px; width: 100%; }
-        
         .btn-guardar { background: var(--primary-blue); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; flex: 2; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(38,63,164,0.2); transition: 0.2s; }
         .btn-guardar:hover { background: #1a2a6e; }
-        
         .btn-cancelar { background: var(--danger); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
         .btn-cancelar:hover { background: #b91c1c; }
-
         .btn-actualizar { background: var(--success); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: 0.2s; }
         .btn-actualizar:hover { background: #059669; }
 
-        /* --- BOTÓN FLOTANTE PARA DESCARGAR PDF --- */
+        /* --- BOTÓN FLOTANTE DESCARGAR PDF --- */
         .fab-download {
             position: fixed; bottom: 30px; right: 30px; background-color: var(--danger); color: white; border: none; border-radius: 50px;
             padding: 16px 24px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
@@ -151,7 +134,7 @@
         .camera-controls { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
     </style>
 </head>
-<body>
+<body class="is chameleon">
 
     <header class="header">
         <div class="header-left">
@@ -179,7 +162,7 @@
                     
                     <div class="form-card">
                         <h3 class="section-title"><i data-lucide="camera"></i> Fotografía del Trabajador</h3>
-                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Tómate una selfie clara, con buena iluminación y sin accesorios (gorras, lentes oscuros).</p>
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Tómate una selfie clara, con buena iluminación y sin accesorios.</p>
                         
                         <div class="photo-controls" style="max-width: 300px; margin: 0 auto 15px auto;">
                             <button type="button" class="btn-photo" onclick="triggerCamera('selfie')"><i data-lucide="camera"></i> Cámara</button>
@@ -351,7 +334,7 @@
 
                     <div class="form-card">
                         <h3 class="section-title"><i data-lucide="files"></i> Documentos Adjuntos</h3>
-                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Toma una foto clara o sube el archivo de cada documento solicitado.</p>
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Tómate una foto clara o sube el archivo de cada documento solicitado.</p>
                         
                         <div class="docs-grid">
                             <div class="doc-item"><label>INE (Frente)</label><div id="slot-ine_frente-0" class="photo-slot"><i data-lucide="credit-card" style="color:#cbd5e1;"></i></div><div class="photo-controls" style="margin-top:10px;"><button type="button" class="btn-photo" onclick="triggerCamera('ine_frente')"><i data-lucide="camera"></i></button><button type="button" class="btn-photo-sec" onclick="triggerFile('ine_frente')"><i data-lucide="upload"></i></button></div></div>
@@ -614,7 +597,7 @@
         });
 
         // ==========================================
-        // GENERADOR DE PDF COMPACTO Y ALINEADO
+        // GENERADOR DE PDF DE EXPEDIENTE (Compacto y Alineado)
         // ==========================================
         function generarPDFExpediente() {
             const btn = document.getElementById('btn-descargar-expediente');
@@ -623,16 +606,16 @@
             btn.disabled = true;
             lucide.createIcons();
 
-            // Ayudante para asegurar que no se impriman campos vacíos extraños
+            // Función ayudante para obtener valores seguros
             const v = (id) => document.getElementById(id) && document.getElementById(id).value.trim() !== '' ? document.getElementById(id).value.trim() : '-';
             
-            const fotoSelfie = fotos['selfie'] && fotos['selfie'][0] ? fotos['selfie'][0] : 'https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg';
+            // Foto y Firma
+            const fotoSelfie = fotos['selfie'] && fotos['selfie'][0] ? fotos['selfie'][0] : 'https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg'; // Fallback a un logo si no hay foto
             const firmaData = document.getElementById('firma_trabajador_data').value;
 
-            // Contenedor principal ajustado al 100% para que HTML2PDF gestione los márgenes simétricos
+            // Construir el HTML invisible para imprimir (Compacto)
             const pdfWrap = document.createElement('div');
-            pdfWrap.style.width = '100%';
-            pdfWrap.style.boxSizing = 'border-box';
+            pdfWrap.style.width = '800px';
             pdfWrap.style.backgroundColor = 'white';
             pdfWrap.style.color = '#1e293b';
             pdfWrap.style.fontFamily = 'Arial, sans-serif';
@@ -642,35 +625,35 @@
                 <style>
                     .pdf-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 8px; }
                     .pdf-table td { padding: 3px 5px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
-                    .pdf-th { font-weight: bold; color: #1e293b; }
+                    .pdf-th { font-weight: bold; color: #1e293b; text-align: left; }
                     .pdf-section { background: #eef2ff; color: #263fa4; padding: 4px 8px; font-weight: bold; font-size: 10px; margin-bottom: 6px; border-left: 3px solid #263fa4; text-transform: uppercase; }
                 </style>
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #263fa4; padding-bottom: 8px; margin-bottom: 12px;">
-                    <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 45px; object-fit: contain; border-radius: 4px;" crossorigin="anonymous">
+                    <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 60px; object-fit: contain; border-radius: 4px;" crossorigin="anonymous">
                     <div style="text-align: center; flex: 1;">
-                        <h1 style="margin: 0; font-size: 16px; color: #263fa4; text-transform: uppercase;">Loreto</h1>
-                        <h2 style="margin: 0; font-size: 10px; font-weight: normal; color: #475569;">Ingeniería, Construcción, Edificación y Remodelación</h2>
-                        <h3 style="margin: 5px 0 0 0; font-size: 12px; font-weight: bold; letter-spacing: 1px;">EXPEDIENTE PERSONAL</h3>
+                        <h1 style="margin: 0; font-size: 24px; color: #263fa4; text-transform: uppercase;">Loreto</h1>
+                        <h2 style="margin: 0; font-size: 15px; font-weight: normal; color: #475569;">Ingeniería, Construcción, Edificación y Remodelación</h2>
+                        <h3 style="margin: 5px 0 0 0; font-size: 18px; font-weight: bold; letter-spacing: 1px;">EXPEDIENTE PERSONAL</h3>
                     </div>
-                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 45px; object-fit: contain;" crossorigin="anonymous">
+                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 60px; object-fit: contain;" crossorigin="anonymous">
                 </div>
 
                 <div style="display: flex; gap: 15px;">
                     <div style="flex: 1;">
                         <div class="pdf-section">1. DATOS PERSONALES</div>
                         <table class="pdf-table">
-                            <tr><td class="pdf-th" style="width: 25%;">Nombre Completo:</td><td colspan="3">${v('nombre')} ${v('paterno')} ${v('materno')}</td></tr>
-                            <tr><td class="pdf-th">Sexo:</td><td style="width: 25%;">${v('sexo')}</td><td class="pdf-th" style="width: 25%;">Fecha Nac.:</td><td style="width: 25%;">${v('fecha_nac')}</td></tr>
+                            <tr><td class="pdf-th" style="width: 20%;">Nombre:</td><td colspan="3">${v('nombre')} ${v('paterno')} ${v('materno')}</td></tr>
+                            <tr><td class="pdf-th">Sexo:</td><td style="width: 25%;">${v('sexo')}</td><td class="pdf-th" style="width: 15%;">Fecha Nac.:</td><td style="width: 25%;">${v('fecha_nac')}</td></tr>
                             <tr><td class="pdf-th">Edad:</td><td>${v('edad')} años</td><td class="pdf-th">Lugar Nac.:</td><td>${v('lugar_nac')}</td></tr>
-                            <tr><td class="pdf-th">Nacionalidad:</td><td>${v('nacionalidad')}</td><td class="pdf-th">Estado Civil:</td><td>${v('estado_civil')}</td></tr>
+                            <tr><td class="pdf-th">Nacionalidad:</td><td>${v('nacionalidad')}</td><td class="pdf-th">Edo. Civil:</td><td>${v('estado_civil')}</td></tr>
                         </table>
 
                         <div class="pdf-section">2. DOMICILIO Y CONTACTO</div>
                         <table class="pdf-table">
-                            <tr><td class="pdf-th" style="width: 25%;">Calle y Nums:</td><td colspan="3">${v('calle')} #Ext: ${v('num_ext')} #Int: ${v('num_int')}</td></tr>
+                            <tr><td class="pdf-th" style="width: 20%;">Calle y Nums:</td><td colspan="3">${v('calle')} #Ext: ${v('num_ext')} #Int: ${v('num_int')}</td></tr>
                             <tr><td class="pdf-th">Colonia / Mun:</td><td colspan="3">${v('colonia')} / ${v('municipio')}</td></tr>
-                            <tr><td class="pdf-th">Ciudad / Edo:</td><td style="width: 35%;">${v('ciudad')}, ${v('estado')}</td><td class="pdf-th" style="width: 15%;">C.P.:</td><td style="width: 25%;">${v('cp')}</td></tr>
+                            <tr><td class="pdf-th">Ciudad / Edo:</td><td style="width: 35%;">${v('ciudad')}, ${v('estado')}</td><td class="pdf-th" style="width: 10%;">C.P.:</td><td style="width: 25%;">${v('cp')}</td></tr>
                             <tr><td class="pdf-th">Teléfono:</td><td>${v('telefono')}</td><td class="pdf-th">Correo:</td><td>${v('correo')}</td></tr>
                         </table>
                     </div>
@@ -693,18 +676,20 @@
 
                 <div class="pdf-section">4. CUENTA BANCARIA</div>
                 <table class="pdf-table">
-                    <tr>
-                        <td class="pdf-th" style="width: 15%;">Institución:</td><td style="width: 25%;">${v('institucion_financiera')}</td>
-                        <td class="pdf-th" style="width: 15%;">No. Tarjeta:</td><td style="width: 20%;">${v('num_tarjeta')}</td>
-                        <td class="pdf-th" style="width: 10%;">CLABE:</td><td style="width: 15%;">${v('cuenta_clabe')}</td>
-                    </tr>
+                    <tr><td class="pdf-th">Institución Financiera:</td></tr><tr><td>${v('institucion_financiera')}</td></tr>
+                    <tr><td class="pdf-th">Número de Tarjeta (16 dígitos):</td></tr><tr><td>${v('num_tarjeta')}</td></tr>
+                    <tr><td class="pdf-th">Cuenta CLABE (18 dígitos):</td></tr><tr><td>${v('cuenta_clabe')}</td></tr>
                 </table>
 
                 <div class="pdf-section">5. FAMILIARES Y EMERGENCIA</div>
                 <table class="pdf-table">
-                    <tr><td class="pdf-th" style="width: 15%;">Padre:</td><td style="width: 35%;">${v('padre')}</td><td class="pdf-th" style="width: 15%;">Madre:</td><td style="width: 35%;">${v('madre')}</td></tr>
-                    <tr><td class="pdf-th">Cónyuge:</td><td>${v('conyuge')}</td><td class="pdf-th">No. de Hijos:</td><td>${v('hijos')}</td></tr>
-                    <tr><td class="pdf-th" style="color: #dc2626;">Emergencia:</td><td colspan="3">${v('emergencia_nombre')} (${v('emergencia_parentesco')}) - Tel: ${v('emergencia_tel')}</td></tr>
+                    <tr><td class="pdf-th">Nombre del Padre:</td></tr><tr><td>${v('padre')}</td></tr>
+                    <tr><td class="pdf-th">Nombre de la Madre:</td></tr><tr><td>${v('madre')}</td></tr>
+                    <tr><td class="pdf-th">Nombre del Cónyuge:</td></tr><tr><td>${v('conyuge')}</td></tr>
+                    <tr><td class="pdf-th">Número de Hijos:</td></tr><tr><td>${v('hijos')}</td></tr>
+                    <tr><td class="pdf-th" style="color: #dc2626;">En caso de accidente avisar a (Nombre Completo):</td></tr><tr><td>${v('emergencia_nombre')}</td></tr>
+                    <tr><td class="pdf-th">Parentesco:</td></tr><tr><td>${v('emergencia_parentesco')}</td></tr>
+                    <tr><td class="pdf-th">Teléfono:</td></tr><tr><td>${v('emergencia_tel')}</td></tr>
                 </table>
 
                 <div style="margin-top: 15px; text-align: center; page-break-inside: avoid;">
@@ -721,7 +706,7 @@
 
             const nombreExport = `${v('nombre')}_${v('paterno')}`.replace(/ /g, '_');
             
-            // Opciones de configuración para HTML2PDF con márgenes simétricos exactos en milímetros
+            // Forzamos los márgenes a 15mm exactos en milímetros para que sea simétrico
             const opt = {
                 margin:       [15, 15, 15, 15], // Arriba, Izquierda, Abajo, Derecha
                 filename:     `Expediente_${nombreExport}.pdf`,
