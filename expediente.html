@@ -48,7 +48,7 @@
         .sidebar-nav { padding: 15px 10px; }
         .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .sidebar-section:last-child { border-bottom: none; }
-        .sidebar .section-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px; padding-bottom: 0; display: block; }
+        .sidebar .section-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px; padding-bottom: 0; border-bottom: none; display: block; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 8px; margin-bottom: 2px; transition: all 0.2s; }
         .nav-item:hover { background-color: var(--bg-color); }
         .nav-item.active { background-color: var(--light-blue); color: var(--primary-blue); font-weight: 700; border-left: 4px solid var(--primary-blue); }
@@ -134,7 +134,7 @@
         .camera-controls { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
     </style>
 </head>
-<body class="is chameleon">
+<body>
 
     <header class="header">
         <div class="header-left">
@@ -327,14 +327,11 @@
                                 </select>
                             </div>
                         </div>
-                        <p style="font-size:12px; color:var(--danger); font-weight:600; margin-top:15px; line-height: 1.4;">
-                            ⚠️ IMPORTANTE: Captura cuidadosamente estos datos sin espacios, ya que con esta información se te pagará tu nómina.
-                        </p>
                     </div>
 
                     <div class="form-card">
                         <h3 class="section-title"><i data-lucide="files"></i> Documentos Adjuntos</h3>
-                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Tómate una foto clara o sube el archivo de cada documento solicitado.</p>
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Toma una foto clara o sube el archivo de cada documento solicitado.</p>
                         
                         <div class="docs-grid">
                             <div class="doc-item"><label>INE (Frente)</label><div id="slot-ine_frente-0" class="photo-slot"><i data-lucide="credit-card" style="color:#cbd5e1;"></i></div><div class="photo-controls" style="margin-top:10px;"><button type="button" class="btn-photo" onclick="triggerCamera('ine_frente')"><i data-lucide="camera"></i></button><button type="button" class="btn-photo-sec" onclick="triggerFile('ine_frente')"><i data-lucide="upload"></i></button></div></div>
@@ -522,7 +519,7 @@
             formCampos.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = false; });
             document.getElementById('action-buttons-view').style.display = 'none'; 
             document.getElementById('action-buttons-edit').style.display = 'flex';
-            document.getElementById('btn-descargar-expediente').style.display = 'none'; // Ocultar el botón rojo al editar
+            document.getElementById('btn-descargar-expediente').style.display = 'none';
         }
 
         function bloquearEdicion() {
@@ -530,7 +527,7 @@
             formCampos.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = true; });
             document.getElementById('action-buttons-view').style.display = 'flex'; 
             document.getElementById('action-buttons-edit').style.display = 'none';
-            document.getElementById('btn-descargar-expediente').style.display = 'flex'; // Mostrar el botón rojo al guardar
+            document.getElementById('btn-descargar-expediente').style.display = 'flex';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -606,45 +603,48 @@
             btn.disabled = true;
             lucide.createIcons();
 
-            // Función ayudante para obtener valores seguros
             const v = (id) => document.getElementById(id) && document.getElementById(id).value.trim() !== '' ? document.getElementById(id).value.trim() : '-';
-            
-            // Foto y Firma
-            const fotoSelfie = fotos['selfie'] && fotos['selfie'][0] ? fotos['selfie'][0] : 'https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg'; // Fallback a un logo si no hay foto
+            const fotoSelfie = fotos['selfie'] && fotos['selfie'][0] ? fotos['selfie'][0] : 'https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg';
             const firmaData = document.getElementById('firma_trabajador_data').value;
 
-            // Construir el HTML invisible para imprimir (Compacto)
             const pdfWrap = document.createElement('div');
-            pdfWrap.style.width = '800px';
+            pdfWrap.style.width = '100%';
+            pdfWrap.style.boxSizing = 'border-box';
             pdfWrap.style.backgroundColor = 'white';
             pdfWrap.style.color = '#1e293b';
             pdfWrap.style.fontFamily = 'Arial, sans-serif';
 
-            // HTML inyectado con tablas super compactas para que quepa en 1 hoja
             pdfWrap.innerHTML = `
                 <style>
-                    .pdf-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 8px; }
-                    .pdf-table td { padding: 3px 5px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+                    .pdf-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 8px; table-layout: fixed; }
+                    .pdf-table td { padding: 3px 5px; vertical-align: middle; word-wrap: break-word; } /* SIN LINEAS (Sin border-bottom) */
                     .pdf-th { font-weight: bold; color: #1e293b; text-align: left; }
                     .pdf-section { background: #eef2ff; color: #263fa4; padding: 4px 8px; font-weight: bold; font-size: 10px; margin-bottom: 6px; border-left: 3px solid #263fa4; text-transform: uppercase; }
                 </style>
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #263fa4; padding-bottom: 8px; margin-bottom: 12px;">
-                    <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 60px; object-fit: contain; border-radius: 4px;" crossorigin="anonymous">
-                    <div style="text-align: center; flex: 1;">
+                    <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 60px; max-width: 150px; object-fit: contain; border-radius: 4px;" crossorigin="anonymous">
+                    <div style="text-align: center; flex: 1; padding: 0 10px;">
                         <h1 style="margin: 0; font-size: 24px; color: #263fa4; text-transform: uppercase;">Loreto</h1>
                         <h2 style="margin: 0; font-size: 15px; font-weight: normal; color: #475569;">Ingeniería, Construcción, Edificación y Remodelación</h2>
                         <h3 style="margin: 5px 0 0 0; font-size: 18px; font-weight: bold; letter-spacing: 1px;">EXPEDIENTE PERSONAL</h3>
                     </div>
-                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 60px; object-fit: contain;" crossorigin="anonymous">
+                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 60px; max-width: 150px; object-fit: contain;" crossorigin="anonymous">
                 </div>
 
-                <div style="display: flex; gap: 15px;">
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <div style="width: 100px; flex-shrink: 0; text-align: center;">
+                        <div style="width: 100px; height: 120px; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; margin-top: 22px;">
+                            <img src="${fotoSelfie}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div style="font-size: 8px; color: #64748b; margin-top: 4px; font-weight: bold;">FOTOGRAFÍA</div>
+                    </div>
+                    
                     <div style="flex: 1;">
                         <div class="pdf-section">1. DATOS PERSONALES</div>
                         <table class="pdf-table">
                             <tr><td class="pdf-th" style="width: 20%;">Nombre:</td><td colspan="3">${v('nombre')} ${v('paterno')} ${v('materno')}</td></tr>
-                            <tr><td class="pdf-th">Sexo:</td><td style="width: 25%;">${v('sexo')}</td><td class="pdf-th" style="width: 15%;">Fecha Nac.:</td><td style="width: 25%;">${v('fecha_nac')}</td></tr>
+                            <tr><td class="pdf-th">Sexo:</td><td style="width: 30%;">${v('sexo')}</td><td class="pdf-th" style="width: 15%;">Fecha Nac.:</td><td style="width: 35%;">${v('fecha_nac')}</td></tr>
                             <tr><td class="pdf-th">Edad:</td><td>${v('edad')} años</td><td class="pdf-th">Lugar Nac.:</td><td>${v('lugar_nac')}</td></tr>
                             <tr><td class="pdf-th">Nacionalidad:</td><td>${v('nacionalidad')}</td><td class="pdf-th">Edo. Civil:</td><td>${v('estado_civil')}</td></tr>
                         </table>
@@ -653,43 +653,47 @@
                         <table class="pdf-table">
                             <tr><td class="pdf-th" style="width: 20%;">Calle y Nums:</td><td colspan="3">${v('calle')} #Ext: ${v('num_ext')} #Int: ${v('num_int')}</td></tr>
                             <tr><td class="pdf-th">Colonia / Mun:</td><td colspan="3">${v('colonia')} / ${v('municipio')}</td></tr>
-                            <tr><td class="pdf-th">Ciudad / Edo:</td><td style="width: 35%;">${v('ciudad')}, ${v('estado')}</td><td class="pdf-th" style="width: 10%;">C.P.:</td><td style="width: 25%;">${v('cp')}</td></tr>
+                            <tr><td class="pdf-th">Ciudad / Edo:</td><td style="width: 30%;">${v('ciudad')}, ${v('estado')}</td><td class="pdf-th" style="width: 15%;">C.P.:</td><td style="width: 35%;">${v('cp')}</td></tr>
                             <tr><td class="pdf-th">Teléfono:</td><td>${v('telefono')}</td><td class="pdf-th">Correo:</td><td>${v('correo')}</td></tr>
                         </table>
-                    </div>
-                    
-                    <div style="width: 100px; flex-shrink: 0; text-align: center;">
-                        <div style="width: 100px; height: 120px; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; margin-top: 22px;">
-                            <img src="${fotoSelfie}" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <div style="font-size: 8px; color: #64748b; margin-top: 4px; font-weight: bold;">FOTOGRAFÍA</div>
                     </div>
                 </div>
 
                 <div class="pdf-section">3. DATOS PROFESIONALES Y GUBERNAMENTALES</div>
                 <table class="pdf-table">
-                    <tr><td class="pdf-th" style="width: 15%;">RFC:</td><td style="width: 35%; text-transform: uppercase;">${v('rfc')}</td><td class="pdf-th" style="width: 15%;">CURP:</td><td style="width: 35%; text-transform: uppercase;">${v('curp')}</td></tr>
-                    <tr><td class="pdf-th">NSS:</td><td>${v('nss')}</td><td class="pdf-th">U.M.F.:</td><td>${v('umf')} (Cons. ${v('consultorio')})</td></tr>
-                    <tr><td class="pdf-th">Escolaridad:</td><td>${v('escolaridad')}</td><td class="pdf-th">Cédula:</td><td>${v('cedula_prof')}</td></tr>
-                    <tr><td class="pdf-th">Colegio:</td><td colspan="3">${v('colegio')}</td></tr>
+                    <tr>
+                        <td class="pdf-th" style="width: 15%;">RFC:</td><td style="width: 35%; text-transform: uppercase;">${v('rfc')}</td>
+                        <td class="pdf-th" style="width: 15%;">CURP:</td><td style="width: 35%; text-transform: uppercase;">${v('curp')}</td>
+                    </tr>
+                    <tr>
+                        <td class="pdf-th">NSS:</td><td>${v('nss')}</td>
+                        <td class="pdf-th">U.M.F.:</td><td>${v('umf')} (Cons. ${v('consultorio')})</td>
+                    </tr>
+                    <tr>
+                        <td class="pdf-th">Escolaridad:</td><td>${v('escolaridad')}</td>
+                        <td class="pdf-th">Cédula:</td><td>${v('cedula_prof')}</td>
+                    </tr>
+                    <tr>
+                        <td class="pdf-th">Colegio:</td><td colspan="3">${v('colegio')}</td>
+                    </tr>
                 </table>
 
                 <div class="pdf-section">4. CUENTA BANCARIA</div>
                 <table class="pdf-table">
-                    <tr><td class="pdf-th">Institución Financiera:</td></tr><tr><td>${v('institucion_financiera')}</td></tr>
-                    <tr><td class="pdf-th">Número de Tarjeta (16 dígitos):</td></tr><tr><td>${v('num_tarjeta')}</td></tr>
-                    <tr><td class="pdf-th">Cuenta CLABE (18 dígitos):</td></tr><tr><td>${v('cuenta_clabe')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 30%;">Institución Financiera:</td><td>${v('institucion_financiera')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 30%;">Número de Tarjeta (16 dígitos):</td><td>${v('num_tarjeta')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 30%;">Cuenta CLABE (18 dígitos):</td><td>${v('cuenta_clabe')}</td></tr>
                 </table>
 
                 <div class="pdf-section">5. FAMILIARES Y EMERGENCIA</div>
                 <table class="pdf-table">
-                    <tr><td class="pdf-th">Nombre del Padre:</td></tr><tr><td>${v('padre')}</td></tr>
-                    <tr><td class="pdf-th">Nombre de la Madre:</td></tr><tr><td>${v('madre')}</td></tr>
-                    <tr><td class="pdf-th">Nombre del Cónyuge:</td></tr><tr><td>${v('conyuge')}</td></tr>
-                    <tr><td class="pdf-th">Número de Hijos:</td></tr><tr><td>${v('hijos')}</td></tr>
-                    <tr><td class="pdf-th" style="color: #dc2626;">En caso de accidente avisar a (Nombre Completo):</td></tr><tr><td>${v('emergencia_nombre')}</td></tr>
-                    <tr><td class="pdf-th">Parentesco:</td></tr><tr><td>${v('emergencia_parentesco')}</td></tr>
-                    <tr><td class="pdf-th">Teléfono:</td></tr><tr><td>${v('emergencia_tel')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 30%;">Nombre del Padre:</td><td>${v('padre')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 30%;">Nombre de la Madre:</td><td>${v('madre')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 30%;">Nombre del Cónyuge:</td><td>${v('conyuge')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 30%;">Número de Hijos:</td><td>${v('hijos')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 30%; color: #dc2626;">En caso de accidente avisar a (Nombre):</td><td>${v('emergencia_nombre')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 30%;">Parentesco:</td><td>${v('emergencia_parentesco')}</td></tr>
+                    <tr><td class="pdf-th" style="width: 30%;">Teléfono:</td><td>${v('emergencia_tel')}</td></tr>
                 </table>
 
                 <div style="margin-top: 15px; text-align: center; page-break-inside: avoid;">
@@ -706,9 +710,9 @@
 
             const nombreExport = `${v('nombre')}_${v('paterno')}`.replace(/ /g, '_');
             
-            // Forzamos los márgenes a 15mm exactos en milímetros para que sea simétrico
+            // Márgenes simétricos exactos en milímetros
             const opt = {
-                margin:       [15, 15, 15, 15], // Arriba, Izquierda, Abajo, Derecha
+                margin:       [15, 15, 15, 15], 
                 filename:     `Expediente_${nombreExport}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true },
