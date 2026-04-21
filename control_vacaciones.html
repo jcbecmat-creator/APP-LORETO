@@ -71,10 +71,8 @@
         
         .per-col { background: #f8fafc; }
 
-        /* Estilo checkboxes */
         .worker-chk, #chk-all { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-blue); }
 
-        /* Estilo para los inputs pequeños de días de la tabla */
         .input-dias-autorizados { width: 50px; text-align: center; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; color: var(--primary-blue); outline: none; transition: 0.2s; }
         .input-dias-autorizados:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 2px rgba(38,63,164,0.1); }
 
@@ -104,7 +102,6 @@
         .period-eval-card { background: white; border-radius: 12px; border: 1px solid var(--border-color); padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .period-eval-card h3 { margin: 0 0 12px 0; font-size: 14px; font-weight: 800; color: var(--primary-blue); display:flex; justify-content: space-between;}
 
-        /* Modificado: Botones de Estatus más pequeños y no expandibles */
         .status-btn-group { display: inline-flex; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; margin-top: 10px; width: fit-content;}
         .btn-status { padding: 8px 16px; font-size: 12px; font-weight: 700; border: none; background: white; color: var(--text-muted); cursor: pointer; transition: 0.2s; border-right: 1px solid var(--border-color); }
         .btn-status:last-child { border-right: none; }
@@ -113,7 +110,6 @@
         .btn-status.active.rec { background: var(--danger); color: white; }
         .btn-status.active.mod { background: var(--primary-blue); color: white; }
 
-        /* Botones Pie de Modal */
         .modal-footer { padding: 20px 24px; background: #fff; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; gap: 12px; align-items: center;}
         
         .btn-limpiar { background: white; color: var(--danger); border: 1px solid var(--danger); height: 42px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; padding: 0 20px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;}
@@ -123,10 +119,11 @@
         .btn-guardar { background: var(--primary-blue); color: white; border: none; height: 42px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; padding: 0 24px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;}
         .btn-guardar:hover { background: #1a2a6e; }
 
-        /* Modal Mensajes Pequeños */
         .modal-small { background: white; padding: 25px; border-radius: 16px; width: 100%; max-width: 350px; text-align: center; }
         .modal-small p { font-size: 15px; color: var(--text-main); margin-bottom: 20px; font-weight: 600; line-height: 1.5; }
         .btn-modal { width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
+        
+        .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
     </style>
 </head>
 <body>
@@ -149,7 +146,7 @@
             <div class="container">
                 <div class="page-header">
                     <h1>Control Global de Vacaciones</h1>
-                    <p>Panel para Contadores. Revisa, modifica y aprueba las solicitudes de los trabajadores.</p>
+                    <p>Panel para Contadores. Asigna los Días Autorizados para que el trabajador pueda solicitar sus descansos.</p>
                 </div>
 
                 <form class="filters-bar">
@@ -162,7 +159,12 @@
                     </button>
                 </form>
 
-                <div class="table-responsive">
+                <div id="loader" class="loader-container">
+                    <i data-lucide="loader-2" class="animate-spin" style="width:40px; height:40px; margin-bottom: 15px;"></i>
+                    <p>Cargando información...</p>
+                </div>
+
+                <div class="table-responsive" id="tabla-container" style="display: none;">
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -186,8 +188,7 @@
                             </tr>
                         </thead>
                         <tbody id="tabla-body">
-                            <tr><td colspan="19" style="padding: 30px; color: var(--text-muted);">Cargando datos...</td></tr>
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
@@ -205,6 +206,7 @@
                 <h2 id="modal-title-name">Evaluación de Vacaciones</h2>
                 <p>Aprueba, rechaza o modifica directamente las fechas de los periodos solicitados.</p>
                 <input type="hidden" id="modal-uid">
+                <input type="hidden" id="modal-nombre">
             </div>
             
             <div class="modal-body" id="modal-periodos-container">
@@ -279,12 +281,38 @@
     function mostrarExito(msg) { document.getElementById('modal-success-msg').innerText = msg; document.getElementById('modal-success').style.display = 'flex'; lucide.createIcons(); }
 
     async function cargarVacaciones() {
+        document.getElementById('loader').style.display = 'flex';
+        document.getElementById('tabla-container').style.display = 'none';
+        
         try {
-            const snapshot = await db.collection("vacaciones_control").get();
-            dataGlobal = [];
-            snapshot.forEach(doc => { dataGlobal.push({ id: doc.id, ...doc.data() }); });
+            // 1. Obtener TODOS los trabajadores del expediente para que nadie falte
+            const expSnap = await db.collection("expedientes_personal").get();
+            let workers = [];
+            expSnap.forEach(doc => {
+                const d = doc.data();
+                const nombreCompleto = `${d.nombre || ''} ${d.paterno || ''} ${d.materno || ''}`.trim().toUpperCase();
+                workers.push({ id: doc.id, nombre: nombreCompleto || 'SIN NOMBRE' });
+            });
+
+            // 2. Obtener los datos de vacaciones y cruzarlos
+            const vacSnap = await db.collection("vacaciones_control").get();
+            let vacData = {};
+            vacSnap.forEach(doc => { vacData[doc.id] = doc.data(); });
+
+            dataGlobal = workers.map(w => {
+                return { ...w, ...(vacData[w.id] || {}) };
+            });
+
+            // Ordenar alfabéticamente
+            dataGlobal.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
             renderTabla();
-        } catch (e) { console.error("Error", e); }
+        } catch (e) { 
+            console.error("Error", e); 
+            mostrarAlerta("Error al cargar los trabajadores.");
+        }
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('tabla-container').style.display = 'block';
     }
 
     function formateaFechaCorta(f) {
@@ -294,11 +322,18 @@
         return `${d.getDate()}/${meses[d.getMonth()]}`;
     }
 
-    async function actualizarDiasAutorizados(uid, valor) {
+    async function actualizarDiasAutorizados(uid, valor, nombre) {
         try {
             const num = parseInt(valor);
-            if (isNaN(num)) return;
-            await db.collection("vacaciones_control").doc(uid).set({ dias_generados: num }, { merge: true });
+            if (isNaN(num) || num < 0) return;
+            
+            await db.collection("vacaciones_control").doc(uid).set({ 
+                dias_generados: num,
+                fecha_autorizacion: firebase.firestore.FieldValue.serverTimestamp(),
+                nombre: nombre
+            }, { merge: true });
+            
+            // Recargar para actualizar los saldos
             cargarVacaciones();
         } catch(e) { console.error("Error al actualizar días", e); }
     }
@@ -326,7 +361,7 @@
         });
 
         if(filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="19" style="padding: 30px; color: var(--text-muted);">No hay solicitudes registradas.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="19" style="padding: 30px; color: var(--text-muted);">No hay trabajadores que coincidan con la búsqueda.</td></tr>`;
             return;
         }
 
@@ -334,13 +369,14 @@
 
         filtrados.forEach(row => {
             let tr = document.createElement('tr');
-            const gen = row.dias_generados || 14;
+            // Si nunca le han puesto días, empieza en 0
+            const gen = row.dias_generados || 0; 
             
             let htmlHTML = `
                 <td><input type="checkbox" class="worker-chk" value="${row.id}" onchange="checkSelections()"></td>
                 <td style="font-weight: 800; color: var(--text-muted);">${contadorFila}</td>
                 <td style="text-align: left; font-weight: 700; color: var(--primary-blue);">${row.nombre || row.id}</td>
-                <td><input type="number" class="input-dias-autorizados" value="${gen}" onchange="actualizarDiasAutorizados('${row.id}', this.value)"></td>
+                <td><input type="number" class="input-dias-autorizados" value="${gen}" onchange="actualizarDiasAutorizados('${row.id}', this.value, '${row.nombre}')"></td>
             `;
             let usados = 0;
 
@@ -389,6 +425,7 @@
         if(!worker) return;
 
         document.getElementById('modal-uid').value = uid;
+        document.getElementById('modal-nombre').value = worker.nombre || '';
         document.getElementById('modal-title-name').innerText = `Evaluar: ${worker.nombre || uid}`;
         
         const container = document.getElementById('modal-periodos-container');
@@ -411,11 +448,11 @@
                         <h3>Periodo ${i} <span style="font-weight:normal; color:var(--text-muted); font-size:11px;">Solicitado: ${new Date(p.fecha_solicitud).toLocaleDateString('es-MX')}</span></h3>
                         
                         <div style="display:flex; gap:15px; align-items:flex-end; margin-bottom:12px;">
-                            <div style="flex:1;">
+                            <div style="width: 130px;">
                                 <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; display:block;">Inicio</label>
                                 <input type="date" class="form-input" style="height:34px; font-size:13px; padding:0 10px; background:var(--bg-color);" id="mod-inicio-${i}" value="${p.inicio}" onchange="calcModDias(${i})" readonly>
                             </div>
-                            <div style="flex:1;">
+                            <div style="width: 130px;">
                                 <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; display:block;">Fin</label>
                                 <input type="date" class="form-input" style="height:34px; font-size:13px; padding:0 10px; background:var(--bg-color);" id="mod-fin-${i}" value="${p.fin}" onchange="calcModDias(${i})" readonly>
                             </div>
@@ -515,7 +552,7 @@
                 periodo_3: firebase.firestore.FieldValue.delete(),
                 periodo_4: firebase.firestore.FieldValue.delete()
             });
-            mostrarExito("Periodos eliminados correctamente de la base de datos.");
+            mostrarExito("Periodos eliminados correctamente.");
             cerrarModal(); 
             cargarVacaciones(); 
         } catch (e) {
@@ -530,7 +567,7 @@
         const uid = document.getElementById('modal-uid').value;
         if(!uid) return;
 
-        let updateData = {};
+        let updateData = { nombre: document.getElementById('modal-nombre').value };
         let hayError = false;
         
         for(let i=1; i<=4; i++) {
@@ -556,14 +593,14 @@
         }
 
         if(hayError) return;
-        if(Object.keys(updateData).length === 0) { cerrarModal(); return; }
+        if(Object.keys(updateData).length === 1) { cerrarModal(); return; } // Solo tiene el nombre
 
         const btn = document.querySelector('.btn-guardar');
         const oldHtml = btn.innerHTML;
         btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Guardando...';
 
         try {
-            await db.collection("vacaciones_control").doc(uid).update(updateData);
+            await db.collection("vacaciones_control").doc(uid).set(updateData, { merge: true });
             mostrarExito("Evaluación guardada y bloqueada correctamente.");
             cerrarModal();
             cargarVacaciones(); 
@@ -576,8 +613,8 @@
     }
 
     // =========================================================
-    // GENERAR PDF REPARADO (Reporte Horizontal)
-    // =========================================================
+    // GENERAR PDF (Hoja Completa y Centrada)
+    // ==========================================
     function generarPDF() {
         const checked = document.querySelectorAll('.worker-chk:checked');
         if(checked.length === 0) return;
@@ -585,9 +622,9 @@
         const dataPDF = dataGlobal.filter(d => ids.includes(d.id));
 
         const wrap = document.createElement('div');
-        // Asignamos un ancho fijo muy grande para que HTML2PDF escale correctamente a Landscape sin cortar texto.
-        wrap.style.width = '1100px'; 
-        wrap.style.padding = '10px 15px';
+        // Ancho forzado de 100% (el generador tomará las dimensiones de la hoja A4 apaisada)
+        wrap.style.width = '100%'; 
+        wrap.style.padding = '10px';
         wrap.style.fontFamily = 'Arial, sans-serif';
         wrap.style.backgroundColor = '#ffffff';
 
@@ -628,7 +665,7 @@
         `;
 
         dataPDF.forEach(row => {
-            const gen = row.dias_generados || 14;
+            const gen = row.dias_generados || 0;
             let rowHtml = `<tr>
                 <td style="border: 1px solid #cbd5e1; padding: 4px; text-align: left; font-weight: bold; color:#1e293b; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${row.nombre || row.id}</td>
                 <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold;">${gen}</td>
@@ -670,7 +707,7 @@
             margin:       [10, 10, 10, 10], 
             filename:     `Reporte_Vacaciones_${Date.now()}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, windowWidth: 1100 }, // Sincronizado con el width del wrapper para evitar cortes
+            html2canvas:  { scale: 2, useCORS: true }, 
             jsPDF:        { unit: 'mm', format: 'letter', orientation: 'landscape' } 
         };
 
