@@ -70,7 +70,7 @@
         .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
         .form-input { width: 100%; padding: 10px 15px; background-color: var(--bg-color); border: 1px solid transparent; border-radius: 10px; font-size: 14px; color: var(--text-main); box-sizing: border-box; outline: none; transition: all 0.2s; font-family: inherit; }
         .form-input:focus { background-color: white; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(38,63,164,0.1); }
-        .form-input[readonly] { cursor: not-allowed; opacity: 0.8; }
+        .form-input:disabled { cursor: not-allowed; opacity: 0.7; background-color: #e2e8f0; }
 
         .days-count { font-size: 14px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg-color); border-radius: 8px; margin-bottom: 16px;}
         .timestamp { font-size: 11px; color: var(--text-muted); font-style: italic; }
@@ -85,10 +85,6 @@
         .status-badge.vacio { background: #e2e8f0; color: #64748b; }
         .status-badge.pendiente { background: #fef3c7; color: #d97706; }
         .status-badge.aprobado { background: #dcfce7; color: #166534; }
-        .status-badge.rechazado { background: #fee2e2; color: #b91c1c; }
-
-        .admin-feedback { background: #fee2e2; border: 1px solid #fca5a5; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; color: #991b1b; }
-        .admin-feedback strong { display: block; margin-bottom: 4px; }
 
         /* --- MODALES --- */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
@@ -127,11 +123,11 @@
 
                 <div class="summary-dashboard">
                     <div class="summary-card">
-                        <div class="summary-title">Días Generados</div>
+                        <div class="summary-title">Días Autorizados</div>
                         <div class="summary-value" id="lbl-generados">0</div>
                     </div>
                     <div class="summary-card">
-                        <div class="summary-title">Días Solicitados/Usados</div>
+                        <div class="summary-title">Total de Días Solicitados</div>
                         <div class="summary-value blue" id="lbl-usados">0</div>
                     </div>
                     <div class="summary-card">
@@ -179,6 +175,7 @@
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
 
         let diasGenerados = 14; 
+        let periodosLlenos = 0; // Para contar cuántos periodos se han ocupado
 
         // Cargar Menú
         fetch('menu.html').then(res => res.text()).then(html => {
@@ -204,7 +201,6 @@
                             <div id="badge-${i}" class="status-badge vacio">Sin solicitar</div>
                         </div>
                         <div class="period-body">
-                            <div id="feedback-${i}" class="admin-feedback" style="display:none;"></div>
                             <div style="display:flex; gap:16px;">
                                 <div class="form-group" style="flex:1;">
                                     <label class="form-label">Fecha Inicio</label>
@@ -232,6 +228,30 @@
             lucide.createIcons();
         }
 
+        // LÓGICA DE SUPERPOSICIÓN DE FECHAS
+        function haySuperposicion(numToCheck, startDate, endDate) {
+            const s1 = new Date(startDate).getTime();
+            const e1 = new Date(endDate).getTime();
+
+            for(let i=1; i<=4; i++) {
+                if(i === numToCheck) continue;
+                
+                const otherStart = document.getElementById(`inicio-${i}`).value;
+                const otherEnd = document.getElementById(`fin-${i}`).value;
+                
+                if(otherStart && otherEnd) {
+                    const s2 = new Date(otherStart).getTime();
+                    const e2 = new Date(otherEnd).getTime();
+                    
+                    // Condición matemática para superposición
+                    if(s1 <= e2 && e1 >= s2) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         function calcularDiasPeriodo(num) {
             const d1 = document.getElementById(`inicio-${num}`).value;
             const d2 = document.getElementById(`fin-${num}`).value;
@@ -257,6 +277,17 @@
             lblSaldo.className = "summary-value " + (saldo < 0 ? "red" : "green");
         }
 
+        function bloquearTodosLosPeriodos() {
+            for(let i=1; i<=4; i++) {
+                document.getElementById(`inicio-${i}`).disabled = true;
+                document.getElementById(`fin-${i}`).disabled = true;
+                const btn = document.getElementById(`btn-save-${i}`);
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="lock" style="width:16px;"></i> Bloqueado';
+            }
+            lucide.createIcons();
+        }
+
         async function cargarMisVacaciones() {
             try {
                 const docRef = db.collection("vacaciones_control").doc(idUsuario);
@@ -265,40 +296,39 @@
                 if(docSnap.exists) {
                     const data = docSnap.data();
                     diasGenerados = data.dias_generados || 14;
+                    periodosLlenos = 0;
                     
                     for(let i=1; i<=4; i++) {
                         const p = data[`periodo_${i}`];
-                        if(p) {
-                            document.getElementById(`inicio-${i}`).value = p.inicio || '';
-                            document.getElementById(`fin-${i}`).value = p.fin || '';
-                            document.getElementById(`dias-${i}`).innerText = p.dias || 0;
+                        if(p && p.inicio) {
+                            periodosLlenos++;
+                            document.getElementById(`inicio-${i}`).value = p.inicio;
+                            document.getElementById(`fin-${i}`).value = p.fin;
+                            document.getElementById(`dias-${i}`).innerText = p.dias;
                             document.getElementById(`time-${i}`).innerText = p.fecha_solicitud ? "Solicitado el: " + new Date(p.fecha_solicitud).toLocaleString('es-MX') : '';
                             
                             const badge = document.getElementById(`badge-${i}`);
                             const btn = document.getElementById(`btn-save-${i}`);
-                            const feed = document.getElementById(`feedback-${i}`);
                             const in1 = document.getElementById(`inicio-${i}`);
                             const in2 = document.getElementById(`fin-${i}`);
 
                             if(p.estado === 'pendiente') {
-                                badge.className = "status-badge pendiente"; badge.innerHTML = '<i data-lucide="clock" style="width:14px;"></i> Pendiente';
+                                badge.className = "status-badge pendiente"; badge.innerHTML = '<i data-lucide="clock" style="width:14px;"></i> En Revisión';
                                 btn.innerHTML = '<i data-lucide="refresh-cw" style="width:16px;"></i> Actualizar Solicitud';
                             } else if (p.estado === 'aprobado') {
                                 badge.className = "status-badge aprobado"; badge.innerHTML = '<i data-lucide="check-circle" style="width:14px;"></i> Aprobado';
-                                in1.setAttribute('readonly', true); in2.setAttribute('readonly', true);
-                                btn.style.display = 'none'; 
-                            } else if (p.estado === 'rechazado') {
-                                badge.className = "status-badge rechazado"; badge.innerHTML = '<i data-lucide="alert-circle" style="width:14px;"></i> Modificado por Contador';
-                                btn.innerHTML = '<i data-lucide="check" style="width:16px;"></i> Aceptar Nuevas Fechas';
-                                feed.style.display = 'block';
-                                feed.innerHTML = `<strong>Contador propone nuevas fechas:</strong> ${p.inicio_propuesto} al ${p.fin_propuesto} (${p.dias_propuestos} días). Si estás de acuerdo, haz clic en Aceptar.`;
-                                
-                                in1.value = p.inicio_propuesto; in2.value = p.fin_propuesto;
-                                document.getElementById(`dias-${i}`).innerText = p.dias_propuestos;
-                            }
+                                in1.disabled = true; in2.disabled = true;
+                                btn.style.display = 'none'; // El trabajador ya no puede hacer nada
+                            } 
                         }
                     }
                     actualizarTotales();
+
+                    // Si ya llenó los 4 periodos, bloqueamos absolutamente todo para que no modifique
+                    if(periodosLlenos === 4) {
+                        bloquearTodosLosPeriodos();
+                    }
+
                     lucide.createIcons();
                 } else {
                     actualizarTotales(); 
@@ -313,6 +343,12 @@
 
             if(!d1 || !d2) { mostrarAlerta("Debes seleccionar fecha de inicio y término."); return; }
             if(dias <= 0) { mostrarAlerta("La fecha de fin no puede ser menor a la de inicio."); return; }
+            
+            // VALIDACIÓN: ¿Se cruzan las fechas?
+            if(haySuperposicion(num, d1, d2)) {
+                mostrarAlerta("¡Cuidado! Las fechas que seleccionaste se cruzan o duplican con las de otro de tus periodos. Por favor elige fechas diferentes.");
+                return;
+            }
 
             const btn = document.getElementById(`btn-save-${num}`);
             const oldHtml = btn.innerHTML;
@@ -324,18 +360,18 @@
                 
                 const updateData = {
                     nombre: nombreUsuario,
-                    dias_generados: diasGenerados,
+                    dias_generados: diasGenerados, // Guardar historial de lo que autorizó el contador
                     ultima_actualizacion: isoDate
                 };
                 
                 updateData[`periodo_${num}`] = { inicio: d1, fin: d2, dias: dias, estado: 'pendiente', fecha_solicitud: isoDate };
 
                 await docRef.set(updateData, { merge: true });
-                mostrarExito(`El periodo ${num} ha sido solicitado y está en revisión.`);
+                mostrarExito(`Tus fechas han sido enviadas exitosamente al contador.`);
                 cargarMisVacaciones(); 
             } catch(e) {
                 console.error(e);
-                mostrarAlerta("Ocurrió un problema al enviar la solicitud.");
+                mostrarAlerta("Ocurrió un problema al enviar la solicitud. Revisa tu conexión a internet.");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = oldHtml;
