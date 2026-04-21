@@ -104,21 +104,26 @@
         .period-eval-card { background: white; border-radius: 12px; border: 1px solid var(--border-color); padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .period-eval-card h3 { margin: 0 0 12px 0; font-size: 14px; font-weight: 800; color: var(--primary-blue); display:flex; justify-content: space-between;}
 
-        /* Botones de Estatus del Periodo */
-        .status-btn-group { display: flex; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; margin-top: 10px;}
-        .btn-status { flex: 1; padding: 8px; font-size: 12px; font-weight: 700; border: none; background: white; color: var(--text-muted); cursor: pointer; transition: 0.2s; border-right: 1px solid var(--border-color); }
+        /* Modificado: Botones de Estatus más pequeños y no expandibles */
+        .status-btn-group { display: inline-flex; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; margin-top: 10px; width: fit-content;}
+        .btn-status { padding: 8px 16px; font-size: 12px; font-weight: 700; border: none; background: white; color: var(--text-muted); cursor: pointer; transition: 0.2s; border-right: 1px solid var(--border-color); }
         .btn-status:last-child { border-right: none; }
         .btn-status:hover { background: #f1f5f9; }
         .btn-status.active.apr { background: var(--success); color: white; }
         .btn-status.active.rec { background: var(--danger); color: white; }
         .btn-status.active.mod { background: var(--primary-blue); color: white; }
 
-        .modal-footer { padding: 20px 24px; background: #fff; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; }
+        /* Botones Pie de Modal */
+        .modal-footer { padding: 20px 24px; background: #fff; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; gap: 12px; align-items: center;}
+        
+        .btn-limpiar { background: white; color: var(--danger); border: 1px solid var(--danger); height: 42px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; padding: 0 20px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;}
+        .btn-limpiar:hover { background: #fef2f2; }
+        
         .btn-cancelar { background: white; color: var(--text-main); border: 1px solid var(--border-color); height: 42px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; padding: 0 24px; display: inline-flex; align-items: center; gap: 8px;}
         .btn-guardar { background: var(--primary-blue); color: white; border: none; height: 42px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; padding: 0 24px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;}
         .btn-guardar:hover { background: #1a2a6e; }
 
-        /* Modal Mensajes */
+        /* Modal Mensajes Pequeños */
         .modal-small { background: white; padding: 25px; border-radius: 16px; width: 100%; max-width: 350px; text-align: center; }
         .modal-small p { font-size: 15px; color: var(--text-main); margin-bottom: 20px; font-weight: 600; line-height: 1.5; }
         .btn-modal { width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
@@ -206,20 +211,37 @@
                 </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn-cancelar" onclick="cerrarModal()"><i data-lucide="x-circle" style="width:16px;"></i> Cancelar</button>
-                <button type="button" class="btn-guardar" onclick="guardarEvaluacion()"><i data-lucide="save" style="width:16px;"></i> Guardar</button>
+                <div>
+                    <button type="button" class="btn-limpiar" onclick="confirmarLimpiar()"><i data-lucide="eraser" style="width:16px;"></i> Limpiar Periodos</button>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button type="button" class="btn-cancelar" onclick="cerrarModal()"><i data-lucide="x-circle" style="width:16px;"></i> Cancelar</button>
+                    <button type="button" class="btn-guardar" onclick="guardarEvaluacion()"><i data-lucide="save" style="width:16px;"></i> Guardar y Aprobar</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="modal-success" class="modal-overlay">
+    <div id="modal-confirm-limpiar" class="modal-overlay" style="z-index: 10000;">
+        <div class="modal-small">
+            <i data-lucide="alert-triangle" style="color: var(--danger); width: 48px; height: 48px; margin-bottom: 15px;"></i>
+            <p>¿Estás seguro de limpiar todos los periodos de este trabajador? Esto borrará definitivamente sus solicitudes.</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-modal" style="background:var(--bg-color); color:var(--text-main);" onclick="document.getElementById('modal-confirm-limpiar').style.display='none'">Cancelar</button>
+                <button class="btn-modal" style="background:var(--danger); color:white;" onclick="ejecutarLimpiar()"><i data-lucide="trash-2" style="width:14px; display:inline-block; vertical-align:middle;"></i> Sí, Limpiar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-success" class="modal-overlay" style="z-index: 10000;">
         <div class="modal-small">
             <i data-lucide="check-circle" style="color: var(--success); width: 48px; height: 48px; margin-bottom: 15px;"></i>
             <p id="modal-success-msg">Evaluación guardada.</p>
             <button class="btn-modal" style="background:var(--success); color:white;" onclick="document.getElementById('modal-success').style.display='none'">Aceptar</button>
         </div>
     </div>
-    <div id="modal-error" class="modal-overlay">
+    
+    <div id="modal-error" class="modal-overlay" style="z-index: 10000;">
         <div class="modal-small">
             <i data-lucide="alert-triangle" style="color: var(--danger); width: 48px; height: 48px; margin-bottom: 15px;"></i>
             <p id="modal-error-msg">Error.</p>
@@ -281,7 +303,6 @@
         } catch(e) { console.error("Error al actualizar días", e); }
     }
 
-    // Checkboxes Logic
     function toggleAll(source) {
         const checkboxes = document.querySelectorAll('.worker-chk');
         checkboxes.forEach(chk => chk.checked = source.checked);
@@ -390,11 +411,11 @@
                         <h3>Periodo ${i} <span style="font-weight:normal; color:var(--text-muted); font-size:11px;">Solicitado: ${new Date(p.fecha_solicitud).toLocaleDateString('es-MX')}</span></h3>
                         
                         <div style="display:flex; gap:15px; align-items:flex-end; margin-bottom:12px;">
-                            <div style="width: 130px;">
+                            <div style="flex:1;">
                                 <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; display:block;">Inicio</label>
                                 <input type="date" class="form-input" style="height:34px; font-size:13px; padding:0 10px; background:var(--bg-color);" id="mod-inicio-${i}" value="${p.inicio}" onchange="calcModDias(${i})" readonly>
                             </div>
-                            <div style="width: 130px;">
+                            <div style="flex:1;">
                                 <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; display:block;">Fin</label>
                                 <input type="date" class="form-input" style="height:34px; font-size:13px; padding:0 10px; background:var(--bg-color);" id="mod-fin-${i}" value="${p.fin}" onchange="calcModDias(${i})" readonly>
                             </div>
@@ -472,6 +493,39 @@
         document.getElementById(`mod-dias-${num}`).value = dias;
     }
 
+    // FUNCIONES BOTÓN LIMPIAR
+    function confirmarLimpiar() {
+        document.getElementById('modal-confirm-limpiar').style.display = 'flex';
+        lucide.createIcons();
+    }
+
+    async function ejecutarLimpiar() {
+        document.getElementById('modal-confirm-limpiar').style.display = 'none';
+        const uid = document.getElementById('modal-uid').value;
+        if(!uid) return;
+
+        const btn = document.querySelector('.btn-limpiar');
+        const oldHtml = btn.innerHTML;
+        btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Borrando...';
+
+        try {
+            await db.collection("vacaciones_control").doc(uid).update({
+                periodo_1: firebase.firestore.FieldValue.delete(),
+                periodo_2: firebase.firestore.FieldValue.delete(),
+                periodo_3: firebase.firestore.FieldValue.delete(),
+                periodo_4: firebase.firestore.FieldValue.delete()
+            });
+            mostrarExito("Periodos eliminados correctamente de la base de datos.");
+            cerrarModal(); 
+            cargarVacaciones(); 
+        } catch (e) {
+            console.error(e);
+            mostrarAlerta("No se pudo limpiar los periodos.");
+        } finally {
+            btn.disabled = false; btn.innerHTML = oldHtml;
+        }
+    }
+
     async function guardarEvaluacion() {
         const uid = document.getElementById('modal-uid').value;
         if(!uid) return;
@@ -522,7 +576,7 @@
     }
 
     // =========================================================
-    // GENERAR PDF (Reporte Horizontal)
+    // GENERAR PDF REPARADO (Reporte Horizontal)
     // =========================================================
     function generarPDF() {
         const checked = document.querySelectorAll('.worker-chk:checked');
@@ -531,9 +585,11 @@
         const dataPDF = dataGlobal.filter(d => ids.includes(d.id));
 
         const wrap = document.createElement('div');
-        wrap.style.width = '100%';
+        // Asignamos un ancho fijo muy grande para que HTML2PDF escale correctamente a Landscape sin cortar texto.
+        wrap.style.width = '1100px'; 
         wrap.style.padding = '10px 15px';
         wrap.style.fontFamily = 'Arial, sans-serif';
+        wrap.style.backgroundColor = '#ffffff';
 
         // Encabezado Membretado
         wrap.innerHTML = `
@@ -549,17 +605,17 @@
         `;
 
         let tableHtml = `
-            <table style="width: 100%; border-collapse: collapse; font-size: 9px; text-align: center;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 9px; text-align: center; table-layout: fixed;">
                 <thead>
                     <tr style="background-color: #eef2ff; color: #263fa4;">
-                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px;">TRABAJADOR</th>
-                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px;">DÍAS AUT.</th>
-                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px;">1ER PERIODO</th>
-                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px;">2DO PERIODO</th>
-                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px;">3ER PERIODO</th>
-                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px;">4TO PERIODO</th>
-                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px;">SOLICITADOS</th>
-                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px;">SALDO</th>
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 14%;">TRABAJADOR</th>
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 4%;">DÍAS<br>AUT.</th>
+                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px; width: 19%;">1ER PERIODO</th>
+                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px; width: 19%;">2DO PERIODO</th>
+                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px; width: 19%;">3ER PERIODO</th>
+                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px; width: 19%;">4TO PERIODO</th>
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 3%;">USADOS</th>
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 3%;">SALDO</th>
                     </tr>
                     <tr style="background-color: #eef2ff; color: #263fa4;">
                         <th style="border: 1px solid #cbd5e1; padding: 4px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Estatus</th>
@@ -574,7 +630,7 @@
         dataPDF.forEach(row => {
             const gen = row.dias_generados || 14;
             let rowHtml = `<tr>
-                <td style="border: 1px solid #cbd5e1; padding: 4px; text-align: left; font-weight: bold; color:#1e293b;">${row.nombre || row.id}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; text-align: left; font-weight: bold; color:#1e293b; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${row.nombre || row.id}</td>
                 <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold;">${gen}</td>
             `;
             
@@ -586,7 +642,7 @@
                     rowHtml += `
                         <td style="border: 1px solid #cbd5e1; padding: 4px;">${formateaFechaCorta(p.inicio)} - ${formateaFechaCorta(p.fin)}</td>
                         <td style="border: 1px solid #cbd5e1; padding: 4px;">${p.dias}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight:bold;">${est}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight:bold; font-size:8px;">${est}</td>
                     `;
                     usados += parseInt(p.dias);
                 } else {
@@ -614,7 +670,7 @@
             margin:       [10, 10, 10, 10], 
             filename:     `Reporte_Vacaciones_${Date.now()}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
+            html2canvas:  { scale: 2, useCORS: true, windowWidth: 1100 }, // Sincronizado con el width del wrapper para evitar cortes
             jsPDF:        { unit: 'mm', format: 'letter', orientation: 'landscape' } 
         };
 
