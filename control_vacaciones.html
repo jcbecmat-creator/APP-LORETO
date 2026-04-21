@@ -90,7 +90,6 @@
         /* Modales */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         
-        /* Ajuste 1: Modal más angosto (560px) */
         .modal-card { background: white; width: 100%; max-width: 560px; border-radius: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow: hidden; position: relative; animation: popIn 0.3s;}
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
@@ -104,7 +103,6 @@
         .period-eval-card { background: white; border-radius: 12px; border: 1px solid var(--border-color); padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .period-eval-card h3 { margin: 0 0 12px 0; font-size: 14px; font-weight: 800; color: var(--primary-blue); display:flex; justify-content: space-between;}
 
-        /* Ajuste 2: Botones de Estatus más anchos ocupando el 100% */
         .status-btn-group { display: flex; width: 100%; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; margin-top: 10px; }
         .btn-status { flex: 1; padding: 10px 0; font-size: 12px; font-weight: 700; border: none; background: white; color: var(--text-muted); cursor: pointer; transition: 0.2s; border-right: 1px solid var(--border-color); text-align: center; }
         .btn-status:last-child { border-right: none; }
@@ -559,7 +557,6 @@
         }
     }
 
-    // AJUSTE 4: Función Guardar Robusta (Soluciona el error del botón)
     async function guardarEvaluacion() {
         const uid = document.getElementById('modal-uid').value;
         if(!uid) return;
@@ -577,25 +574,22 @@
 
                 if(!d1 || !d2) { mostrarAlerta("Las fechas no pueden quedar vacías."); hayError = true; break; }
 
-                // Usamos formato de objeto completo para evitar crasheos si el campo padre no existía
                 if(!updateData[`periodo_${i}`]) updateData[`periodo_${i}`] = {};
 
                 if(est === 'modificado') {
-                    updateData[`periodo_${i}`] = { estado: 'modificado', inicio: d1, fin: d2, dias: parseInt(dias) };
+                    updateData[`periodo_${i}`] = { estado: 'modificado', inicio: d1, fin: d2, dias: parseInt(dias), fecha_solicitud: new Date().toISOString() };
                     tieneCambios = true;
                 } else if(est === 'aprobado') {
-                    updateData[`periodo_${i}`] = { estado: 'aprobado', inicio: d1, fin: d2, dias: parseInt(dias) };
+                    updateData[`periodo_${i}`] = { estado: 'aprobado', inicio: d1, fin: d2, dias: parseInt(dias), fecha_solicitud: new Date().toISOString() };
                     tieneCambios = true;
                 } else if(est === 'rechazado') {
-                    updateData[`periodo_${i}`] = { estado: 'rechazado', inicio: d1, fin: d2, dias: parseInt(dias) };
+                    updateData[`periodo_${i}`] = { estado: 'rechazado', inicio: d1, fin: d2, dias: parseInt(dias), fecha_solicitud: new Date().toISOString() };
                     tieneCambios = true;
                 }
             }
         }
 
         if(hayError) return;
-        
-        // Si no hizo clic en ninguna evaluación, simplemente cerramos la ventana
         if(!tieneCambios) { cerrarModal(); return; } 
 
         const btn = document.querySelector('.btn-guardar');
@@ -603,7 +597,6 @@
         btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Guardando...';
 
         try {
-            // Usamos set con merge para evitar el error "No document to update"
             await db.collection("vacaciones_control").doc(uid).set(updateData, { merge: true });
             mostrarExito("Evaluación guardada y bloqueada correctamente.");
             cerrarModal();
@@ -617,55 +610,63 @@
         }
     }
 
-    // AJUSTE 5: PDF Horizontal Optimizado sin cortes
+    // =========================================================
+    // GENERAR PDF REPARADO (Forzando la impresión en contenedor temporal)
+    // =========================================================
     function generarPDF() {
         const checked = document.querySelectorAll('.worker-chk:checked');
         if(checked.length === 0) return;
         const ids = Array.from(checked).map(c => c.value);
         const dataPDF = dataGlobal.filter(d => ids.includes(d.id));
 
+        // Creamos un contenedor físico en el DOM pero escondido
         const wrap = document.createElement('div');
-        // Ancho forzado al 100% para que HTML2PDF controle la escala total
-        wrap.style.width = '100%'; 
-        wrap.style.padding = '10px';
-        wrap.style.fontFamily = 'Arial, sans-serif';
+        wrap.id = "temp-pdf-wrap";
+        wrap.style.position = 'absolute';
+        wrap.style.top = '-9999px';
+        wrap.style.left = '0';
+        wrap.style.width = '1100px'; // Ancho estricto que se escalará 10% más chico al formato carta horizontal
         wrap.style.backgroundColor = '#ffffff';
+        wrap.style.padding = '20px';
+        wrap.style.boxSizing = 'border-box';
+        wrap.style.fontFamily = 'Arial, sans-serif';
 
-        // Estructura Flex Box segura para que ningún logotipo se corte
+        document.body.appendChild(wrap);
+
         wrap.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #263fa4; padding-bottom: 10px; margin-bottom: 15px;">
-                <div style="width: 20%; text-align: left;">
-                    <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 50px; max-width: 100%; object-fit: contain; border-radius: 4px;" crossorigin="anonymous">
+                <div style="width: 25%; text-align: left;">
+                    <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 55px; max-width: 100%; object-fit: contain; border-radius: 4px;" crossorigin="anonymous">
                 </div>
-                <div style="width: 60%; text-align: center;">
-                    <h1 style="margin: 0; font-size: 20px; color: #263fa4; text-transform: uppercase; font-weight: 800;">Loreto</h1>
-                    <h2 style="margin: 3px 0 0 0; font-size: 12px; color: #475569; font-weight: normal;">Ingeniería, Construcción, Edificación y Remodelación</h2>
-                    <h3 style="margin: 5px 0 0 0; font-size: 14px; font-weight: bold;">REPORTE DE VACACIONES DEL PERSONAL</h3>
+                <div style="width: 50%; text-align: center;">
+                    <h1 style="margin: 0; font-size: 22px; color: #263fa4; text-transform: uppercase; font-weight: 800;">Loreto</h1>
+                    <h2 style="margin: 3px 0 0 0; font-size: 13px; color: #475569; font-weight: normal;">Ingeniería, Construcción, Edificación y Remodelación</h2>
+                    <h3 style="margin: 5px 0 0 0; font-size: 15px; font-weight: bold;">REPORTE DE VACACIONES DEL PERSONAL</h3>
                 </div>
-                <div style="width: 20%; text-align: right;">
-                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 50px; max-width: 100%; object-fit: contain;" crossorigin="anonymous">
+                <div style="width: 25%; text-align: right;">
+                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 55px; max-width: 100%; object-fit: contain;" crossorigin="anonymous">
                 </div>
             </div>
         `;
 
         let tableHtml = `
-            <table style="width: 100%; border-collapse: collapse; font-size: 8px; text-align: center; table-layout: fixed;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 9px; text-align: center;">
                 <thead>
                     <tr style="background-color: #eef2ff; color: #263fa4;">
-                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 3px; width: 16%;">TRABAJADOR</th>
-                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 3px; width: 4%;">DÍAS<br>AUT.</th>
-                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 3px; width: 18.5%;">1ER PERIODO</th>
-                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 3px; width: 18.5%;">2DO PERIODO</th>
-                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 3px; width: 18.5%;">3ER PERIODO</th>
-                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 3px; width: 18.5%;">4TO PERIODO</th>
-                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 3px; width: 3%;">USADOS</th>
-                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 3px; width: 3%;">SALDO</th>
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 12%;">TRABAJADOR</th>
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 4%;">DÍAS<br>AUT.</th>
+                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px; width: 19%;">1ER PERIODO</th>
+                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px; width: 19%;">2DO PERIODO</th>
+                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px; width: 19%;">3ER PERIODO</th>
+                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px; width: 19%;">4TO PERIODO</th>
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 4%;">USADOS</th>
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 4%;">SALDO</th>
                     </tr>
                     <tr style="background-color: #eef2ff; color: #263fa4;">
-                        <th style="border: 1px solid #cbd5e1; padding: 3px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 3px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 3px;">Estatus</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 3px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 3px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 3px;">Estatus</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 3px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 3px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 3px;">Estatus</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 3px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 3px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 3px;">Estatus</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 4px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Estatus</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 4px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Estatus</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 4px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Estatus</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 4px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Estatus</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -674,8 +675,8 @@
         dataPDF.forEach(row => {
             const gen = row.dias_generados || 0;
             let rowHtml = `<tr>
-                <td style="border: 1px solid #cbd5e1; padding: 3px; text-align: left; font-weight: bold; color:#1e293b; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${row.nombre || row.id}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 3px; font-weight: bold;">${gen}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; text-align: left; font-weight: bold; color:#1e293b; white-space: nowrap; overflow: hidden;">${row.nombre || row.id}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold;">${gen}</td>
             `;
             
             let usados = 0;
@@ -684,19 +685,19 @@
                 if(p && p.inicio) {
                     let est = p.estado === 'aprobado' ? 'Aprobado' : (p.estado === 'modificado' ? 'Aprobado(M)' : (p.estado === 'rechazado' ? 'Rechazado' : 'Pendiente'));
                     rowHtml += `
-                        <td style="border: 1px solid #cbd5e1; padding: 3px;">${formateaFechaCorta(p.inicio)} - ${formateaFechaCorta(p.fin)}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 3px;">${p.dias}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 3px; font-weight:bold; font-size:7px;">${est}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 4px;">${formateaFechaCorta(p.inicio)} - ${formateaFechaCorta(p.fin)}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 4px;">${p.dias}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight:bold; font-size:7px;">${est}</td>
                     `;
                     usados += parseInt(p.dias);
                 } else {
-                    rowHtml += `<td style="border: 1px solid #cbd5e1; padding: 3px;">-</td><td style="border: 1px solid #cbd5e1; padding: 3px;">-</td><td style="border: 1px solid #cbd5e1; padding: 3px;">-</td>`;
+                    rowHtml += `<td style="border: 1px solid #cbd5e1; padding: 4px;">-</td><td style="border: 1px solid #cbd5e1; padding: 4px;">-</td><td style="border: 1px solid #cbd5e1; padding: 4px;">-</td>`;
                 }
             }
             const saldo = gen - usados;
             rowHtml += `
-                <td style="border: 1px solid #cbd5e1; padding: 3px; font-weight: bold;">${usados}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 3px; font-weight: bold; color: ${saldo < 0 ? '#dc2626' : '#16a34a'};">${saldo}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold;">${usados}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; color: ${saldo < 0 ? '#dc2626' : '#16a34a'};">${saldo}</td>
             </tr>`;
             tableHtml += rowHtml;
         });
@@ -711,11 +712,10 @@
         `;
 
         const opt = {
-            margin:       [10, 10, 10, 10], 
+            margin:       5, 
             filename:     `Reporte_Vacaciones_${Date.now()}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            // Simulamos una pantalla de 1250px de ancho para obligar a que la tabla se haga un 10% más pequeña al escalarse a la hoja
-            html2canvas:  { scale: 2, useCORS: true, windowWidth: 1250 }, 
+            image:        { type: 'jpeg', quality: 1 },
+            html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 }, 
             jsPDF:        { unit: 'mm', format: 'letter', orientation: 'landscape' } 
         };
 
@@ -726,6 +726,7 @@
 
         html2pdf().set(opt).from(wrap).save().then(() => {
             btn.innerHTML = oldTxt;
+            document.body.removeChild(wrap); // Borramos el contenedor temporal
             lucide.createIcons();
         });
     }
