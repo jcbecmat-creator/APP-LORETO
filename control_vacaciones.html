@@ -60,7 +60,7 @@
 
         /* Tabla */
         .table-responsive { width: 100%; overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); background: white;}
-        .data-table { width: 100%; border-collapse: collapse; min-width: 1300px; }
+        .data-table { width: 100%; border-collapse: collapse; min-width: 1400px; }
         .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 12px 10px; text-align: center; border-bottom: 2px solid var(--border-color); border-right: 1px solid var(--border-color); white-space: nowrap; }
         .data-table th:last-child { border-right: none; }
         .data-table td { padding: 10px; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); font-size: 12px; color: var(--text-main); vertical-align: middle; text-align: center; }
@@ -68,8 +68,10 @@
         .data-table tbody tr:hover { background-color: #f8fafc; }
         
         .per-col { background: #f8fafc; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
-        .dot-yellow { background-color: var(--warning); } .dot-green { background-color: var(--success); } .dot-red { background-color: var(--danger); }
+
+        /* Estilo para los inputs pequeños de días de la tabla */
+        .input-dias-autorizados { width: 50px; text-align: center; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; color: var(--primary-blue); outline: none; transition: 0.2s; }
+        .input-dias-autorizados:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 2px rgba(38,63,164,0.1); }
 
         .btn-action-red { height: 32px; background: var(--danger); color: white; border: none; padding: 0 16px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box; transition: 0.2s;}
         .btn-action-red:hover { background: #b91c1c;}
@@ -88,12 +90,6 @@
         
         .period-eval-card { background: white; border-radius: 12px; border: 1px solid var(--border-color); padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .period-eval-card h3 { margin: 0 0 12px 0; font-size: 14px; font-weight: 800; color: var(--primary-blue); display:flex; justify-content: space-between;}
-        
-        .eval-actions { display: flex; gap: 12px; margin-top: 16px; align-items: center; }
-        .btn-aprobar { background: var(--success); color: white; border: none; height: 36px; padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-aprobar.inactive { opacity: 0.3; background: #94a3b8; }
-        .btn-rechazar { background: var(--danger); color: white; border: none; height: 36px; padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-rechazar.inactive { opacity: 0.3; background: #94a3b8; }
 
         .modal-footer { padding: 20px 24px; background: #fff; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; }
         .btn-cancelar { background: white; color: var(--text-main); border: 1px solid var(--border-color); height: 42px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; padding: 0 24px; }
@@ -142,24 +138,26 @@
                     <table class="data-table">
                         <thead>
                             <tr>
+                                <th rowspan="2" style="width: 3%;">#</th>
                                 <th rowspan="2" style="width: 15%;">TRABAJADOR</th>
-                                <th colspan="3" class="per-col">1er PERIODO</th>
-                                <th colspan="3">2do PERIODO</th>
-                                <th colspan="3" class="per-col">3er PERIODO</th>
-                                <th colspan="3">4to PERIODO</th>
-                                <th rowspan="2">GEN.</th>
+                                <th rowspan="2" style="width: 5%;"># DÍAS<br><span style="font-size:9px; color: var(--text-muted); font-weight: 600;">(AUTORIZADOS)</span></th>
+                                <th colspan="3" class="per-col">1ER PERIODO</th>
+                                <th colspan="3">2DO PERIODO</th>
+                                <th colspan="3" class="per-col">3ER PERIODO</th>
+                                <th colspan="3">4TO PERIODO</th>
+                                <th rowspan="2">TOTAL DE<br>DÍAS</th>
                                 <th rowspan="2">SALDO</th>
                                 <th rowspan="2">ACCIÓN</th>
                             </tr>
                             <tr>
-                                <th class="per-col">Inicio - Fin</th> <th class="per-col">Días</th> <th class="per-col">Estado</th>
-                                <th>Inicio - Fin</th> <th>Días</th> <th>Estado</th>
-                                <th class="per-col">Inicio - Fin</th> <th class="per-col">Días</th> <th class="per-col">Estado</th>
-                                <th>Inicio - Fin</th> <th>Días</th> <th>Estado</th>
+                                <th class="per-col">Inicio - Fin</th> <th class="per-col">Días</th> <th class="per-col">Estatus</th>
+                                <th>Inicio - Fin</th> <th>Días</th> <th>Estatus</th>
+                                <th class="per-col">Inicio - Fin</th> <th class="per-col">Días</th> <th class="per-col">Estatus</th>
+                                <th>Inicio - Fin</th> <th>Días</th> <th>Estatus</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-body">
-                            <tr><td colspan="15" style="padding: 30px; color: var(--text-muted);">Cargando datos...</td></tr>
+                            <tr><td colspan="18" style="padding: 30px; color: var(--text-muted);">Cargando datos...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -172,7 +170,7 @@
             <button class="modal-close" onclick="cerrarModal()">&times;</button>
             <div class="modal-header-custom">
                 <h2 id="modal-title-name">Evaluación de Vacaciones</h2>
-                <p>Aprueba o propón nuevas fechas para los periodos solicitados.</p>
+                <p>Si es necesario, modifica directamente las fechas de los periodos. Al guardar se aprobarán para el trabajador.</p>
                 <input type="hidden" id="modal-uid">
             </div>
             
@@ -181,7 +179,7 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
-                <button type="button" class="btn-guardar" onclick="guardarEvaluacion()">Guardar Cambios</button>
+                <button type="button" class="btn-guardar" onclick="guardarEvaluacion()"><i data-lucide="check" style="width:16px; display:inline-block; vertical-align:middle;"></i> Guardar y Aprobar</button>
             </div>
         </div>
     </div>
@@ -214,7 +212,6 @@
     const db = firebase.firestore();
 
     let dataGlobal = [];
-    let estadosModal = {}; 
 
     document.addEventListener('DOMContentLoaded', () => {
         // Cargar Menú
@@ -249,6 +246,17 @@
         return `${d.getDate()}/${meses[d.getMonth()]}`;
     }
 
+    // El contador actualiza dinámicamente los días generados (autorizados)
+    async function actualizarDiasAutorizados(uid, valor) {
+        try {
+            const num = parseInt(valor);
+            if (isNaN(num)) return;
+            await db.collection("vacaciones_control").doc(uid).set({ dias_generados: num }, { merge: true });
+            // Volvemos a cargar para refrescar cálculos
+            cargarVacaciones();
+        } catch(e) { console.error("Error al actualizar días", e); }
+    }
+
     function renderTabla() {
         const tbody = document.getElementById('tabla-body');
         tbody.innerHTML = '';
@@ -260,47 +268,56 @@
         });
 
         if(filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="15" style="padding: 30px; color: var(--text-muted);">No hay solicitudes registradas.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="18" style="padding: 30px; color: var(--text-muted);">No hay solicitudes registradas.</td></tr>`;
             return;
         }
 
+        let contadorFila = 1;
+
         filtrados.forEach(row => {
             let tr = document.createElement('tr');
-            let htmlHTML = `<td style="text-align: left; font-weight: 700; color: var(--primary-blue);">${row.nombre || row.id}</td>`;
+            
+            // Columna de Días Autorizados (modificable por contador)
+            const gen = row.dias_generados || 14;
+            
+            let htmlHTML = `
+                <td style="font-weight: 800; color: var(--text-muted);">${contadorFila}</td>
+                <td style="text-align: left; font-weight: 700; color: var(--primary-blue);">${row.nombre || row.id}</td>
+                <td><input type="number" class="input-dias-autorizados" value="${gen}" onchange="actualizarDiasAutorizados('${row.id}', this.value)"></td>
+            `;
             let usados = 0;
 
             for(let i=1; i<=4; i++) {
                 const p = row[`periodo_${i}`];
                 const bgClass = (i%2 !== 0) ? 'class="per-col"' : '';
                 
-                if(p) {
-                    let icon = '';
-                    if(p.estado === 'pendiente') icon = '<i class="status-dot dot-yellow"></i>';
-                    else if(p.estado === 'aprobado') icon = '<i class="status-dot dot-green"></i>';
-                    else if(p.estado === 'rechazado') icon = '<i class="status-dot dot-red"></i>';
+                if(p && p.inicio) {
+                    let estatusTexto = '';
+                    if(p.estado === 'pendiente') estatusTexto = '<span style="color:var(--warning); font-weight:700;">Pendiente</span>';
+                    else if(p.estado === 'aprobado') estatusTexto = '<span style="color:var(--success); font-weight:700;">Aprobado</span>';
                     
-                    let start = formateaFechaCorta(p.inicio_propuesto || p.inicio);
-                    let end = formateaFechaCorta(p.fin_propuesto || p.fin);
-                    let days = p.dias_propuestos || p.dias;
+                    let start = formateaFechaCorta(p.inicio);
+                    let end = formateaFechaCorta(p.fin);
+                    let days = p.dias;
                     usados += parseInt(days);
 
-                    htmlHTML += `<td ${bgClass}>${start} - ${end}</td><td ${bgClass}><strong>${days}</strong></td><td ${bgClass}>${icon}</td>`;
+                    htmlHTML += `<td ${bgClass}>${start} - ${end}</td><td ${bgClass}><strong>${days}</strong></td><td ${bgClass}>${estatusTexto}</td>`;
                 } else {
                     htmlHTML += `<td ${bgClass}>-</td><td ${bgClass}>-</td><td ${bgClass}>-</td>`;
                 }
             }
 
-            const gen = row.dias_generados || 14;
             const saldo = gen - usados;
             const sColor = saldo < 0 ? 'color: var(--danger); font-weight: 800;' : 'color: var(--success); font-weight: 800;';
 
             htmlHTML += `
-                <td style="font-weight: bold;">${gen}</td>
-                <td style="${sColor}">${saldo}</td>
+                <td style="font-weight: 800; font-size: 14px;">${usados}</td>
+                <td style="${sColor} font-size: 14px;">${saldo}</td>
                 <td><button class="btn-action-red" onclick="abrirModal('${row.id}')"><i data-lucide="check-square" style="width:14px;"></i> Evaluar</button></td>
             `;
             tr.innerHTML = htmlHTML;
             tbody.appendChild(tr);
+            contadorFila++;
         });
         lucide.createIcons();
     }
@@ -314,7 +331,6 @@
         
         const container = document.getElementById('modal-periodos-container');
         container.innerHTML = '';
-        estadosModal = {};
 
         let tieneSolicitudes = false;
 
@@ -322,11 +338,6 @@
             const p = worker[`periodo_${i}`];
             if(p && p.inicio) {
                 tieneSolicitudes = true;
-                estadosModal[i] = { estado: p.estado, f1: p.inicio_propuesto || p.inicio, f2: p.fin_propuesto || p.fin, d: p.dias_propuestos || p.dias };
-
-                const isRechazado = p.estado === 'rechazado';
-                const f1Val = p.inicio_propuesto || p.inicio;
-                const f2Val = p.fin_propuesto || p.fin;
 
                 container.innerHTML += `
                     <div class="period-eval-card" id="eval-card-${i}">
@@ -334,37 +345,25 @@
                         
                         <div style="display:flex; gap:16px; margin-bottom:12px;">
                             <div style="flex:1;">
-                                <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Inicio original:</label>
-                                <div style="font-size:14px; font-weight:600; padding:4px 0;">${formateaFechaCorta(p.inicio)}</div>
+                                <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Inicio:</label>
+                                <input type="date" class="form-input" id="mod-inicio-${i}" value="${p.inicio}" onchange="calcModDias(${i})">
                             </div>
                             <div style="flex:1;">
-                                <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Fin original:</label>
-                                <div style="font-size:14px; font-weight:600; padding:4px 0;">${formateaFechaCorta(p.fin)}</div>
+                                <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Fin:</label>
+                                <input type="date" class="form-input" id="mod-fin-${i}" value="${p.fin}" onchange="calcModDias(${i})">
                             </div>
-                            <div style="width: 50px;">
+                            <div style="width: 70px;">
                                 <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Días:</label>
-                                <div style="font-size:14px; padding:4px 0; font-weight:800; color:var(--primary-blue);">${p.dias}</div>
+                                <input type="number" class="form-input" id="mod-dias-${i}" value="${p.dias}" readonly style="background:var(--bg-color);">
                             </div>
                         </div>
 
-                        <div class="eval-actions">
-                            <button type="button" class="btn-aprobar ${p.estado==='rechazado'?'inactive':''}" id="btn-apr-${i}" onclick="setEstado(${i}, 'aprobado')"><i data-lucide="check"></i> Aprobar Fechas</button>
-                            <button type="button" class="btn-rechazar ${p.estado==='aprobado'?'inactive':''}" id="btn-rec-${i}" onclick="setEstado(${i}, 'rechazado')"><i data-lucide="edit-2"></i> Proponer Nuevas Fechas</button>
-                        </div>
-
-                        <div id="mod-box-${i}" style="display: ${isRechazado ? 'flex' : 'none'}; gap:16px; margin-top:16px; background:var(--light-blue); padding:15px; border-radius:8px; border:1px solid #bfdbfe;">
-                            <div style="flex:1;">
-                                <label style="font-size:11px; font-weight:800; color:var(--primary-blue); text-transform:uppercase; margin-bottom:6px; display:block;">Nuevo Inicio</label>
-                                <input type="date" class="form-input" id="mod-inicio-${i}" value="${f1Val}" onchange="calcModDias(${i})">
-                            </div>
-                            <div style="flex:1;">
-                                <label style="font-size:11px; font-weight:800; color:var(--primary-blue); text-transform:uppercase; margin-bottom:6px; display:block;">Nuevo Fin</label>
-                                <input type="date" class="form-input" id="mod-fin-${i}" value="${f2Val}" onchange="calcModDias(${i})">
-                            </div>
-                            <div style="width:80px;">
-                                <label style="font-size:11px; font-weight:800; color:var(--primary-blue); text-transform:uppercase; margin-bottom:6px; display:block;">Días</label>
-                                <input type="number" class="form-input" id="mod-dias-${i}" value="${estadosModal[i].d}" readonly style="background: white;">
-                            </div>
+                        <div style="margin-top:10px;">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; display:block;">Estatus del Periodo:</label>
+                            <select class="form-input" id="mod-estado-${i}">
+                                <option value="pendiente" ${p.estado==='pendiente'?'selected':''}>Pendiente de Aprobación</option>
+                                <option value="aprobado" ${p.estado==='aprobado'?'selected':''}>Aprobado (Autorizado)</option>
+                            </select>
                         </div>
                     </div>
                 `;
@@ -373,6 +372,9 @@
 
         if(!tieneSolicitudes) {
             container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:20px;">El trabajador no ha solicitado ningún periodo.</p>';
+            document.querySelector('.btn-guardar').style.display = 'none';
+        } else {
+            document.querySelector('.btn-guardar').style.display = 'block';
         }
 
         document.getElementById('modalEval').style.display = 'flex';
@@ -380,24 +382,6 @@
     }
 
     function cerrarModal() { document.getElementById('modalEval').style.display = 'none'; }
-
-    function setEstado(num, est) {
-        estadosModal[num].estado = est;
-        const btnApr = document.getElementById(`btn-apr-${num}`);
-        const btnRec = document.getElementById(`btn-rec-${num}`);
-        const modBox = document.getElementById(`mod-box-${num}`);
-
-        btnApr.classList.remove('inactive');
-        btnRec.classList.remove('inactive');
-
-        if(est === 'aprobado') {
-            btnRec.classList.add('inactive');
-            modBox.style.display = 'none';
-        } else {
-            btnApr.classList.add('inactive');
-            modBox.style.display = 'flex';
-        }
-    }
 
     function calcModDias(num) {
         const d1 = document.getElementById(`mod-inicio-${num}`).value;
@@ -408,9 +392,6 @@
             if(f2 >= f1) { dias = Math.ceil(Math.abs(f2 - f1) / (1000 * 60 * 60 * 24)) + 1; }
         }
         document.getElementById(`mod-dias-${num}`).value = dias;
-        estadosModal[num].d = dias;
-        estadosModal[num].f1 = d1;
-        estadosModal[num].f2 = d2;
     }
 
     async function guardarEvaluacion() {
@@ -418,34 +399,34 @@
         if(!uid) return;
 
         let updateData = {};
+        let hayError = false;
         
-        for(let key in estadosModal) {
-            const est = estadosModal[key].estado;
-            if(!est || est === 'pendiente') continue; 
+        for(let i=1; i<=4; i++) {
+            const inputInicio = document.getElementById(`mod-inicio-${i}`);
+            if(inputInicio) {
+                const d1 = inputInicio.value;
+                const d2 = document.getElementById(`mod-fin-${i}`).value;
+                const dias = document.getElementById(`mod-dias-${i}`).value;
+                const est = document.getElementById(`mod-estado-${i}`).value;
 
-            let pData = { estado: est };
-            if(est === 'rechazado') {
-                pData.inicio_propuesto = document.getElementById(`mod-inicio-${key}`).value;
-                pData.fin_propuesto = document.getElementById(`mod-fin-${key}`).value;
-                pData.dias_propuestos = document.getElementById(`mod-dias-${key}`).value;
-                if(!pData.inicio_propuesto || !pData.fin_propuesto) {
-                    mostrarAlerta("Si propones nuevas fechas, debes llenar el inicio y el fin.");
-                    return;
+                if(!d1 || !d2) {
+                    mostrarAlerta("Las fechas no pueden quedar vacías.");
+                    hayError = true; break;
                 }
-            } else if (est === 'aprobado') {
-                pData.inicio_propuesto = ""; pData.fin_propuesto = ""; pData.dias_propuestos = "";
-            }
-            
-            for(let prop in pData) {
-                updateData[`periodo_${key}.${prop}`] = pData[prop];
+
+                // El contador sobrescribe todo y se guarda permanentemente
+                updateData[`periodo_${i}.inicio`] = d1;
+                updateData[`periodo_${i}.fin`] = d2;
+                updateData[`periodo_${i}.dias`] = parseInt(dias);
+                updateData[`periodo_${i}.estado`] = est;
             }
         }
 
-        if(Object.keys(updateData).length === 0) { cerrarModal(); return; } 
+        if(hayError) return;
 
         try {
             await db.collection("vacaciones_control").doc(uid).update(updateData);
-            mostrarExito("Evaluación guardada correctamente.");
+            mostrarExito("Los periodos han sido guardados y actualizados.");
             cerrarModal();
             cargarVacaciones(); 
         } catch (e) {
