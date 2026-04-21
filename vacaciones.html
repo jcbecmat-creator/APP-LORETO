@@ -50,12 +50,19 @@
 
         /* --- DASHBOARD VACACIONES --- */
         .summary-dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-        .summary-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.04); text-align: center; }
+        .summary-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.04); text-align: center; position: relative; }
         .summary-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
         .summary-value { font-size: 36px; font-weight: 900; color: var(--text-main); }
         .summary-value.blue { color: var(--primary-blue); }
         .summary-value.green { color: var(--success); }
         .summary-value.red { color: var(--danger); }
+        
+        .auth-time { font-size: 10px; color: var(--success); font-weight: 600; margin-top: 5px; }
+
+        /* --- MENSAJE BLOQUEO --- */
+        .bloqueo-msg { background: #fffbeb; border: 1px solid #fde68a; padding: 30px; border-radius: 16px; text-align: center; margin-bottom: 30px; }
+        .bloqueo-msg h2 { color: #d97706; margin: 0 0 10px 0; font-size: 20px; }
+        .bloqueo-msg p { color: #92400e; margin: 0; font-size: 15px; line-height: 1.5; }
 
         /* --- PERIODOS --- */
         .periods-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
@@ -130,6 +137,7 @@
                     <div class="summary-card">
                         <div class="summary-title">DÍAS AUTORIZADOS</div>
                         <div class="summary-value" id="lbl-generados">0</div>
+                        <div class="auth-time" id="lbl-time-auth"></div>
                     </div>
                     <div class="summary-card">
                         <div class="summary-title">DÍAS (SOLICITADOS)</div>
@@ -144,6 +152,12 @@
                 <div id="loader" class="loader-container">
                     <i data-lucide="loader-2" class="animate-spin" style="width:40px; height:40px; margin-bottom: 15px;"></i>
                     <p>Cargando información...</p>
+                </div>
+
+                <div id="msg-bloqueo" class="bloqueo-msg" style="display: none;">
+                    <i data-lucide="clock-4" style="width: 48px; height: 48px; color: #d97706; margin-bottom: 10px;"></i>
+                    <h2>Aún no cuentas con días autorizados</h2>
+                    <p>Por favor, mantente atento a que el área de Contabilidad asigne y autorice tu saldo de vacaciones correspondiente para poder programar tus descansos.</p>
                 </div>
 
                 <div class="periods-grid" id="periods-container" style="display: none;">
@@ -184,7 +198,7 @@
         const nombreUsuario = localStorage.getItem('nombre') || 'Usuario';
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
 
-        let diasGenerados = 14; 
+        let diasGenerados = 0; 
 
         // Cargar Menú
         fetch('menu.html').then(res => res.text()).then(html => {
@@ -253,9 +267,7 @@
                     const s2 = new Date(otherStart).getTime();
                     const e2 = new Date(otherEnd).getTime();
                     
-                    if(s1 <= e2 && e1 >= s2) {
-                        return true;
-                    }
+                    if(s1 <= e2 && e1 >= s2) { return true; }
                 }
             }
             return false;
@@ -306,7 +318,22 @@
                 
                 if(docSnap.exists) {
                     const data = docSnap.data();
-                    diasGenerados = data.dias_generados || 14;
+                    diasGenerados = data.dias_generados || 0;
+                    
+                    // Mostrar fecha de autorización si existe
+                    if(data.fecha_autorizacion) {
+                        const dateAut = data.fecha_autorizacion.toDate ? data.fecha_autorizacion.toDate() : new Date(data.fecha_autorizacion);
+                        document.getElementById('lbl-time-auth').innerText = 'Autorizado el: ' + dateAut.toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'});
+                    }
+
+                    if (diasGenerados === 0) {
+                        document.getElementById('periods-container').style.display = 'none';
+                        document.getElementById('msg-bloqueo').style.display = 'block';
+                    } else {
+                        document.getElementById('periods-container').style.display = 'grid';
+                        document.getElementById('msg-bloqueo').style.display = 'none';
+                    }
+
                     let periodosLlenos = 0;
                     let periodosRechazados = 0;
                     
@@ -326,7 +353,7 @@
                             const feed = document.getElementById(`feedback-${i}`);
 
                             if(p.estado === 'pendiente') {
-                                badge.className = "status-badge pendiente"; badge.innerHTML = '<i data-lucide="clock" style="width:14px;"></i> Pendiente';
+                                badge.className = "status-badge pendiente"; badge.innerHTML = '<i data-lucide="clock" style="width:14px;"></i> En Revisión';
                                 btn.innerHTML = '<i data-lucide="refresh-cw" style="width:16px;"></i> Actualizar Solicitud';
                             } else if (p.estado === 'aprobado' || p.estado === 'modificado') {
                                 badge.className = "status-badge aprobado"; 
@@ -351,19 +378,21 @@
                     }
                     actualizarTotales();
 
-                    // Si ya llenó los 4 periodos y ninguno está rechazado, se bloquea todo el panel
+                    // Bloquear todo si ya no hay espacio
                     if(periodosLlenos === 4 && periodosRechazados === 0) {
                         bloquearTodosLosPeriodos();
                     }
 
                     lucide.createIcons();
                 } else {
+                    // Si el documento no existe (trabajador nuevo)
+                    document.getElementById('periods-container').style.display = 'none';
+                    document.getElementById('msg-bloqueo').style.display = 'block';
                     actualizarTotales(); 
                 }
             } catch (e) { console.error("Error", e); }
             
             document.getElementById('loader').style.display = 'none';
-            document.getElementById('periods-container').style.display = 'grid';
         }
 
         async function solicitarPeriodo(num) {
@@ -397,6 +426,9 @@
 
                 await docRef.set(updateData, { merge: true });
                 mostrarExito(`Tus fechas han sido enviadas y están en revisión.`);
+                
+                document.getElementById('loader').style.display = 'flex';
+                document.getElementById('periods-container').style.display = 'none';
                 cargarMisVacaciones(); 
             } catch(e) {
                 console.error(e);
