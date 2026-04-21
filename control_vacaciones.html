@@ -90,7 +90,6 @@
         /* Modales */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         
-        /* Modal más angosto (560px) */
         .modal-card { background: white; width: 100%; max-width: 560px; border-radius: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow: hidden; position: relative; animation: popIn 0.3s;}
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
@@ -104,7 +103,6 @@
         .period-eval-card { background: white; border-radius: 12px; border: 1px solid var(--border-color); padding: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .period-eval-card h3 { margin: 0 0 12px 0; font-size: 14px; font-weight: 800; color: var(--primary-blue); display:flex; justify-content: space-between;}
 
-        /* Botones de Estatus más anchos ocupando el 100% */
         .status-btn-group { display: flex; width: 100%; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; margin-top: 10px; }
         .btn-status { flex: 1; padding: 10px 0; font-size: 12px; font-weight: 700; border: none; background: white; color: var(--text-muted); cursor: pointer; transition: 0.2s; border-right: 1px solid var(--border-color); text-align: center; }
         .btn-status:last-child { border-right: none; }
@@ -119,8 +117,6 @@
         .btn-limpiar:hover { background: #fef2f2; }
         
         .btn-cancelar { background: white; color: var(--text-main); border: 1px solid var(--border-color); height: 42px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; padding: 0 24px; display: inline-flex; align-items: center; gap: 8px;}
-        
-        /* Modificado: Botón Guardar sin "y Aprobar" */
         .btn-guardar { background: var(--primary-blue); color: white; border: none; height: 42px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; padding: 0 24px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;}
         .btn-guardar:hover { background: #1a2a6e; }
 
@@ -615,7 +611,7 @@
     }
 
     // =========================================================
-    // GENERAR PDF (Escala forzada para evitar recortes)
+    // GENERAR PDF (Con contenedor temporal insertado en DOM)
     // =========================================================
     function generarPDF() {
         const checked = document.querySelectorAll('.worker-chk:checked');
@@ -626,48 +622,59 @@
         const ids = Array.from(checked).map(c => c.value);
         const dataPDF = dataGlobal.filter(d => ids.includes(d.id));
 
-        // Ancho estricto de 1150px. Al forzar el windowWidth en html2canvas a 1200px, 
-        // obligamos a que todo este bloque se escale hacia abajo para caber en la hoja Carta.
+        const wrap = document.createElement('div');
+        wrap.style.position = 'absolute';
+        wrap.style.top = '-9999px'; 
+        wrap.style.left = '0';
+        wrap.style.width = '1100px'; 
+        wrap.style.backgroundColor = '#ffffff';
+        wrap.style.padding = '20px';
+        wrap.style.boxSizing = 'border-box';
+        wrap.style.fontFamily = 'Arial, sans-serif';
+
+        document.body.appendChild(wrap);
+
         let htmlContent = `
-            <div style="width: 1150px; padding: 20px; font-family: Arial, sans-serif; background: #ffffff; margin: 0 auto; box-sizing: border-box;">
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #263fa4; padding-bottom: 10px; margin-bottom: 20px;">
-                    <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 55px; width: 140px; object-fit: contain; border-radius: 4px;" crossorigin="anonymous">
-                    <div style="text-align: center; flex: 1;">
-                        <h1 style="margin: 0; font-size: 22px; color: #263fa4; text-transform: uppercase; font-weight: 800;">Loreto</h1>
-                        <h2 style="margin: 3px 0 0 0; font-size: 13px; color: #475569; font-weight: normal;">Ingeniería, Construcción, Edificación y Remodelación</h2>
-                        <h3 style="margin: 5px 0 0 0; font-size: 15px; font-weight: bold;">REPORTE DE VACACIONES DEL PERSONAL</h3>
-                    </div>
-                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 55px; width: 140px; object-fit: contain;" crossorigin="anonymous">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #263fa4; padding-bottom: 10px; margin-bottom: 15px;">
+                <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 50px; width: 120px; object-fit: contain;" crossorigin="anonymous">
+                <div style="text-align: center; flex: 1;">
+                    <h1 style="margin: 0; font-size: 22px; color: #263fa4; text-transform: uppercase; font-weight: 800;">Loreto</h1>
+                    <h2 style="margin: 3px 0 0 0; font-size: 13px; color: #475569; font-weight: normal;">Ingeniería, Construcción, Edificación y Remodelación</h2>
+                    <h3 style="margin: 5px 0 0 0; font-size: 15px; font-weight: bold; color: #1e293b;">REPORTE DE VACACIONES DEL PERSONAL</h3>
                 </div>
-                
-                <table style="width: 100%; border-collapse: collapse; font-size: 9px; text-align: center; table-layout: fixed;">
-                    <thead>
-                        <tr style="background-color: #eef2ff; color: #263fa4; line-height: 1.4;">
-                            <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 6px; width: 14%;">TRABAJADOR</th>
-                            <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 6px; width: 4%;">DÍAS<br>AUT.</th>
-                            <th colspan="3" style="border: 1px solid #cbd5e1; padding: 6px; width: 19%;">1ER PERIODO</th>
-                            <th colspan="3" style="border: 1px solid #cbd5e1; padding: 6px; width: 19%;">2DO PERIODO</th>
-                            <th colspan="3" style="border: 1px solid #cbd5e1; padding: 6px; width: 19%;">3ER PERIODO</th>
-                            <th colspan="3" style="border: 1px solid #cbd5e1; padding: 6px; width: 19%;">4TO PERIODO</th>
-                            <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 6px; width: 3%;">USADOS</th>
-                            <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 6px; width: 3%;">SALDO</th>
-                        </tr>
-                        <tr style="background-color: #eef2ff; color: #263fa4; line-height: 1.4;">
-                            <th style="border: 1px solid #cbd5e1; padding: 4px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Estatus</th>
-                            <th style="border: 1px solid #cbd5e1; padding: 4px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Estatus</th>
-                            <th style="border: 1px solid #cbd5e1; padding: 4px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Estatus</th>
-                            <th style="border: 1px solid #cbd5e1; padding: 4px;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Días</th><th style="border: 1px solid #cbd5e1; padding: 4px;">Estatus</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 50px; width: 120px; object-fit: contain;" crossorigin="anonymous">
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; font-size: 8px; text-align: center; table-layout: fixed;">
+                <thead>
+                    <tr style="background-color: #eef2ff; color: #263fa4;">
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 3%;">#</th>
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 15%;">TRABAJADOR</th>
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 4%;">DÍAS<br>AUT.</th>
+                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px; width: 17%;">1ER PERIODO</th>
+                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px; width: 17%;">2DO PERIODO</th>
+                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px; width: 17%;">3ER PERIODO</th>
+                        <th colspan="3" style="border: 1px solid #cbd5e1; padding: 4px; width: 17%;">4TO PERIODO</th>
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 5%;">DÍAS<br>(SOL)</th>
+                        <th rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; width: 5%;">SALDO</th>
+                    </tr>
+                    <tr style="background-color: #eef2ff; color: #263fa4;">
+                        <th style="border: 1px solid #cbd5e1; padding: 3px; width: 8%;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 3px; width: 3%;">Días</th><th style="border: 1px solid #cbd5e1; padding: 3px; width: 6%;">Estatus</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 3px; width: 8%;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 3px; width: 3%;">Días</th><th style="border: 1px solid #cbd5e1; padding: 3px; width: 6%;">Estatus</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 3px; width: 8%;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 3px; width: 3%;">Días</th><th style="border: 1px solid #cbd5e1; padding: 3px; width: 6%;">Estatus</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 3px; width: 8%;">Fechas</th><th style="border: 1px solid #cbd5e1; padding: 3px; width: 3%;">Días</th><th style="border: 1px solid #cbd5e1; padding: 3px; width: 6%;">Estatus</th>
+                    </tr>
+                </thead>
+                <tbody>
         `;
 
+        let contador = 1;
         dataPDF.forEach(row => {
             const gen = row.dias_generados || 0;
-            htmlContent += `<tr style="line-height: 1.3;">
-                <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: left; font-weight: bold; color:#1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${row.nombre || row.id}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold;">${gen}</td>
+            htmlContent += `<tr>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; color:#64748b;">${contador}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; text-align: left; font-weight: bold; color:#1e293b; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${row.nombre || row.id}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold;">${gen}</td>
             `;
             
             let usados = 0;
@@ -676,20 +683,21 @@
                 if(p && p.inicio) {
                     let est = p.estado === 'aprobado' ? 'Aprobado' : (p.estado === 'modificado' ? 'Aprobado(M)' : (p.estado === 'rechazado' ? 'Rechazado' : 'Pendiente'));
                     htmlContent += `
-                        <td style="border: 1px solid #cbd5e1; padding: 6px;">${formateaFechaCorta(p.inicio)} - ${formateaFechaCorta(p.fin)}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 6px;">${p.dias}</td>
-                        <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight:bold; font-size:7px;">${est}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 4px;">${formateaFechaCorta(p.inicio)} - ${formateaFechaCorta(p.fin)}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold;">${p.dias}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold;">${est}</td>
                     `;
                     usados += parseInt(p.dias);
                 } else {
-                    htmlContent += `<td style="border: 1px solid #cbd5e1; padding: 6px;">-</td><td style="border: 1px solid #cbd5e1; padding: 6px;">-</td><td style="border: 1px solid #cbd5e1; padding: 6px;">-</td>`;
+                    htmlContent += `<td style="border: 1px solid #cbd5e1; padding: 4px;">-</td><td style="border: 1px solid #cbd5e1; padding: 4px;">-</td><td style="border: 1px solid #cbd5e1; padding: 4px;">-</td>`;
                 }
             }
             const saldo = gen - usados;
             htmlContent += `
-                <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold;">${usados}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold; color: ${saldo < 0 ? '#dc2626' : '#16a34a'};">${saldo}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold;">${usados}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; color: ${saldo < 0 ? '#dc2626' : '#16a34a'};">${saldo}</td>
             </tr>`;
+            contador++;
         });
 
         htmlContent += `
@@ -700,12 +708,14 @@
                 </div>
             </div>
         `;
+        
+        wrap.innerHTML = htmlContent;
 
         const opt = {
-            margin:       [10, 10, 10, 10], 
+            margin:       10, 
             filename:     `Reporte_Vacaciones_${Date.now()}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, windowWidth: 1200 }, 
+            image:        { type: 'jpeg', quality: 1 },
+            html2canvas:  { scale: 2, useCORS: true }, 
             jsPDF:        { unit: 'mm', format: 'letter', orientation: 'landscape' } 
         };
 
@@ -714,9 +724,16 @@
         btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando...';
         lucide.createIcons();
 
-        html2pdf().set(opt).from(htmlContent).save().then(() => {
+        html2pdf().set(opt).from(wrap).save().then(() => {
             btn.innerHTML = oldTxt;
             lucide.createIcons();
+            document.body.removeChild(wrap); 
+        }).catch(err => {
+            console.error(err);
+            mostrarAlerta("Error al generar PDF");
+            btn.innerHTML = oldTxt;
+            lucide.createIcons();
+            document.body.removeChild(wrap); 
         });
     }
 </script>
