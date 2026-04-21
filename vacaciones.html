@@ -19,8 +19,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <script>
-        if (!sessionStorage.getItem('loginSession')) { window.location.href = 'index.html'; }
-        else { document.documentElement.classList.add('is-logged-in'); }
+        // Redirección temporalmente apagada para pruebas de diseño
+        // if (!sessionStorage.getItem('loginSession')) { window.location.href = 'index.html'; }
+        // else { document.documentElement.classList.add('is-logged-in'); }
+        
+        document.documentElement.classList.add('is-logged-in'); // Fuerza que se vea la interfaz
     </script>
 
     <script>
