@@ -8,9 +8,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <style>
-        /* ESTILOS EXCLUSIVOS PARA LA SECCIÓN DE GENERAR TICKET (No afectan tu menú) */
         :root {
             --primary-blue: #263fa4;
             --light-blue: #eff6ff;
@@ -21,7 +23,6 @@
             --danger-red: #ef4444;
         }
 
-        /* Contenedor principal de esta vista */
         .ticket-wrapper {
             padding: 30px; 
             background-color: #f3f4f6;
@@ -78,6 +79,7 @@
         .btn-qr { background-color: var(--text-main); color: white; }
         .btn-pdf { background-color: var(--accent-green); color: white; width: 100%; font-size: 16px; padding: 12px; margin-top: 20px; }
         .btn-pdf:hover { background-color: #118f6d; }
+        .btn-pdf:disabled { background-color: #9ca3af; cursor: not-allowed; }
         .btn-danger { background-color: var(--danger-red); color: white; padding: 6px 10px; height: auto;}
         
         #qr-reader-container { margin-top: 15px; display: none; border: 2px dashed var(--border-color); border-radius: 8px; padding: 10px; text-align: center; background: #fafafa; }
@@ -86,7 +88,6 @@
         /* --- TICKET Y PDF --- */
         .ticket-container { border: 1px solid var(--border-color); border-radius: 8px; overflow-x: auto; background: white; }
         
-        /* Membrete (Oculto en web, visible solo en PDF) */
         .membrete-pdf {
             display: none; 
             align-items: center;
@@ -116,7 +117,6 @@
         .modal-btn { background-color: var(--accent-green); color: white; border: none; padding: 12px 30px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.2s; }
         .modal-btn:hover { background-color: #118f6d; }
 
-        /* Ajuste responsivo solo para esta sección */
         @media (max-width: 768px) {
             .search-grid { grid-template-columns: 1fr; }
             .button-group { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
@@ -124,12 +124,14 @@
             .membrete-pdf { flex-direction: column; gap: 15px; text-align: center; }
         }
 
-        /* Estructura para asegurar que el menú lateral y el contenido estén uno al lado del otro como en tu diseño */
         .app-container {
             display: flex;
             height: 100vh;
             width: 100%;
         }
+        
+        /* Loader de conexión */
+        #conexion-loader { font-size: 12px; color: var(--accent-green); font-weight: bold; display: flex; align-items: center; gap: 5px; }
     </style>
 </head>
 <body>
@@ -137,7 +139,6 @@
 <div class="app-container">
     <nav class="sidebar-nav">
         <a href="inicio.html" class="nav-item" id="link-inicio"><i data-lucide="home"></i> Inicio</a>
-
         <div class="sidebar-section">
             <div class="section-title">Trabajador</div>
             <a href="asistencia.html" class="nav-item" id="link-asistencia"><i data-lucide="calendar-check"></i> Asistencia</a>
@@ -149,13 +150,11 @@
             <a href="vacaciones.html" class="nav-item" id="link-vacaciones"><i data-lucide="sun"></i> Vacaciones</a>
             <a href="gasolina.html" class="nav-item" id="link-gasolina"><i data-lucide="fuel"></i> Gasolina</a>
         </div>
-
         <div class="sidebar-section">
             <div class="section-title">Residente</div>
             <a href="#" class="nav-item"><i data-lucide="pie-chart"></i> Presupuesto</a>
             <a href="#" class="nav-item"><i data-lucide="calendar-days"></i> Reporte Semanal</a>
         </div>
-
         <div class="sidebar-section">
             <div class="section-title">Contadores</div>
             <a href="#" class="nav-item"><i data-lucide="clipboard-check"></i> Control Asistencia</a>
@@ -166,7 +165,6 @@
             <a href="credenciales.html" class="nav-item" id="link-credenciales-admin"><i data-lucide="award"></i> Credenciales</a>
             <a href="expedientes.html" class="nav-item" id="link-expedientes-admin"><i data-lucide="folder-open"></i> Expedientes</a>
         </div>
-
         <div class="sidebar-section">
             <div class="section-title">Presupuesto</div>
             <a href="#" class="nav-item"><i data-lucide="hard-hat"></i> Obra Nueva</a>
@@ -174,7 +172,6 @@
             <a href="#" class="nav-item"><i data-lucide="calculator"></i> Presupuestos</a>
             <a href="#" class="nav-item"><i data-lucide="file-bar-chart"></i> Reportes Semanales</a>
         </div>
-
         <div class="sidebar-section">
             <div class="section-title">Almacén</div>
             <a href="inventario.html" class="nav-item" id="link-inventario"><i data-lucide="package"></i> Inventario</a>
@@ -185,9 +182,12 @@
     </nav>
 
     <div class="ticket-wrapper">
-        <div class="page-header">
-            <h1>Generar Ticket de Almacén</h1>
-            <p style="color: var(--text-muted); margin: 0; font-size: 14px;">Busca artículos por código/nombre o usa la cámara para escanear el QR.</p>
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h1>Generar Ticket de Almacén</h1>
+                <p style="color: var(--text-muted); margin: 0; font-size: 14px;">Busca artículos por código/nombre o usa la cámara para escanear el QR.</p>
+            </div>
+            <div id="conexion-loader"><i data-lucide="loader-2" class="animate-spin"></i> Conectando a Firebase...</div>
         </div>
 
         <div class="card">
@@ -261,7 +261,8 @@
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 40px;">#</th> <th>Clave</th>
+                            <th style="width: 40px;">#</th>
+                            <th>Clave</th>
                             <th>Concepto</th>
                             <th class="text-right">Cant.</th>
                             <th class="text-right">Precio U.</th>
@@ -280,8 +281,8 @@
             </div>
         </div>
 
-        <button class="btn-accion btn-pdf" onclick="generarPDF()">
-            <i data-lucide="file-down"></i> Generar PDF del Ticket
+        <button class="btn-accion btn-pdf" id="btn-generar-pdf" onclick="generarPDFyDescontar()">
+            <i data-lucide="file-down"></i> Generar PDF y Descontar de Almacén
         </button>
     </div>
 </div>
@@ -297,33 +298,21 @@
 <script>
     lucide.createIcons();
 
-    function mostrarAlerta(mensaje) {
-        document.getElementById('modal-mensaje').innerText = mensaje;
-        document.getElementById('modal-alerta').classList.add('active');
-    }
-
-    function cerrarAlerta() {
-        document.getElementById('modal-alerta').classList.remove('active');
-    }
-
     // ---------------------------------------------------------
-    // BASE DE DATOS SIMULADA (Actualizada con "CAJAS" y "CABLES" de tus capturas)
-    // NOTA: Para el inventario real, esto se sustituye por la petición a tu Base de Datos
+    // CONFIGURACIÓN DE FIREBASE (Tomada de tu inventario.html)
     // ---------------------------------------------------------
-    const baseDatosAlmacen = [
-        { clave: "CAJA CUADRADA DE 1/2", nombre: "CAJA CUADRADA DE 1/2", precio: 9.00, stock: 35 },
-        { clave: "CAJA CUADRADA DE 4X4 1", nombre: "CAJA CUADRADA DE 4X4 DE 1", precio: 15.00, stock: 0 },
-        { clave: "CABLE CAL 12", nombre: "CAJA DE CABLE CAL 12", precio: 980.00, stock: 0 },
-        { clave: "CAJA DE CABLE N10", nombre: "CAJA DE CABLE CALIDAD 10", precio: 700.00, stock: 0 },
-        { clave: "CABLE DESNUDO", nombre: "CAJA DE CABLE DESNUDO CAL 12", precio: 1100.00, stock: 0 },
-        { clave: "FLAFON CORTEGA", nombre: "CAJA DE PLATÁN CORTEGA", precio: 1530.00, stock: 0 },
-        { clave: "CAJA DE UTP 6E", nombre: "CAJA DE UTP 6E", precio: 4610.00, stock: 0 },
-        { clave: "CAJA GALVANIZADO 3/4", nombre: "CAJA GALVANIZADO DE 3/4", precio: 9.00, stock: 10 },
-        { clave: "ABRA-01", nombre: "ABRAZADERA CLIP 1/2", precio: 9.00, stock: 2 },
-        { clave: "ABRA-02", nombre: "ABRAZADERA CLIP 3/4", precio: 9.00, stock: 40 },
-        { clave: "ABRA-03", nombre: "ABRAZADERA DE 4 SIN FIN", precio: 14.00, stock: 6 }
-    ];
+    const firebaseConfig = {
+        apiKey: "AIzaSyDkwUT5MrsJV2IMp18-RT20829M9c3-zfk",
+        authDomain: "loreto-ingenieria.firebaseapp.com",
+        projectId: "loreto-ingenieria",
+        storageBucket: "loreto-ingenieria.firebasestorage.app",
+        messagingSenderId: "873434501512",
+        appId: "1:873434501512:web:963903379a5e72cb092a3d"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
 
+    let baseDatosAlmacen = []; // Ahora se llenará desde Firebase
     let ticketActual = [];
     const LIMITE_ARTICULOS = 20;
     let html5QrcodeScanner = null;
@@ -337,6 +326,8 @@
         establecerNumeroTicket();
         document.getElementById('ticket-fecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-MX')} ${new Date().toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'})}`;
         
+        cargarInventarioDeFirebase(); // LLAMADA A LA BD REAL
+
         const inputBusqueda = document.getElementById('input-busqueda');
         inputBusqueda.addEventListener('input', manejarBusquedaDesplegable);
         
@@ -346,6 +337,26 @@
             }
         });
     });
+
+    // --- CARGAR DATOS DESDE FIREBASE ---
+    async function cargarInventarioDeFirebase() {
+        const loader = document.getElementById('conexion-loader');
+        try {
+            const snap = await db.collection("inventario").get();
+            baseDatosAlmacen = [];
+            snap.forEach(doc => { 
+                baseDatosAlmacen.push({ id: doc.id, ...doc.data() }); 
+            });
+            loader.innerHTML = `<i data-lucide="check-circle" style="color:var(--accent-green);"></i> Base de datos sincronizada`;
+            lucide.createIcons();
+            setTimeout(() => loader.style.display = 'none', 3000);
+        } catch(e) {
+            console.error("Error cargando inventario:", e);
+            loader.innerHTML = `<i data-lucide="alert-triangle" style="color:var(--danger-red);"></i> Error de conexión`;
+            lucide.createIcons();
+            mostrarAlerta("No se pudo conectar con la base de datos de Firebase. Revisa tu conexión a internet.");
+        }
+    }
 
     function manejarBusquedaDesplegable(e) {
         const texto = e.target.value.toUpperCase();
@@ -358,14 +369,16 @@
         }
 
         const resultados = baseDatosAlmacen.filter(item => 
-            item.nombre.includes(texto) || item.clave.includes(texto)
+            (item.nombre && item.nombre.includes(texto)) || 
+            (item.clave && item.clave.includes(texto))
         );
 
         if (resultados.length > 0) {
             resultados.forEach(item => {
                 const li = document.createElement('li');
                 li.className = 'dropdown-item';
-                li.innerHTML = `<span><strong>${item.clave}</strong> - ${item.nombre}</span> <span style="color:var(--text-muted); font-size:12px;">Stock: ${item.stock}</span>`;
+                // Usamos item.cantidad (es la propiedad que usa tu Firebase para el stock)
+                li.innerHTML = `<span><strong>${item.clave}</strong> - ${item.nombre}</span> <span style="color:var(--text-muted); font-size:12px;">Stock: ${item.cantidad || 0}</span>`;
                 li.onclick = () => seleccionarArticulo(item);
                 lista.appendChild(li);
             });
@@ -380,13 +393,14 @@
         if(!texto) return;
 
         const encontrado = baseDatosAlmacen.find(item => 
-            item.nombre.includes(texto) || item.clave.includes(texto)
+            (item.nombre && item.nombre.includes(texto)) || 
+            (item.clave && item.clave.includes(texto))
         );
 
         if (encontrado) {
             seleccionarArticulo(encontrado);
         } else {
-            mostrarAlerta("No se encontró ningún artículo con esa clave o nombre en la base de datos.");
+            mostrarAlerta("No se encontró ningún artículo con esa clave o nombre en el inventario.");
         }
     }
 
@@ -397,8 +411,8 @@
         
         document.getElementById('input-clave').value = item.clave;
         document.getElementById('input-articulo').value = item.nombre;
-        document.getElementById('input-precio').value = item.precio.toFixed(2);
-        document.getElementById('input-stock').value = item.stock;
+        document.getElementById('input-precio').value = (item.precio || 0).toFixed(2);
+        document.getElementById('input-stock').value = item.cantidad || 0; // Mostrar cantidad real de Firebase
         document.getElementById('input-cantidad').value = 1; 
         document.getElementById('input-cantidad').focus();
     }
@@ -429,14 +443,20 @@
 
     function onScanSuccess(decodedText) {
         cerrarScanner();
-        const textoEscaneado = decodedText.toUpperCase().trim();
-        const encontrado = baseDatosAlmacen.find(item => item.clave === textoEscaneado);
+        const textoEscaneado = decodedText.trim(); 
+        
+        // ¡IMPORTANTE! El QR de inventario.html escanea el 'item.id' de Firebase.
+        // Buscamos coincidencia exacta por ID, o por Clave (por si escanean otro tipo de código de barras).
+        const encontrado = baseDatosAlmacen.find(item => 
+            item.id === textoEscaneado || 
+            (item.clave && item.clave.toUpperCase() === textoEscaneado.toUpperCase())
+        );
         
         if (encontrado) {
             seleccionarArticulo(encontrado);
             mostrarAlerta(`Artículo escaneado correctamente: ${encontrado.nombre}`);
         } else {
-            mostrarAlerta(`Código QR leído: ${textoEscaneado}, pero no existe en el inventario.`);
+            mostrarAlerta(`Código leído: ${textoEscaneado}, pero no existe en el inventario de Firebase.`);
         }
     }
 
@@ -452,23 +472,25 @@
         }
 
         const cantidadRequerida = parseFloat(document.getElementById('input-cantidad').value);
+        const stockActual = parseFloat(articuloTemporal.cantidad) || 0;
 
         if (isNaN(cantidadRequerida) || cantidadRequerida <= 0) {
             mostrarAlerta("Ingresa una cantidad válida mayor a 0.");
             return;
         }
-        if (cantidadRequerida > articuloTemporal.stock) {
-            mostrarAlerta(`¡No hay suficiente en almacén!\nStock disponible de ${articuloTemporal.nombre}: ${articuloTemporal.stock} piezas.`);
+        if (cantidadRequerida > stockActual) {
+            mostrarAlerta(`¡No hay suficiente en almacén!\nStock disponible de ${articuloTemporal.nombre}: ${stockActual} ${articuloTemporal.unidad || 'piezas'}.`);
             return;
         }
 
         const nuevoItem = {
-            id: Date.now(),
+            idFirebase: articuloTemporal.id, // Guardamos el ID para poder descontarlo en Firebase después
+            idFila: Date.now(),
             clave: articuloTemporal.clave,
             concepto: articuloTemporal.nombre,
             cantidad: cantidadRequerida,
-            precio: articuloTemporal.precio,
-            importe: cantidadRequerida * articuloTemporal.precio
+            precio: articuloTemporal.precio || 0,
+            importe: cantidadRequerida * (articuloTemporal.precio || 0)
         };
 
         ticketActual.push(nuevoItem);
@@ -482,8 +504,8 @@
         document.getElementById('input-cantidad').value = '1';
     }
 
-    function eliminarArticulo(id) {
-        ticketActual = ticketActual.filter(item => item.id !== id);
+    function eliminarArticulo(idFila) {
+        ticketActual = ticketActual.filter(item => item.idFila !== idFila);
         actualizarTabla();
     }
 
@@ -500,13 +522,14 @@
             
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><strong>${index + 1}</strong></td> <td>${item.clave}</td>
+                <td><strong>${index + 1}</strong></td>
+                <td>${item.clave}</td>
                 <td>${item.concepto}</td>
                 <td class="text-right">${item.cantidad}</td>
                 <td class="text-right">$${item.precio.toFixed(2)}</td>
                 <td class="text-right">$${item.importe.toFixed(2)}</td>
                 <td class="accion-columna">
-                    <button class="btn-accion btn-danger" onclick="eliminarArticulo(${item.id})">
+                    <button class="btn-accion btn-danger" onclick="eliminarArticulo(${item.idFila})">
                         <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
                     </button>
                 </td>
@@ -525,17 +548,56 @@
         document.getElementById('ticket-numero').innerText = `TICKET-${nuevoNumero}`;
     }
 
-    function generarPDF() {
+    function mostrarAlerta(mensaje) {
+        document.getElementById('modal-mensaje').innerText = mensaje;
+        document.getElementById('modal-alerta').classList.add('active');
+    }
+
+    function cerrarAlerta() {
+        document.getElementById('modal-alerta').classList.remove('active');
+    }
+
+    // --- GENERAR PDF Y DESCONTAR DE FIREBASE SIMULTÁNEAMENTE ---
+    async function generarPDFyDescontar() {
         if (ticketActual.length === 0) {
             mostrarAlerta("El ticket está vacío. Agrega artículos primero.");
             return;
         }
 
-        // 1. Ocultar botones de acción (basurero)
+        const btnGenerar = document.getElementById('btn-generar-pdf');
+        btnGenerar.disabled = true;
+        btnGenerar.innerHTML = `<i data-lucide="loader-2" class="animate-spin"></i> Procesando...`;
+        lucide.createIcons();
+
+        // 1. DESCONTAR DEL INVENTARIO EN FIREBASE (Batch Update para mayor seguridad)
+        try {
+            const batch = db.batch();
+            ticketActual.forEach(item => {
+                const docRef = db.collection("inventario").doc(item.idFirebase);
+                // firebase.firestore.FieldValue.increment(-X) resta la cantidad de forma segura
+                batch.update(docRef, { 
+                    cantidad: firebase.firestore.FieldValue.increment(-item.cantidad),
+                    ultima_actualizacion: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            });
+            await batch.commit();
+            
+            // Volvemos a cargar el inventario local para reflejar los nuevos saldos
+            await cargarInventarioDeFirebase(); 
+            
+        } catch (error) {
+            console.error("Error al actualizar Firebase:", error);
+            mostrarAlerta("Ocurrió un error al descontar los artículos de la base de datos. Por favor verifica tu conexión.");
+            btnGenerar.disabled = false;
+            btnGenerar.innerHTML = `<i data-lucide="file-down"></i> Generar PDF y Descontar de Almacén`;
+            lucide.createIcons();
+            return; // Si falla la BD, cancelamos el PDF para no generar inconsistencias
+        }
+
+        // 2. GENERAR EL PDF
         const elementosAccion = document.querySelectorAll('.accion-columna');
         elementosAccion.forEach(el => el.style.display = 'none');
 
-        // 2. Mostrar el membrete SOLO para capturarlo en el PDF
         const membrete = document.getElementById('membrete-pdf');
         membrete.style.display = 'flex';
 
@@ -551,16 +613,20 @@
         };
 
         html2pdf().set(opciones).from(elementoParaImprimir).save().then(() => {
-            // 3. Restaurar vista normal en la web
             elementosAccion.forEach(el => el.style.display = '');
-            membrete.style.display = 'none'; // Ocultar membrete de nuevo
+            membrete.style.display = 'none'; 
             
             let ultimo = localStorage.getItem('loreto_ultimo_ticket') || 0;
             localStorage.setItem('loreto_ultimo_ticket', parseInt(ultimo) + 1);
             establecerNumeroTicket();
+            
             ticketActual = [];
             actualizarTabla();
-            mostrarAlerta("¡Ticket generado y guardado exitosamente!");
+            mostrarAlerta("¡Ticket generado y artículos descontados del inventario exitosamente!");
+            
+            btnGenerar.disabled = false;
+            btnGenerar.innerHTML = `<i data-lucide="file-down"></i> Generar PDF y Descontar de Almacén`;
+            lucide.createIcons();
         });
     }
 </script>
