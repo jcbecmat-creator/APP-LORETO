@@ -74,6 +74,9 @@
         .leyenda-box.night .leyenda-icon { color: var(--text-muted); }
         .leyenda-text h4 { margin: 0 0 5px 0; font-size: 14px; font-weight: 800; color: var(--text-main); }
         .leyenda-text p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+        
+        /* Contenedor de operaciones dinámicas */
+        .operacion-math { display: block; background: rgba(255,255,255,0.7); border: 1px dashed #94a3b8; padding: 8px 12px; border-radius: 6px; margin: 8px 0; font-family: monospace; font-size: 14px; color: var(--primary-blue); font-weight: 700; }
 
         .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
     </style>
@@ -118,19 +121,25 @@
                         <i data-lucide="banknote"></i>
                     </div>
 
+                    <div class="info-card" style="margin-bottom: 20px;">
+                        <div class="info-card-body" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: #f8fafc;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i data-lucide="calendar-check" style="color: var(--primary-blue); width: 24px;"></i>
+                                <span class="data-label" style="font-size: 14px;">Salario Base Diario</span>
+                            </div>
+                            <span class="data-value highlight" style="font-size: 24px;" id="lbl-salario-base">$0.00</span>
+                        </div>
+                    </div>
+
                     <div class="grid-2">
                         <div class="info-card">
                             <div class="info-card-header">
                                 <i data-lucide="sun" style="width: 20px;"></i> Turno Diurno
                             </div>
                             <div class="info-card-body">
-                                <div class="data-row">
-                                    <span class="data-label">Salario Base (Diurno)</span>
-                                    <span class="data-value highlight" id="lbl-base-diurno">$0.00</span>
-                                </div>
-                                <div class="data-row">
+                                <div class="data-row" style="border:none;">
                                     <span class="data-label">Costo por Hora (Diurno)</span>
-                                    <span class="data-value" id="lbl-hora-diurno">$0.00</span>
+                                    <span class="data-value highlight" id="lbl-hora-diurno">$0.00</span>
                                 </div>
                             </div>
                         </div>
@@ -140,13 +149,9 @@
                                 <i data-lucide="moon" style="width: 20px;"></i> Turno Nocturno
                             </div>
                             <div class="info-card-body">
-                                <div class="data-row">
-                                    <span class="data-label">Salario Base (Nocturno)</span>
-                                    <span class="data-value highlight" id="lbl-base-nocturno">$0.00</span>
-                                </div>
-                                <div class="data-row">
+                                <div class="data-row" style="border:none;">
                                     <span class="data-label">Costo por Hora (Nocturno)</span>
-                                    <span class="data-value" id="lbl-hora-nocturno">$0.00</span>
+                                    <span class="data-value highlight" id="lbl-hora-nocturno">$0.00</span>
                                 </div>
                             </div>
                         </div>
@@ -156,17 +161,17 @@
                     
                     <div class="leyenda-box">
                         <i data-lucide="info" class="leyenda-icon"></i>
-                        <div class="leyenda-text">
-                            <h4>Cálculo para Turno Diurno</h4>
-                            <p>El <strong>Salario Base Diurno</strong> se obtiene dividiendo tu Salario Semanal entre <strong>6 días laborables</strong>. El <strong>Costo por Hora</strong> se calcula dividiendo ese salario base diario entre una jornada normal de <strong>8 horas</strong>.</p>
+                        <div class="leyenda-text" style="width:100%;">
+                            <h4>Cálculo de Salario Base y Costo por Hora (Diurno)</h4>
+                            <p id="desc-diurno">Calculando operaciones matemáticas...</p>
                         </div>
                     </div>
 
                     <div class="leyenda-box night">
                         <i data-lucide="info" class="leyenda-icon"></i>
-                        <div class="leyenda-text">
-                            <h4>Cálculo para Turno Nocturno</h4>
-                            <p>El <strong>Salario Base Nocturno</strong> se obtiene dividiendo tu Salario Semanal entre <strong>5 días laborables</strong> (debido a la compresión de la jornada). El <strong>Costo por Hora</strong> se calcula dividiendo ese salario base diario entre las <strong>8 horas</strong> reglamentarias.</p>
+                        <div class="leyenda-text" style="width:100%;">
+                            <h4>Cálculo de Costo por Hora (Nocturno)</h4>
+                            <p id="desc-nocturno">Calculando operaciones matemáticas...</p>
                         </div>
                     </div>
 
@@ -225,21 +230,38 @@
                 fechaTexto = data.ultima_actualizacion ? formatDate(data.ultima_actualizacion) : 'Recién creado';
             }
 
-            // Matemáticas
-            let baseDiurno = salSemanal / 6;
-            let baseNocturno = salSemanal / 5;
-            let horaDiurno = baseDiurno / 8;
-            let horaNocturno = baseNocturno / 8;
+            // --- LÓGICA MATEMÁTICA ---
+            let salBaseDiario = salSemanal / 6;
+            let horaDiurno = salBaseDiario / 8;
+            
+            let baseNocturnoTemp = salSemanal / 5;
+            let horaNocturno = baseNocturnoTemp / 8;
 
-            // Pintar en pantalla
+            // --- PINTAR LOS VALORES ---
             document.getElementById('lbl-salario-semanal').innerText = formatMoney(salSemanal);
             document.getElementById('lbl-fecha').innerText = 'Última actualización: ' + fechaTexto;
             
-            document.getElementById('lbl-base-diurno').innerText = formatMoney(baseDiurno);
-            document.getElementById('lbl-hora-diurno').innerText = formatMoney(horaDiurno);
+            // Salario Base General (arriba de turnos)
+            document.getElementById('lbl-salario-base').innerText = formatMoney(salBaseDiario);
             
-            document.getElementById('lbl-base-nocturno').innerText = formatMoney(baseNocturno);
+            // Costo por hora en las tarjetas
+            document.getElementById('lbl-hora-diurno').innerText = formatMoney(horaDiurno);
             document.getElementById('lbl-hora-nocturno').innerText = formatMoney(horaNocturno);
+
+            // --- PINTAR OPERACIONES EXPLÍCITAS EN LEYENDAS ---
+            document.getElementById('desc-diurno').innerHTML = `
+                El <strong>Salario Base Diario</strong> es la división de tu Salario Semanal entre <strong>6 días laborables</strong>:
+                <span class="operacion-math">${formatMoney(salSemanal)} ÷ 6 días = ${formatMoney(salBaseDiario)}</span>
+                
+                Para obtener el <strong>Costo por Hora (Diurno)</strong>, se divide ese salario diario entre una jornada normal de <strong>8 horas</strong>:
+                <span class="operacion-math">${formatMoney(salBaseDiario)} ÷ 8 horas = ${formatMoney(horaDiurno)}</span>
+            `;
+
+            document.getElementById('desc-nocturno').innerHTML = `
+                Para obtener el <strong>Costo por Hora (Nocturno)</strong>, primero se divide tu Salario Semanal entre <strong>5 días laborables</strong> (debido a la compresión de jornada nocturna), y ese resultado se divide entre <strong>8 horas</strong>:
+                <span class="operacion-math">Paso 1: ${formatMoney(salSemanal)} ÷ 5 días = ${formatMoney(baseNocturnoTemp)}</span>
+                <span class="operacion-math">Paso 2: ${formatMoney(baseNocturnoTemp)} ÷ 8 horas = ${formatMoney(horaNocturno)}</span>
+            `;
 
             document.getElementById('loader').style.display = 'none';
             document.getElementById('dashboard-nomina').style.display = 'block';
