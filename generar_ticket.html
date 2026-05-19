@@ -85,19 +85,30 @@
         #qr-reader-container { margin-top: 15px; display: none; border: 2px dashed var(--border-color); border-radius: 8px; padding: 10px; text-align: center; background: #fafafa; }
         #qr-reader { width: 100%; max-width: 500px; margin: 0 auto; }
 
-        /* Tabla PDF */
+        /* --- TABLA Y PDF --- */
         .ticket-container { border: 1px solid var(--border-color); border-radius: 12px; overflow-x: auto; background: white; }
-        .membrete-pdf { display: none; align-items: center; justify-content: space-between; padding: 20px; border-bottom: 2px solid var(--primary-blue); background-color: white; }
+        
+        .membrete-pdf { display: none; flex-direction: row; align-items: center; justify-content: space-between; padding: 20px; border-bottom: 2px solid var(--primary-blue); background-color: white; width: 100%; box-sizing: border-box; }
         .membrete-pdf img { height: 60px; object-fit: contain; }
         .membrete-titulo { text-align: center; flex: 1; padding: 0 15px; }
         .membrete-titulo h2 { margin: 0; font-size: 18px; color: var(--primary-blue); text-transform: uppercase; line-height: 1.2; font-family: sans-serif; }
 
-        .ticket-header-info { display: flex; justify-content: space-between; padding: 12px 20px; background-color: var(--light-blue); border-bottom: 1px solid var(--border-color); font-weight: bold; color: var(--primary-blue); font-size: 14px;}
+        .ticket-header-info { display: flex; flex-direction: row; justify-content: space-between; padding: 12px 20px; background-color: var(--light-blue); border-bottom: 1px solid var(--border-color); font-weight: bold; color: var(--primary-blue); font-size: 14px;}
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th, td { padding: 12px 20px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; }
         th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 11px; text-transform: uppercase; font-weight: 800;}
         .text-right { text-align: right; }
         .ticket-totals { padding: 16px 20px; background-color: #f8fafc; display: flex; justify-content: flex-end; gap: 24px; font-size: 16px; font-weight: bold; border-top: 2px solid var(--border-color);}
+
+        /* Clase dinámica que se activa SÓLO al imprimir para forzar ancho de PC */
+        .modo-impresion #area-imprimir {
+            width: 850px !important;
+            max-width: 850px !important;
+            margin: 0 auto;
+        }
+        .modo-impresion .ticket-container {
+            overflow: visible !important; /* Evita que la tabla se corte */
+        }
 
         /* Modales */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s; }
@@ -112,11 +123,8 @@
         @media (max-width: 768px) {
             .search-grid { grid-template-columns: 1fr; }
             .button-group { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
-            .ticket-header-info { flex-direction: column; gap: 8px; }
-            .membrete-pdf { flex-direction: column; gap: 15px; text-align: center; }
-            
-            /* Ajuste para que las casillas en celular tengan el mismo tamaño */
-            .input-articulo-container { grid-column: span 1 !important; }
+            /* Se eliminó intencionalmente el rediseño del membrete-pdf de aquí para que siempre sea tamaño PC en el PDF */
+            .input-articulo-container { grid-column: span 1 !important; } /* Ajuste de casillas mismo tamaño */
         }
         #conexion-loader { font-size: 12px; color: var(--success); font-weight: bold; display: flex; align-items: center; gap: 5px; }
     </style>
@@ -201,43 +209,41 @@
                     </div>
                 </div>
 
-                <div id="contenedor-impresion" style="width: 100%; overflow-x: hidden;">
-                    <div id="area-imprimir" style="background: white; padding-bottom: 1px;">
-                        <div class="ticket-container" id="tabla-exportar">
-                            
-                            <div class="membrete-pdf" id="membrete-pdf">
-                                <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="Logo Loreto">
-                                <div class="membrete-titulo">
-                                    <h2>Loreto - Ingeniería, Construcción,<br>Edificación y Remodelación</h2>
-                                </div>
-                                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Maquinaria">
+                <div id="area-imprimir" style="background: white; padding-bottom: 1px;">
+                    <div class="ticket-container" id="tabla-exportar">
+                        
+                        <div class="membrete-pdf" id="membrete-pdf" style="display: none; flex-direction: row; justify-content: space-between; width: 100%;">
+                            <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="Logo Loreto">
+                            <div class="membrete-titulo">
+                                <h2>Loreto - Ingeniería, Construcción,<br>Edificación y Remodelación</h2>
                             </div>
+                            <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Maquinaria">
+                        </div>
 
-                            <div class="ticket-header-info">
-                                <div id="ticket-numero">TICKET-Cargando...</div>
-                                <div id="ticket-fecha">Fecha: --/--/----</div>
-                            </div>
-                            
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th style="width: 40px;" class="center">#</th>
-                                        <th>Clave</th>
-                                        <th>Concepto</th>
-                                        <th class="text-right">Cant.</th>
-                                        <th class="text-right">Precio U.</th>
-                                        <th class="text-right">Importe</th>
-                                        <th class="accion-columna">Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabla-ticket">
-                                    </tbody>
-                            </table>
+                        <div class="ticket-header-info">
+                            <div id="ticket-numero">TICKET-Cargando...</div>
+                            <div id="ticket-fecha">Fecha: --/--/----</div>
+                        </div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;" class="center">#</th>
+                                    <th>Clave</th>
+                                    <th>Concepto</th>
+                                    <th class="text-right">Cant.</th>
+                                    <th class="text-right">Precio U.</th>
+                                    <th class="text-right">Importe</th>
+                                    <th class="accion-columna">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-ticket">
+                                </tbody>
+                        </table>
 
-                            <div class="ticket-totals">
-                                <div>Artículos: <span id="total-articulos">0</span>/20</div>
-                                <div style="color: var(--primary-blue);">Total: $<span id="total-importe">0.00</span></div>
-                            </div>
+                        <div class="ticket-totals">
+                            <div>Artículos: <span id="total-articulos">0</span>/20</div>
+                            <div style="color: var(--primary-blue);">Total: $<span id="total-importe">0.00</span></div>
                         </div>
                     </div>
                 </div>
@@ -289,7 +295,6 @@
         });
         document.getElementById('toggle-menu').addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('open'); });
 
-        // Se inicializa consultando el contador a Firebase
         establecerNumeroTicket();
         document.getElementById('ticket-fecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-MX')} ${new Date().toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'})}`;
         
@@ -305,7 +310,7 @@
         });
     });
 
-    // --- NUEVO: ESTABLECER NÚMERO DE TICKET DESDE FIREBASE ---
+    // --- SINCRONIZACIÓN GLOBAL DE NÚMERO DE TICKET ---
     async function establecerNumeroTicket() {
         document.getElementById('ticket-numero').innerText = `TICKET-Cargando...`;
         try {
@@ -314,11 +319,10 @@
             if (doc.exists) {
                 ultimoNumero = doc.data().ultimo || 0;
             }
-            window.numeroTicketActual = ultimoNumero + 1; // Variable global para usar al guardar
+            window.numeroTicketActual = ultimoNumero + 1;
             document.getElementById('ticket-numero').innerText = `TICKET-${window.numeroTicketActual}`;
         } catch(e) {
-            console.error("Error al obtener consecutivo de tickets", e);
-            // Fallback por si la conexión falla en este preciso momento
+            console.error("Error al obtener consecutivo", e);
             window.numeroTicketActual = 1;
             document.getElementById('ticket-numero').innerText = `TICKET-1`;
         }
@@ -398,7 +402,6 @@
         document.getElementById('input-precio').value = (item.precio || 0).toFixed(2);
         document.getElementById('input-stock').value = item.cantidad || 0; 
         
-        // Vaciamos la cantidad y forzamos el foco del cursor para dispositivos móviles y PC
         const inputCantidad = document.getElementById('input-cantidad');
         inputCantidad.value = ''; 
         inputCantidad.focus();
@@ -548,11 +551,9 @@
         try {
             const batch = db.batch();
             
-            // 1. Guardar la actualización del contador en Firebase
             const counterRef = db.collection("sistema").doc("contador_tickets");
             batch.set(counterRef, { ultimo: window.numeroTicketActual }, { merge: true });
 
-            // 2. Preparar el descuento de los artículos
             ticketActual.forEach(item => {
                 const docRef = db.collection("inventario").doc(item.idFirebase);
                 batch.update(docRef, { 
@@ -573,37 +574,33 @@
             return; 
         }
 
+        // PREPARACIÓN DE IMPRESIÓN (Forzando modo escritorio temporalmente)
+        document.body.classList.add('modo-impresion');
+        
         const elementosAccion = document.querySelectorAll('.accion-columna');
         elementosAccion.forEach(el => el.style.display = 'none');
+        
         const membrete = document.getElementById('membrete-pdf');
         membrete.style.display = 'flex';
         
         const elementoParaImprimir = document.getElementById('area-imprimir');
-        const contenedorTabla = document.getElementById('tabla-exportar');
         const numTicket = document.getElementById('ticket-numero').innerText;
 
-        // NUEVO: Forzar resolución de PC temporalmente para crear el PDF correctamente desde un Celular
-        const anchoOriginal = elementoParaImprimir.style.width;
-        const overflowOriginal = contenedorTabla.style.overflowX;
-        elementoParaImprimir.style.width = '800px';
-        contenedorTabla.style.overflowX = 'visible';
-
+        // Se usa windowWidth para garantizar que html2canvas evalúe los estilos como si fuera PC
         const opciones = {
-            margin:       [5, 5, 5, 5],
+            margin:       [10, 10, 10, 10],
             filename:     `${numTicket}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true }, 
+            html2canvas:  { scale: 2, useCORS: true, windowWidth: 850 }, 
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         html2pdf().set(opciones).from(elementoParaImprimir).save().then(() => {
-            // Restaurar configuración web de celular
-            elementoParaImprimir.style.width = anchoOriginal;
-            contenedorTabla.style.overflowX = overflowOriginal;
+            // Restaurar vista web
+            document.body.classList.remove('modo-impresion');
             elementosAccion.forEach(el => el.style.display = '');
             membrete.style.display = 'none'; 
             
-            // Solicitar el siguiente ticket automáticamente a Firebase
             establecerNumeroTicket();
             
             ticketActual = [];
