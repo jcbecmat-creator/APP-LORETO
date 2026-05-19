@@ -10,6 +10,7 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     
     <style>
+        /* ESTILOS EXCLUSIVOS PARA LA SECCIÓN DE GENERAR TICKET (No afectan tu menú) */
         :root {
             --primary-blue: #263fa4;
             --light-blue: #eff6ff;
@@ -18,58 +19,19 @@
             --text-muted: #6b7280;
             --accent-green: #14A981;
             --danger-red: #ef4444;
-            --sidebar-width: 250px;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        /* Contenedor principal de esta vista */
+        .ticket-wrapper {
+            padding: 30px; 
             background-color: #f3f4f6;
-            margin: 0;
+            flex-grow: 1;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
+            box-sizing: border-box;
+            max-width: 100%;
         }
 
-        /* --- LAYOUT PRINCIPAL Y SIDEBAR --- */
-        .sidebar {
-            width: var(--sidebar-width);
-            background-color: white;
-            border-right: 1px solid var(--border-color);
-            height: 100vh;
-            overflow-y: auto;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            padding-top: 20px; /* Espacio superior para compensar logo eliminado */
-        }
-
-        .sidebar-nav {
-            padding: 15px 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-section { margin-bottom: 15px; }
-
-        .section-title {
-            padding: 0 20px; font-size: 11px; text-transform: uppercase;
-            color: var(--text-muted); font-weight: bold; margin-bottom: 8px; letter-spacing: 0.5px;
-        }
-
-        .nav-item {
-            display: flex; align-items: center; padding: 10px 20px; color: var(--text-main);
-            text-decoration: none; font-size: 14px; transition: background-color 0.2s, color 0.2s; gap: 12px;
-        }
-
-        .nav-item:hover { background-color: var(--light-blue); color: var(--primary-blue); }
-        .nav-item i { width: 18px; height: 18px; color: var(--primary-blue); }
-
-        .main-content {
-            flex: 1; padding: 30px; overflow-y: auto; background-color: #f3f4f6;
-        }
-
-        /* --- CONTENIDO DE LA PÁGINA --- */
         .page-header { margin-bottom: 24px; }
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 8px 0; }
         
@@ -84,13 +46,13 @@
         .input-group { display: flex; flex-direction: column; gap: 4px; position: relative; }
         .input-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
         
-        input[type="text"], input[type="number"] {
+        .ticket-wrapper input[type="text"], .ticket-wrapper input[type="number"] {
             padding: 10px 14px; border: 1px solid var(--border-color);
             border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box;
             text-transform: uppercase;
         }
-        input:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(38, 63, 164, 0.1); }
-        input:read-only { background-color: #f9fafb; color: var(--text-muted); }
+        .ticket-wrapper input:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(38, 63, 164, 0.1); }
+        .ticket-wrapper input:read-only { background-color: #f9fafb; color: var(--text-muted); }
 
         .dropdown-list {
             position: absolute; top: 100%; left: 0; right: 0;
@@ -104,7 +66,7 @@
 
         /* Botones */
         .button-group { display: flex; gap: 8px; }
-        .btn {
+        .btn-accion {
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
             padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 600;
             cursor: pointer; border: none; transition: all 0.2s; height: 40px;
@@ -126,7 +88,7 @@
         
         /* Membrete (Oculto en web, visible solo en PDF) */
         .membrete-pdf {
-            display: none; /* Oculto por defecto */
+            display: none; 
             align-items: center;
             justify-content: space-between;
             padding: 20px;
@@ -138,35 +100,41 @@
         .membrete-titulo h2 { margin: 0; font-size: 18px; color: var(--primary-blue); text-transform: uppercase; line-height: 1.2; }
 
         .ticket-header-info { display: flex; justify-content: space-between; padding: 12px 20px; background-color: var(--light-blue); border-bottom: 1px solid var(--border-color); font-weight: bold; color: var(--primary-blue); font-size: 14px;}
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th, td { padding: 12px 20px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; }
-        th { background-color: #f8fafc; color: var(--primary-blue); font-size: 12px; text-transform: uppercase; }
+        .ticket-wrapper table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        .ticket-wrapper th, .ticket-wrapper td { padding: 12px 20px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+        .ticket-wrapper th { background-color: #f8fafc; color: var(--primary-blue); font-size: 12px; text-transform: uppercase; }
         .text-right { text-align: right; }
         .ticket-totals { padding: 16px 20px; background-color: #f8fafc; display: flex; justify-content: flex-end; gap: 24px; font-size: 16px; font-weight: bold; }
 
         /* --- MODAL --- */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-content { background: white; border-radius: 12px; padding: 30px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transform: translateY(-20px); transition: all 0.3s; }
+        .modal-content { background: white; border-radius: 12px; padding: 30px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transform: translateY(-20px); transition: all 0.3s; font-family: sans-serif; }
         .modal-overlay.active .modal-content { transform: translateY(0); }
         .modal-icon { width: 48px; height: 48px; color: var(--primary-blue); margin: 0 auto 15px; }
         .modal-text { font-size: 16px; color: var(--text-main); margin-bottom: 25px; line-height: 1.5; }
         .modal-btn { background-color: var(--accent-green); color: white; border: none; padding: 12px 30px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.2s; }
         .modal-btn:hover { background-color: #118f6d; }
 
+        /* Ajuste responsivo solo para esta sección */
         @media (max-width: 768px) {
-            body { flex-direction: column; overflow: auto; }
-            .sidebar { width: 100%; height: auto; }
             .search-grid { grid-template-columns: 1fr; }
             .button-group { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
             .ticket-header-info { flex-direction: column; gap: 8px; }
             .membrete-pdf { flex-direction: column; gap: 15px; text-align: center; }
         }
+
+        /* Estructura para asegurar que el menú lateral y el contenido estén uno al lado del otro como en tu diseño */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
 
-<aside class="sidebar">
+<div class="app-container">
     <nav class="sidebar-nav">
         <a href="inicio.html" class="nav-item" id="link-inicio"><i data-lucide="home"></i> Inicio</a>
 
@@ -215,108 +183,108 @@
             <a href="#" class="nav-item"><i data-lucide="clipboard-list"></i> Resumen</a>
         </div>
     </nav>
-</aside>
 
-<main class="main-content">
-    <div class="page-header">
-        <h1>Generar Ticket de Almacén</h1>
-        <p style="color: var(--text-muted); margin: 0; font-size: 14px;">Busca artículos por código/nombre o usa la cámara para escanear el QR.</p>
-    </div>
+    <div class="ticket-wrapper">
+        <div class="page-header">
+            <h1>Generar Ticket de Almacén</h1>
+            <p style="color: var(--text-muted); margin: 0; font-size: 14px;">Busca artículos por código/nombre o usa la cámara para escanear el QR.</p>
+        </div>
 
-    <div class="card">
-        <div class="search-container">
-            <div class="search-grid">
+        <div class="card">
+            <div class="search-container">
+                <div class="search-grid">
+                    <div class="input-group">
+                        <label>Buscar Concepto (Nombre o Clave)</label>
+                        <input type="text" id="input-busqueda" placeholder="EJ. ABRAZADERA O CLAVE..." autocomplete="off">
+                        <ul id="lista-desplegable" class="dropdown-list"></ul>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-accion btn-secondary" onclick="buscarArticuloManual()">
+                            <i data-lucide="search"></i> Buscar
+                        </button>
+                        <button class="btn-accion btn-qr" onclick="toggleScanner()" id="btn-toggle-qr">
+                            <i data-lucide="qr-code"></i> Escanear QR
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="qr-reader-container">
+                    <p style="color: var(--text-muted); margin-bottom: 10px; font-size: 14px;">Apunta la cámara al código QR del artículo</p>
+                    <div id="qr-reader"></div>
+                    <button class="btn-accion btn-danger" style="margin-top: 10px;" onclick="cerrarScanner()">Cancelar Escaneo</button>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; align-items: end;">
                 <div class="input-group">
-                    <label>Buscar Concepto (Nombre o Clave)</label>
-                    <input type="text" id="input-busqueda" placeholder="EJ. ABRAZADERA O CLAVE..." autocomplete="off">
-                    <ul id="lista-desplegable" class="dropdown-list"></ul>
+                    <label>Clave</label>
+                    <input type="text" id="input-clave" readonly placeholder="---">
                 </div>
-                <div class="button-group">
-                    <button class="btn btn-secondary" onclick="buscarArticuloManual()">
-                        <i data-lucide="search"></i> Buscar
-                    </button>
-                    <button class="btn btn-qr" onclick="toggleScanner()" id="btn-toggle-qr">
-                        <i data-lucide="qr-code"></i> Escanear QR
-                    </button>
+                <div class="input-group" style="grid-column: span 2;">
+                    <label>Artículo Seleccionado</label>
+                    <input type="text" id="input-articulo" readonly placeholder="SELECCIONA UN ARTÍCULO">
                 </div>
-            </div>
-            
-            <div id="qr-reader-container">
-                <p style="color: var(--text-muted); margin-bottom: 10px; font-size: 14px;">Apunta la cámara al código QR del artículo</p>
-                <div id="qr-reader"></div>
-                <button class="btn btn-danger" style="margin-top: 10px;" onclick="cerrarScanner()">Cancelar Escaneo</button>
+                <div class="input-group">
+                    <label>Precio Unitario ($)</label>
+                    <input type="number" id="input-precio" readonly placeholder="0.00">
+                </div>
+                <div class="input-group">
+                    <label>Stock Disponible</label>
+                    <input type="number" id="input-stock" readonly placeholder="0">
+                </div>
+                <div class="input-group">
+                    <label>Cant. a extraer</label>
+                    <input type="number" id="input-cantidad" min="1" value="1">
+                </div>
+                <button class="btn-accion btn-primary" onclick="agregarArticulo()">
+                    <i data-lucide="plus-circle"></i> Agregar
+                </button>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; align-items: end;">
-            <div class="input-group">
-                <label>Clave</label>
-                <input type="text" id="input-clave" readonly placeholder="---">
+        <div id="area-imprimir" style="background: white; padding-bottom: 1px;">
+            <div class="ticket-container">
+                
+                <div class="membrete-pdf" id="membrete-pdf">
+                    <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="Logo Loreto">
+                    <div class="membrete-titulo">
+                        <h2>Loreto - Ingeniería, Construcción,<br>Edificación y Remodelación</h2>
+                    </div>
+                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Maquinaria">
+                </div>
+
+                <div class="ticket-header-info">
+                    <div id="ticket-numero">TICKET-Cargando...</div>
+                    <div id="ticket-fecha">Fecha: --/--/----</div>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;">#</th> <th>Clave</th>
+                            <th>Concepto</th>
+                            <th class="text-right">Cant.</th>
+                            <th class="text-right">Precio U.</th>
+                            <th class="text-right">Importe</th>
+                            <th class="accion-columna">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-ticket">
+                        </tbody>
+                </table>
+
+                <div class="ticket-totals">
+                    <div>Artículos: <span id="total-articulos">0</span>/20</div>
+                    <div style="color: var(--primary-blue);">Total: $<span id="total-importe">0.00</span></div>
+                </div>
             </div>
-            <div class="input-group" style="grid-column: span 2;">
-                <label>Artículo Seleccionado</label>
-                <input type="text" id="input-articulo" readonly placeholder="SELECCIONA UN ARTÍCULO">
-            </div>
-            <div class="input-group">
-                <label>Precio Unitario ($)</label>
-                <input type="number" id="input-precio" readonly placeholder="0.00">
-            </div>
-            <div class="input-group">
-                <label>Stock Disponible</label>
-                <input type="number" id="input-stock" readonly placeholder="0">
-            </div>
-            <div class="input-group">
-                <label>Cant. a extraer</label>
-                <input type="number" id="input-cantidad" min="1" value="1">
-            </div>
-            <button class="btn btn-primary" onclick="agregarArticulo()">
-                <i data-lucide="plus-circle"></i> Agregar
-            </button>
         </div>
+
+        <button class="btn-accion btn-pdf" onclick="generarPDF()">
+            <i data-lucide="file-down"></i> Generar PDF del Ticket
+        </button>
     </div>
-
-    <div id="area-imprimir" style="background: white; padding-bottom: 1px;">
-        <div class="ticket-container">
-            
-            <div class="membrete-pdf" id="membrete-pdf">
-                <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="Logo Loreto">
-                <div class="membrete-titulo">
-                    <h2>Loreto - Ingeniería, Construcción,<br>Edificación y Remodelación</h2>
-                </div>
-                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Maquinaria">
-            </div>
-
-            <div class="ticket-header-info">
-                <div id="ticket-numero">TICKET-Cargando...</div>
-                <div id="ticket-fecha">Fecha: --/--/----</div>
-            </div>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 40px;">#</th> <th>Clave</th>
-                        <th>Concepto</th>
-                        <th class="text-right">Cant.</th>
-                        <th class="text-right">Precio U.</th>
-                        <th class="text-right">Importe</th>
-                        <th class="accion-columna">Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-ticket">
-                    </tbody>
-            </table>
-
-            <div class="ticket-totals">
-                <div>Artículos: <span id="total-articulos">0</span>/20</div>
-                <div style="color: var(--primary-blue);">Total: $<span id="total-importe">0.00</span></div>
-            </div>
-        </div>
-    </div>
-
-    <button class="btn btn-pdf" onclick="generarPDF()">
-        <i data-lucide="file-down"></i> Generar PDF del Ticket
-    </button>
-</main>
+</div>
 
 <div id="modal-alerta" class="modal-overlay">
     <div class="modal-content">
@@ -339,19 +307,21 @@
     }
 
     // ---------------------------------------------------------
-    // BASE DE DATOS SIMULADA (Actualizada con los artículos de tu captura)
+    // BASE DE DATOS SIMULADA (Actualizada con "CAJAS" y "CABLES" de tus capturas)
+    // NOTA: Para el inventario real, esto se sustituye por la petición a tu Base de Datos
     // ---------------------------------------------------------
     const baseDatosAlmacen = [
-        { clave: "BARR-01", nombre: "26 BARROTES", precio: 45.00, stock: 11 },
+        { clave: "CAJA CUADRADA DE 1/2", nombre: "CAJA CUADRADA DE 1/2", precio: 9.00, stock: 35 },
+        { clave: "CAJA CUADRADA DE 4X4 1", nombre: "CAJA CUADRADA DE 4X4 DE 1", precio: 15.00, stock: 0 },
+        { clave: "CABLE CAL 12", nombre: "CAJA DE CABLE CAL 12", precio: 980.00, stock: 0 },
+        { clave: "CAJA DE CABLE N10", nombre: "CAJA DE CABLE CALIDAD 10", precio: 700.00, stock: 0 },
+        { clave: "CABLE DESNUDO", nombre: "CAJA DE CABLE DESNUDO CAL 12", precio: 1100.00, stock: 0 },
+        { clave: "FLAFON CORTEGA", nombre: "CAJA DE PLATÁN CORTEGA", precio: 1530.00, stock: 0 },
+        { clave: "CAJA DE UTP 6E", nombre: "CAJA DE UTP 6E", precio: 4610.00, stock: 0 },
+        { clave: "CAJA GALVANIZADO 3/4", nombre: "CAJA GALVANIZADO DE 3/4", precio: 9.00, stock: 10 },
         { clave: "ABRA-01", nombre: "ABRAZADERA CLIP 1/2", precio: 9.00, stock: 2 },
         { clave: "ABRA-02", nombre: "ABRAZADERA CLIP 3/4", precio: 9.00, stock: 40 },
-        { clave: "ABRA-03", nombre: "ABRAZADERA DE 4 SIN FIN", precio: 14.00, stock: 6 },
-        { clave: "ACEI-01", nombre: "ACEITE QUEMADO", precio: 4.00, stock: 22 },
-        // Artículos agregados para que funcione la búsqueda de tu ejemplo:
-        { clave: "FORRO 1/2*5/8", nombre: "AISLAN DE TUBERÍA A 1/2*5/8", precio: 15.00, stock: 26 },
-        { clave: "AISLANTE 7/8-1/2", nombre: "AISLANTE 7/8-1/2", precio: 18.00, stock: 30 },
-        { clave: "ALAMBRE N14", nombre: "ALAMBRE GALVANIZADO N14", precio: 22.00, stock: 2 },
-        { clave: "ACRILASTC", nombre: "ACRILASTC BLANCO", precio: 120.00, stock: 24 }
+        { clave: "ABRA-03", nombre: "ABRAZADERA DE 4 SIN FIN", precio: 14.00, stock: 6 }
     ];
 
     let ticketActual = [];
@@ -359,7 +329,7 @@
     let html5QrcodeScanner = null;
     let articuloTemporal = null;
 
-    document.querySelectorAll('input[type="text"]').forEach(input => {
+    document.querySelectorAll('.ticket-wrapper input[type="text"]').forEach(input => {
         input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
     });
 
@@ -416,7 +386,7 @@
         if (encontrado) {
             seleccionarArticulo(encontrado);
         } else {
-            mostrarAlerta("No se encontró ningún artículo con esa clave o nombre en la base de datos de prueba.");
+            mostrarAlerta("No se encontró ningún artículo con esa clave o nombre en la base de datos.");
         }
     }
 
@@ -536,7 +506,7 @@
                 <td class="text-right">$${item.precio.toFixed(2)}</td>
                 <td class="text-right">$${item.importe.toFixed(2)}</td>
                 <td class="accion-columna">
-                    <button class="btn btn-danger" onclick="eliminarArticulo(${item.id})">
+                    <button class="btn-accion btn-danger" onclick="eliminarArticulo(${item.id})">
                         <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
                     </button>
                 </td>
