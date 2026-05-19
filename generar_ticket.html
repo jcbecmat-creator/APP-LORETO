@@ -586,13 +586,17 @@
         const elementoParaImprimir = document.getElementById('area-imprimir');
         const numTicket = document.getElementById('ticket-numero').innerText;
 
-        // Se usa windowWidth para garantizar que html2canvas evalúe los estilos como si fuera PC
+        // Configuración correcta para forzar formato de escritorio en cualquier dispositivo
         const opciones = {
-            margin:       [10, 10, 10, 10],
-            filename:     `${numTicket}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, windowWidth: 850 }, 
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            margin: [5, 5, 5, 5],
+            filename: `${numTicket}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { 
+                scale: 2, 
+                useCORS: true, 
+                windowWidth: 1024 // ESTO FORZA AL PDF A RENDERIZAR COMO SI FUERA UNA COMPUTADORA
+            }, 
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         html2pdf().set(opciones).from(elementoParaImprimir).save().then(() => {
