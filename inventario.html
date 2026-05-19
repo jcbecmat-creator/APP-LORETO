@@ -107,6 +107,52 @@
         .btn-modal { width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
 
         .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--primary-blue); font-weight: 600; }
+
+        /* --- CONTENEDOR BOTÓN FLOTANTE --- */
+        .floating-container {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 999;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 16px;
+            border-radius: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        .floating-counter {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-main);
+            background: var(--light-blue);
+            padding: 5px 14px;
+            border-radius: 20px;
+            border: 1px solid #c7d2fe;
+            white-space: nowrap;
+        }
+        .btn-floating {
+            background: #1e293b;
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, background 0.2s;
+        }
+        .btn-floating:hover {
+            background: #0f172a;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -179,7 +225,7 @@
                             </tr>
                         </thead>
                         <tbody id="tabla-body">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -254,6 +300,13 @@
             <p id="modal-error-msg">Error.</p>
             <button class="btn-modal" style="background:var(--danger); color:white;" onclick="document.getElementById('modal-error').style.display='none'">Aceptar</button>
         </div>
+    </div>
+
+    <div id="floating-qr-container" class="floating-container">
+        <span id="floating-qr-counter" class="floating-counter">0 seleccionados</span>
+        <button class="btn-floating" id="btn-floating-imprimir" onclick="imprimirQR()" title="Imprimir Etiquetas QR Seleccionadas">
+            <i data-lucide="qr-code"></i>
+        </button>
     </div>
 
 <script>
@@ -339,7 +392,6 @@
         };
         reader.readAsText(file, 'UTF-8');
     }
-
 
     async function cargarInventario() {
         document.getElementById('loader').style.display = 'flex';
@@ -486,16 +538,25 @@
         }
     }
 
-    // ==========================================
-    // LÓGICA DE CÓDIGOS QR Y PAGINACIÓN DE PDF
-    // ==========================================
+    // =========================================================
+    // LÓGICA DE SINCRONIZACIÓN DE BOTONES Y CONTADOR FLOTANTE
+    // =========================================================
     function validarSeleccionQR() {
-        // Se ha removido la validación de 8 elementos para permitir impresión masiva
+        const checkedCount = document.querySelectorAll('.qr-chk:checked').length;
         const btnPrint = document.getElementById('btn-imprimir-qr');
-        if(document.querySelectorAll('.qr-chk:checked').length > 0) {
+        const floatingContainer = document.getElementById('floating-qr-container');
+        const floatingCounter = document.getElementById('floating-qr-counter');
+
+        if(checkedCount > 0) {
+            // Mostrar botón en la barra superior de filtros
             btnPrint.style.display = 'inline-flex';
+            
+            // Mostrar contenedor flotante y actualizar el contador al lado del botón
+            floatingContainer.style.display = 'flex';
+            floatingCounter.innerText = `${checkedCount} ${checkedCount === 1 ? 'seleccionado' : 'seleccionados'}`;
         } else {
             btnPrint.style.display = 'none';
+            floatingContainer.style.display = 'none';
         }
     }
 
@@ -504,8 +565,16 @@
         if(checked.length === 0) return;
 
         const btn = document.getElementById('btn-imprimir-qr');
+        const btnFloating = document.getElementById('btn-floating-imprimir');
+        
         const oldTxt = btn.innerHTML;
+        const oldFloatTxt = btnFloating.innerHTML;
+        
+        // Colocar ambos botones en estado de carga simultáneamente
         btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando PDF...';
+        btnFloating.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width:20px; height:20px;"></i>';
+        btn.disabled = true;
+        btnFloating.disabled = true;
         lucide.createIcons();
 
         // 1. Contenedor invisible pero posicionado en (0,0) para evitar que html2canvas recorte la imagen.
@@ -624,17 +693,26 @@
         setTimeout(() => {
             html2pdf().set(opt).from(wrap).save().then(() => {
                 btn.innerHTML = oldTxt;
+                btnFloating.innerHTML = oldFloatTxt;
+                btn.disabled = false;
+                btnFloating.disabled = false;
                 lucide.createIcons();
                 document.body.removeChild(hiddenContainer); // Limpieza
                 
                 // Desmarcar todos los checkboxes al finalizar
                 document.querySelectorAll('.qr-chk').forEach(c => c.checked = false);
-                btn.style.display = 'none';
+                
+                // Forzar la validación para limpiar y ocultar los botones automáticamente
+                validarSeleccionQR();
+                
                 mostrarExito("PDF de Etiquetas generado y descargado correctamente.");
             }).catch(err => {
                 console.error(err);
                 mostrarAlerta("Ocurrió un error al generar el PDF.");
                 btn.innerHTML = oldTxt;
+                btnFloating.innerHTML = oldFloatTxt;
+                btn.disabled = false;
+                btnFloating.disabled = false;
                 lucide.createIcons();
                 document.body.removeChild(hiddenContainer);
             });
