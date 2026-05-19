@@ -67,6 +67,10 @@
         .btn-print { background: #1e293b; color: white; border: none; height: 42px; padding: 0 20px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; display: none;}
         .btn-print:hover { background: #0f172a; }
 
+        /* Botón Flotante */
+        .floating-btn { position: fixed; bottom: 30px; right: 30px; background: var(--primary-blue); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(38, 63, 164, 0.4); z-index: 1000; transition: transform 0.2s; }
+        #qr-counter { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+
         /* --- TABLA --- */
         .table-responsive { width: 100%; overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); background: white;}
         .data-table { width: 100%; border-collapse: collapse; min-width: 1400px; }
@@ -186,6 +190,11 @@
         </main>
     </div>
 
+    <div id="floating-qr-btn" class="floating-btn" style="display: none;" onclick="imprimirQR()">
+        <i data-lucide="qr-code"></i>
+        <span id="qr-counter">0</span>
+    </div>
+
     <div id="modalArticulo" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header-custom">
@@ -291,7 +300,6 @@
     function mostrarAlerta(msg) { document.getElementById('modal-error-msg').innerText = msg; document.getElementById('modal-error').style.display = 'flex'; lucide.createIcons(); }
     function mostrarExito(msg) { document.getElementById('modal-success-msg').innerText = msg; document.getElementById('modal-success').style.display = 'flex'; lucide.createIcons(); }
 
-    // --- PROCESAMIENTO DEL ARCHIVO CSV ---
     function procesarCSV(input) {
         const file = input.files[0];
         if (!file) return;
@@ -404,7 +412,6 @@
         lucide.createIcons();
     }
 
-    // --- LÓGICA DEL MODAL CRUD ---
     function abrirModalArticulo(id = null) {
         document.getElementById('modal-id').value = id || '';
         document.getElementById('modal-titulo').innerText = id ? "Editar Concepto" : "Agregar Concepto";
@@ -486,17 +493,22 @@
         }
     }
 
-    // ==========================================
-    // LÓGICA DE CÓDIGOS QR Y PAGINACIÓN DE PDF
-    // ==========================================
     function validarSeleccionQR() {
-        // Se ha removido la validación de 8 elementos para permitir impresión masiva
+        const checked = document.querySelectorAll('.qr-chk:checked');
+        const count = checked.length;
+        const floatBtn = document.getElementById('floating-qr-btn');
+        const counter = document.getElementById('qr-counter');
         const btnPrint = document.getElementById('btn-imprimir-qr');
-        if(document.querySelectorAll('.qr-chk:checked').length > 0) {
+        
+        if(count > 0) {
             btnPrint.style.display = 'inline-flex';
+            floatBtn.style.display = 'flex';
+            counter.innerText = count;
         } else {
             btnPrint.style.display = 'none';
+            floatBtn.style.display = 'none';
         }
+        lucide.createIcons();
     }
 
     function imprimirQR() {
@@ -508,98 +520,63 @@
         btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando PDF...';
         lucide.createIcons();
 
-        // 1. Contenedor invisible pero posicionado en (0,0) para evitar que html2canvas recorte la imagen.
         const hiddenContainer = document.createElement('div');
         hiddenContainer.style.position = 'absolute';
         hiddenContainer.style.top = '0';
         hiddenContainer.style.left = '0';
-        hiddenContainer.style.visibility = 'hidden'; // Oculto al ojo humano, visible para el motor
+        hiddenContainer.style.visibility = 'hidden'; 
         hiddenContainer.style.zIndex = '-9999';
-        hiddenContainer.style.width = '750px'; 
+        hiddenContainer.style.width = '800px'; 
         
         const wrap = document.createElement('div');
-        wrap.style.width = '100%'; 
+        wrap.style.width = '800px'; 
         wrap.style.backgroundColor = '#ffffff';
 
-        // 2. Extraer datos y separar en bloques de 10 (Paginación: 5 filas x 2 columnas)
         const items = Array.from(checked).map(chk => dataInventario.find(d => d.id === chk.value)).filter(Boolean);
         const chunkSize = 10;
         
         for (let i = 0; i < items.length; i += chunkSize) {
             const chunk = items.slice(i, i + chunkSize);
-            
-            // Cada 'pageDiv' representa una hoja del PDF
             const pageDiv = document.createElement('div');
-            pageDiv.style.padding = '0'; 
-            pageDiv.style.boxSizing = 'border-box';
-            pageDiv.style.width = '100%';
+            pageDiv.style.padding = '30px';
+            pageDiv.style.width = '800px';
+            pageDiv.style.height = '1050px';
             pageDiv.style.backgroundColor = '#ffffff';
-
-            // Cabecera del PDF
             pageDiv.innerHTML = `
                 <div style="text-align:center; border-bottom: 2px solid #263fa4; padding-bottom: 10px; margin-bottom: 20px;">
                     <h1 style="margin: 0; font-size: 20px; color: #263fa4; text-transform: uppercase; font-weight: 800; font-family: Arial, sans-serif;">Etiquetas de Almacén - Loreto</h1>
-                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #64748b; font-family: Arial, sans-serif;">Escanear QR para identificar el concepto en el sistema.</p>
                 </div>
                 <div class="etiquetas-grid" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-content: flex-start; font-family: Arial, sans-serif;"></div>
             `;
 
             const grid = pageDiv.querySelector('.etiquetas-grid');
 
-            // Diseñar las etiquetas (sin precios, solo datos base y QR Permanente)
             chunk.forEach(item => {
                 const label = document.createElement('div');
-                label.style.width = 'calc(50% - 7.5px)'; 
+                label.style.width = '370px';
+                label.style.height = '140px';
                 label.style.border = '2px dashed #94a3b8';
-                label.style.borderRadius = '12px';
-                label.style.padding = '12px';
-                label.style.boxSizing = 'border-box';
+                label.style.padding = '10px';
                 label.style.display = 'flex';
                 label.style.alignItems = 'center';
                 label.style.justifyContent = 'space-between';
+                label.style.boxSizing = 'border-box';
                 label.style.marginBottom = '10px';
-                label.style.height = '140px'; 
-                label.style.backgroundColor = '#ffffff';
                 
-                const info = document.createElement('div');
-                info.style.width = '65%';
-                info.style.fontSize = '12px';
-                info.style.lineHeight = '1.4';
-                info.style.color = '#1e293b';
-                info.style.overflow = 'hidden';
-                
-                info.innerHTML = `
-                    <div style="font-size:13px; font-weight:900; color:#263fa4; margin-bottom:6px; line-height:1.2; max-height:30px; overflow:hidden;">${item.nombre}</div>
-                    <div><strong>Clave:</strong> <span style="font-weight:800;">${item.clave}</span></div>
-                    <div><strong>Cat:</strong> ${item.categoria}</div>
-                    <div><strong>Unidad:</strong> ${item.unidad}</div>
+                label.innerHTML = `
+                    <div style="width:60%; font-size:12px; line-height:1.4;">
+                        <div style="font-size:13px; font-weight:900; color:#263fa4; margin-bottom:6px;">${item.nombre}</div>
+                        <div><strong>Clave:</strong> ${item.clave}</div>
+                        <div><strong>Cat:</strong> ${item.categoria}</div>
+                        <div><strong>Unidad:</strong> ${item.unidad}</div>
+                    </div>
+                    <div class="qr-box" style="width:90px; height:90px;"></div>
                 `;
                 
-                const qrBox = document.createElement('div');
-                qrBox.style.width = '90px';
-                qrBox.style.height = '90px';
-                qrBox.style.display = 'flex';
-                qrBox.style.justifyContent = 'center';
-                qrBox.style.alignItems = 'center';
-                
-                label.appendChild(info);
-                label.appendChild(qrBox);
                 grid.appendChild(label);
-                
-                // GENERAR QR CONSTANTE usando el ID único de Firebase
-                new QRCode(qrBox, {
-                    text: item.id, 
-                    width: 90,
-                    height: 90,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.M
-                });
+                new QRCode(label.querySelector('.qr-box'), { text: item.id, width: 90, height: 90 });
             });
-
             wrap.appendChild(pageDiv);
-
-            // Si hay más elementos en la lista, insertamos la bandera de salto de página
             if (i + chunkSize < items.length) {
                 const pageBreak = document.createElement('div');
                 pageBreak.classList.add('html2pdf__page-break');
@@ -610,9 +587,8 @@
         hiddenContainer.appendChild(wrap);
         document.body.appendChild(hiddenContainer);
 
-        // 3. Configuración para HTML2PDF garantizando formato y saltos exactos
         const opt = {
-            margin:       10, // 10mm de margen en los bordes de la hoja Carta
+            margin:       10,
             filename:     `Etiquetas_QR_Inventario.pdf`,
             image:        { type: 'jpeg', quality: 1 },
             html2canvas:  { scale: 2, useCORS: true, letterRendering: true }, 
@@ -620,25 +596,16 @@
             pagebreak:    { mode: 'css', before: '.html2pdf__page-break' }
         };
 
-        // Esperamos un momento para que QRCode termine de dibujar los canvas
         setTimeout(() => {
             html2pdf().set(opt).from(wrap).save().then(() => {
                 btn.innerHTML = oldTxt;
-                lucide.createIcons();
-                document.body.removeChild(hiddenContainer); // Limpieza
-                
-                // Desmarcar todos los checkboxes al finalizar
+                document.body.removeChild(hiddenContainer);
                 document.querySelectorAll('.qr-chk').forEach(c => c.checked = false);
                 btn.style.display = 'none';
-                mostrarExito("PDF de Etiquetas generado y descargado correctamente.");
-            }).catch(err => {
-                console.error(err);
-                mostrarAlerta("Ocurrió un error al generar el PDF.");
-                btn.innerHTML = oldTxt;
-                lucide.createIcons();
-                document.body.removeChild(hiddenContainer);
+                document.getElementById('floating-qr-btn').style.display = 'none';
+                mostrarExito("PDF generado correctamente.");
             });
-        }, 800); 
+        }, 1000);
     }
 </script>
 </body>
