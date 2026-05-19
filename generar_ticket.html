@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Ticket | Loreto</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-blue: #1e3a8a; /* Azul de los botones en tu diseño */
+            --light-blue: #eff6ff;
+            --border-color: #e5e7eb;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --accent-green: #14A981; /* Tu verde característico */
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .main-content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+            /* Asumiendo que el menú lateral ocupa espacio, ajusta según tu layout principal */
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            color: var(--primary-blue);
+            margin: 0 0 8px 0;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        /* Formulario y Búsqueda */
+        .search-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+            text-transform: uppercase; /* Fuerza mayúsculas visualmente */
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-primary:hover { background-color: #172554; }
+
+        .btn-qr {
+            background-color: var(--text-main);
+            color: white;
+        }
+
+        .btn-pdf {
+            background-color: var(--accent-green);
+            color: white;
+            width: 100%;
+            justify-content: center;
+            font-size: 16px;
+            padding: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+            padding: 6px 10px;
+        }
+
+        /* Tabla de Ticket */
+        .ticket-container {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .ticket-header-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px;
+            background-color: var(--light-blue);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px; /* Para scroll en móviles */
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--primary-blue);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .text-right { text-align: right; }
+        
+        .ticket-totals {
+            padding: 16px;
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: flex-end;
+            gap: 24px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-grid { grid-template-columns: 1fr; }
+            .btn-qr { width: 100%; justify-content: center; }
+            .ticket-header-info { flex-direction: column; gap: 8px; }
+            .ticket-totals { flex-direction: column; align-items: flex-end; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-content">
+    <div class="page-header">
+        <h1>Generar Ticket de Almacén</h1>
+        <p style="color: var(--text-muted); margin: 0; font-size: 14px;">Busca artículos, indica la cantidad y genera el comprobante (Máx. 20 artículos).</p>
+    </div>
+
+    <div class="card">
+        <div class="search-grid">
+            <div class="input-group">
+                <label>Buscar Concepto (Nombre o Clave)</label>
+                <input type="text" id="input-busqueda" placeholder="EJ. ABRAZADERA O CLAVE...">
+            </div>
+            <div class="input-group">
+                <label>&nbsp;</label>
+                <button class="btn btn-qr" onclick="escanearQR()">
+                    <i data-lucide="qr-code"></i> Escanear QR
+                </button>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: end;">
+            <div class="input-group">
+                <label>Artículo Seleccionado</label>
+                <input type="text" id="input-articulo" readonly placeholder="SELECCIONA UN ARTÍCULO">
+            </div>
+            <div class="input-group">
+                <label>Precio Unitario ($)</label>
+                <input type="number" id="input-precio" readonly placeholder="0.00">
+            </div>
+            <div class="input-group">
+                <label>Cantidad a extraer</label>
+                <input type="number" id="input-cantidad" min="1" value="1">
+            </div>
+            <button class="btn btn-primary" onclick="agregarArticulo()">
+                <i data-lucide="plus-circle"></i> Agregar al Ticket
+            </button>
+        </div>
+    </div>
+
+    <div class="card" id="area-imprimir">
+        <div class="ticket-container">
+            <div class="ticket-header-info">
+                <div id="ticket-numero">TICKET-Cargando...</div>
+                <div id="ticket-fecha">Fecha: --/--/----</div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Clave</th>
+                        <th>Concepto</th>
+                        <th class="text-right">Cant.</th>
+                        <th class="text-right">Precio U.</th>
+                        <th class="text-right">Importe</th>
+                        <th class="accion-columna">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-ticket">
+                    </tbody>
+            </table>
+
+            <div class="ticket-totals">
+                <div>Artículos: <span id="total-articulos">0</span>/20</div>
+                <div style="color: var(--primary-blue);">Total: $<span id="total-importe">0.00</span></div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn btn-pdf" onclick="generarPDF()">
+        <i data-lucide="file-down"></i> Generar PDF del Ticket
+    </button>
+</div>
+
+<script>
+    // Inicializar Iconos
+    lucide.createIcons();
+
+    // Variables de Estado
+    let ticketActual = [];
+    const LIMITE_ARTICULOS = 20;
+    
+    // Forzar mayúsculas en todos los inputs de texto
+    document.querySelectorAll('input[type="text"]').forEach(input => {
+        input.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    });
+
+    // Inicializar página
+    document.addEventListener('DOMContentLoaded', () => {
+        establecerNumeroTicket();
+        document.getElementById('ticket-fecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-MX')} ${new Date().toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'})}`;
+        
+        // Simulación de búsqueda (Aquí conectarías con tu base de datos Firebase/Apps Script)
+        document.getElementById('input-busqueda').addEventListener('change', buscarArticuloMock);
+    });
+
+    // Generador de número de ticket irrepetible (secuencial local por ahora)
+    function establecerNumeroTicket() {
+        let ultimoTicket = localStorage.getItem('loreto_ultimo_ticket') || 0;
+        let nuevoNumero = parseInt(ultimoTicket) + 1;
+        document.getElementById('ticket-numero').innerText = `TICKET-${nuevoNumero}`;
+    }
+
+    function confirmarTicketGuardado() {
+        let ultimoTicket = localStorage.getItem('loreto_ultimo_ticket') || 0;
+        localStorage.setItem('loreto_ultimo_ticket', parseInt(ultimoTicket) + 1);
+        establecerNumeroTicket(); // Prepara el siguiente
+    }
+
+    // Simulación: Al escribir algo en buscar y perder el foco, llena los campos
+    function buscarArticuloMock(e) {
+        const busqueda = e.target.value;
+        if(busqueda) {
+            // Aquí harías la consulta real. Esto es un Mock.
+            document.getElementById('input-articulo').value = busqueda;
+            document.getElementById('input-precio').value = (Math.random() * 100 + 10).toFixed(2); // Precio aleatorio simulado
+        }
+    }
+
+    function escanearQR() {
+        alert("Abriendo cámara para escanear QR... (Aquí puedes integrar html5-qrcode)");
+    }
+
+    function agregarArticulo() {
+        if (ticketActual.length >= LIMITE_ARTICULOS) {
+            alert(`No puedes agregar más de ${LIMITE_ARTICULOS} artículos por ticket.`);
+            return;
+        }
+
+        const concepto = document.getElementById('input-articulo').value;
+        const precio = parseFloat(document.getElementById('input-precio').value);
+        const cantidad = parseFloat(document.getElementById('input-cantidad').value);
+
+        if (!concepto || isNaN(precio) || isNaN(cantidad) || cantidad <= 0) {
+            alert("Por favor busca un artículo válido e ingresa una cantidad.");
+            return;
+        }
+
+        // Generar clave simulada
+        const clave = concepto.substring(0, 5) + Math.floor(Math.random() * 100);
+
+        const nuevoItem = {
+            id: Date.now(),
+            clave: clave,
+            concepto: concepto,
+            cantidad: cantidad,
+            precio: precio,
+            importe: cantidad * precio
+        };
+
+        ticketActual.push(nuevoItem);
+        actualizarTabla();
+        
+        // Limpiar campos para el siguiente artículo
+        document.getElementById('input-busqueda').value = '';
+        document.getElementById('input-articulo').value = '';
+        document.getElementById('input-precio').value = '';
+        document.getElementById('input-cantidad').value = '1';
+    }
+
+    function eliminarArticulo(id) {
+        ticketActual = ticketActual.filter(item => item.id !== id);
+        actualizarTabla();
+    }
+
+    function actualizarTabla() {
+        const tbody = document.getElementById('tabla-ticket');
+        tbody.innerHTML = '';
+        
+        let totalImporte = 0;
+        let totalArticulos = 0;
+
+        ticketActual.forEach(item => {
+            totalImporte += item.importe;
+            totalArticulos += item.cantidad; // O .length si es por renglón
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.clave}</td>
+                <td>${item.concepto}</td>
+                <td class="text-right">${item.cantidad}</td>
+                <td class="text-right">$${item.precio.toFixed(2)}</td>
+                <td class="text-right">$${item.importe.toFixed(2)}</td>
+                <td class="accion-columna">
+                    <button class="btn btn-danger" onclick="eliminarArticulo(${item.id})">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('total-articulos').innerText = ticketActual.length;
+        document.getElementById('total-importe').innerText = totalImporte.toFixed(2);
+        lucide.createIcons(); // Re-renderizar iconos de basura
+    }
+
+    function generarPDF() {
+        if (ticketActual.length === 0) {
+            alert("El ticket está vacío. Agrega artículos primero.");
+            return;
+        }
+
+        // Ocultar botones de acción para el PDF
+        const elementosAccion = document.querySelectorAll('.accion-columna');
+        elementosAccion.forEach(el => el.style.display = 'none');
+
+        const elementoParaImprimir = document.getElementById('area-imprimir');
+        const numTicket = document.getElementById('ticket-numero').innerText;
+
+        const opciones = {
+            margin:       10,
+            filename:     `${numTicket}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opciones).from(elementoParaImprimir).save().then(() => {
+            // Restaurar vista y limpiar ticket una vez guardado
+            elementosAccion.forEach(el => el.style.display = '');
+            confirmarTicketGuardado();
+            ticketActual = [];
+            actualizarTabla();
+            alert("Ticket generado y descargado exitosamente.");
+        });
+    }
+</script>
+</body>
+</html>
