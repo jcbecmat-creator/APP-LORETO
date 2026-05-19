@@ -22,7 +22,7 @@
 
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* --- HEADER Y LAYOUT (Idéntico a inventario.html) --- */
+        /* --- HEADER Y LAYOUT --- */
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: white; border-bottom: 1px solid var(--border-color); z-index: 50; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .menu-btn { background: none; border: none; cursor: pointer; color: var(--text-main); }
@@ -55,6 +55,7 @@
 
         .search-container { position: relative; margin-bottom: 20px; }
         .search-grid { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
+        
         .input-group { display: flex; flex-direction: column; gap: 4px; position: relative; }
         .input-group label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
         
@@ -78,6 +79,7 @@
         .btn-qr:hover { background-color: #0f172a; }
         .btn-pdf { background-color: var(--success); color: white; width: 100%; font-size: 15px; padding: 14px; margin-top: 20px; }
         .btn-pdf:hover { background-color: #059669; }
+        .btn-pdf:disabled { background-color: #9ca3af; cursor: not-allowed; }
         .btn-danger { background-color: var(--danger); color: white; padding: 6px 10px; height: auto; border-radius: 6px;}
 
         #qr-reader-container { margin-top: 15px; display: none; border: 2px dashed var(--border-color); border-radius: 8px; padding: 10px; text-align: center; background: #fafafa; }
@@ -105,11 +107,16 @@
         .modal-small p { font-size: 15px; color: var(--text-main); margin-bottom: 25px; line-height: 1.5; font-weight: 600; }
         .modal-btn { border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.2s; }
 
+        .input-articulo-container { grid-column: span 2; }
+
         @media (max-width: 768px) {
             .search-grid { grid-template-columns: 1fr; }
             .button-group { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
             .ticket-header-info { flex-direction: column; gap: 8px; }
             .membrete-pdf { flex-direction: column; gap: 15px; text-align: center; }
+            
+            /* Ajuste para que las casillas en celular tengan el mismo tamaño */
+            .input-articulo-container { grid-column: span 1 !important; }
         }
         #conexion-loader { font-size: 12px; color: var(--success); font-weight: bold; display: flex; align-items: center; gap: 5px; }
     </style>
@@ -172,7 +179,7 @@
                             <label>Clave</label>
                             <input type="text" id="input-clave" readonly placeholder="---">
                         </div>
-                        <div class="input-group" style="grid-column: span 2;">
+                        <div class="input-group input-articulo-container">
                             <label>Artículo Seleccionado</label>
                             <input type="text" id="input-articulo" readonly placeholder="SELECCIONA UN ARTÍCULO">
                         </div>
@@ -186,7 +193,7 @@
                         </div>
                         <div class="input-group">
                             <label>Cant. Extraer</label>
-                            <input type="number" id="input-cantidad" min="1" value="1">
+                            <input type="number" id="input-cantidad" min="1" placeholder="Ej: 5">
                         </div>
                         <button class="btn-accion btn-primary" onclick="agregarArticulo()">
                             <i data-lucide="plus-circle"></i> Agregar
@@ -194,41 +201,43 @@
                     </div>
                 </div>
 
-                <div id="area-imprimir" style="background: white; padding-bottom: 1px;">
-                    <div class="ticket-container">
-                        
-                        <div class="membrete-pdf" id="membrete-pdf">
-                            <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="Logo Loreto">
-                            <div class="membrete-titulo">
-                                <h2>Loreto - Ingeniería, Construcción,<br>Edificación y Remodelación</h2>
+                <div id="contenedor-impresion" style="width: 100%; overflow-x: hidden;">
+                    <div id="area-imprimir" style="background: white; padding-bottom: 1px;">
+                        <div class="ticket-container" id="tabla-exportar">
+                            
+                            <div class="membrete-pdf" id="membrete-pdf">
+                                <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="Logo Loreto">
+                                <div class="membrete-titulo">
+                                    <h2>Loreto - Ingeniería, Construcción,<br>Edificación y Remodelación</h2>
+                                </div>
+                                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Maquinaria">
                             </div>
-                            <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Maquinaria">
-                        </div>
 
-                        <div class="ticket-header-info">
-                            <div id="ticket-numero">TICKET-Cargando...</div>
-                            <div id="ticket-fecha">Fecha: --/--/----</div>
-                        </div>
-                        
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 40px;" class="center">#</th>
-                                    <th>Clave</th>
-                                    <th>Concepto</th>
-                                    <th class="text-right">Cant.</th>
-                                    <th class="text-right">Precio U.</th>
-                                    <th class="text-right">Importe</th>
-                                    <th class="accion-columna">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabla-ticket">
-                                </tbody>
-                        </table>
+                            <div class="ticket-header-info">
+                                <div id="ticket-numero">TICKET-Cargando...</div>
+                                <div id="ticket-fecha">Fecha: --/--/----</div>
+                            </div>
+                            
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;" class="center">#</th>
+                                        <th>Clave</th>
+                                        <th>Concepto</th>
+                                        <th class="text-right">Cant.</th>
+                                        <th class="text-right">Precio U.</th>
+                                        <th class="text-right">Importe</th>
+                                        <th class="accion-columna">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-ticket">
+                                    </tbody>
+                            </table>
 
-                        <div class="ticket-totals">
-                            <div>Artículos: <span id="total-articulos">0</span>/20</div>
-                            <div style="color: var(--primary-blue);">Total: $<span id="total-importe">0.00</span></div>
+                            <div class="ticket-totals">
+                                <div>Artículos: <span id="total-articulos">0</span>/20</div>
+                                <div style="color: var(--primary-blue);">Total: $<span id="total-importe">0.00</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -272,7 +281,6 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Cargar menú lateral de manera dinámica (como en inventario.html)
         fetch('menu.html').then(res => res.text()).then(html => {
             document.getElementById('sidebar').innerHTML = html; 
             lucide.createIcons();
@@ -281,6 +289,7 @@
         });
         document.getElementById('toggle-menu').addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('open'); });
 
+        // Se inicializa consultando el contador a Firebase
         establecerNumeroTicket();
         document.getElementById('ticket-fecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-MX')} ${new Date().toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'})}`;
         
@@ -295,6 +304,25 @@
             }
         });
     });
+
+    // --- NUEVO: ESTABLECER NÚMERO DE TICKET DESDE FIREBASE ---
+    async function establecerNumeroTicket() {
+        document.getElementById('ticket-numero').innerText = `TICKET-Cargando...`;
+        try {
+            const doc = await db.collection("sistema").doc("contador_tickets").get();
+            let ultimoNumero = 0;
+            if (doc.exists) {
+                ultimoNumero = doc.data().ultimo || 0;
+            }
+            window.numeroTicketActual = ultimoNumero + 1; // Variable global para usar al guardar
+            document.getElementById('ticket-numero').innerText = `TICKET-${window.numeroTicketActual}`;
+        } catch(e) {
+            console.error("Error al obtener consecutivo de tickets", e);
+            // Fallback por si la conexión falla en este preciso momento
+            window.numeroTicketActual = 1;
+            document.getElementById('ticket-numero').innerText = `TICKET-1`;
+        }
+    }
 
     async function cargarInventarioDeFirebase() {
         const loader = document.getElementById('conexion-loader');
@@ -369,8 +397,11 @@
         document.getElementById('input-articulo').value = item.nombre;
         document.getElementById('input-precio').value = (item.precio || 0).toFixed(2);
         document.getElementById('input-stock').value = item.cantidad || 0; 
-        document.getElementById('input-cantidad').value = 1; 
-        document.getElementById('input-cantidad').focus();
+        
+        // Vaciamos la cantidad y forzamos el foco del cursor para dispositivos móviles y PC
+        const inputCantidad = document.getElementById('input-cantidad');
+        inputCantidad.value = ''; 
+        inputCantidad.focus();
     }
 
     function toggleScanner() {
@@ -417,7 +448,13 @@
         if (!articuloTemporal) { mostrarAlerta("Primero selecciona un artículo."); return; }
         if (ticketActual.length >= LIMITE_ARTICULOS) { mostrarAlerta(`Límite de ${LIMITE_ARTICULOS} artículos.`); return; }
 
-        const cantidadRequerida = parseFloat(document.getElementById('input-cantidad').value);
+        const inputCantidadStr = document.getElementById('input-cantidad').value;
+        if (!inputCantidadStr || inputCantidadStr.trim() === '') {
+            mostrarAlerta("Ingresa la cantidad a extraer.");
+            return;
+        }
+
+        const cantidadRequerida = parseFloat(inputCantidadStr);
         const stockActual = parseFloat(articuloTemporal.cantidad) || 0;
 
         if (isNaN(cantidadRequerida) || cantidadRequerida <= 0) { mostrarAlerta("Cantidad no válida."); return; }
@@ -441,7 +478,7 @@
         document.getElementById('input-articulo').value = '';
         document.getElementById('input-precio').value = '';
         document.getElementById('input-stock').value = '';
-        document.getElementById('input-cantidad').value = '1';
+        document.getElementById('input-cantidad').value = '';
     }
 
     function eliminarArticulo(idFila) {
@@ -482,12 +519,6 @@
         lucide.createIcons();
     }
 
-    function establecerNumeroTicket() {
-        let ultimoTicket = localStorage.getItem('loreto_ultimo_ticket') || 0;
-        let nuevoNumero = parseInt(ultimoTicket) + 1;
-        document.getElementById('ticket-numero').innerText = `TICKET-${nuevoNumero}`;
-    }
-
     function mostrarAlerta(mensaje, tipo = 'info') {
         const icono = document.getElementById('modal-icon');
         if(tipo === 'error') {
@@ -511,11 +542,17 @@
 
         const btnGenerar = document.getElementById('btn-generar-pdf');
         btnGenerar.disabled = true;
-        btnGenerar.innerHTML = `<i data-lucide="loader-2" class="animate-spin"></i> Procesando Firebase...`;
+        btnGenerar.innerHTML = `<i data-lucide="loader-2" class="animate-spin"></i> Procesando y Sincronizando...`;
         lucide.createIcons();
 
         try {
             const batch = db.batch();
+            
+            // 1. Guardar la actualización del contador en Firebase
+            const counterRef = db.collection("sistema").doc("contador_tickets");
+            batch.set(counterRef, { ultimo: window.numeroTicketActual }, { merge: true });
+
+            // 2. Preparar el descuento de los artículos
             ticketActual.forEach(item => {
                 const docRef = db.collection("inventario").doc(item.idFirebase);
                 batch.update(docRef, { 
@@ -523,12 +560,13 @@
                     ultima_actualizacion: firebase.firestore.FieldValue.serverTimestamp()
                 });
             });
+
             await batch.commit();
             await cargarInventarioDeFirebase(); 
             
         } catch (error) {
             console.error(error);
-            mostrarAlerta("Error al descontar de Firebase. Operación cancelada.", "error");
+            mostrarAlerta("Error al sincronizar con Firebase. Operación cancelada.", "error");
             btnGenerar.disabled = false;
             btnGenerar.innerHTML = `<i data-lucide="file-down"></i> Generar PDF y Descontar de Almacén`;
             lucide.createIcons();
@@ -539,8 +577,16 @@
         elementosAccion.forEach(el => el.style.display = 'none');
         const membrete = document.getElementById('membrete-pdf');
         membrete.style.display = 'flex';
+        
         const elementoParaImprimir = document.getElementById('area-imprimir');
+        const contenedorTabla = document.getElementById('tabla-exportar');
         const numTicket = document.getElementById('ticket-numero').innerText;
+
+        // NUEVO: Forzar resolución de PC temporalmente para crear el PDF correctamente desde un Celular
+        const anchoOriginal = elementoParaImprimir.style.width;
+        const overflowOriginal = contenedorTabla.style.overflowX;
+        elementoParaImprimir.style.width = '800px';
+        contenedorTabla.style.overflowX = 'visible';
 
         const opciones = {
             margin:       [5, 5, 5, 5],
@@ -551,16 +597,18 @@
         };
 
         html2pdf().set(opciones).from(elementoParaImprimir).save().then(() => {
+            // Restaurar configuración web de celular
+            elementoParaImprimir.style.width = anchoOriginal;
+            contenedorTabla.style.overflowX = overflowOriginal;
             elementosAccion.forEach(el => el.style.display = '');
             membrete.style.display = 'none'; 
             
-            let ultimo = localStorage.getItem('loreto_ultimo_ticket') || 0;
-            localStorage.setItem('loreto_ultimo_ticket', parseInt(ultimo) + 1);
+            // Solicitar el siguiente ticket automáticamente a Firebase
             establecerNumeroTicket();
             
             ticketActual = [];
             actualizarTabla();
-            mostrarAlerta("¡Ticket generado y artículos descontados de Firebase exitosamente!");
+            mostrarAlerta("¡Ticket generado y sincronizado con Firebase exitosamente!");
             
             btnGenerar.disabled = false;
             btnGenerar.innerHTML = `<i data-lucide="file-down"></i> Generar PDF y Descontar de Almacén`;
