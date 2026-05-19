@@ -6,15 +6,17 @@
     <title>Generar Ticket | Loreto</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     
     <style>
         :root {
-            --primary-blue: #1e3a8a; /* Azul de los botones en tu diseño */
+            --primary-blue: #1e3a8a;
             --light-blue: #eff6ff;
             --border-color: #e5e7eb;
             --text-main: #1f2937;
             --text-muted: #6b7280;
-            --accent-green: #14A981; /* Tu verde característico */
+            --accent-green: #14A981; /* Verde Empresa HDM */
+            --danger-red: #ef4444;
         }
 
         body {
@@ -24,164 +26,90 @@
             color: var(--text-main);
         }
 
-        .main-content {
-            padding: 20px;
-            max-width: 1200px;
-            margin: auto;
-            /* Asumiendo que el menú lateral ocupa espacio, ajusta según tu layout principal */
-        }
-
-        .page-header {
-            margin-bottom: 24px;
-        }
-
-        .page-header h1 {
-            font-size: 24px;
-            color: var(--primary-blue);
-            margin: 0 0 8px 0;
-        }
-
+        .main-content { padding: 20px; max-width: 1200px; margin: auto; }
+        .page-header { margin-bottom: 24px; }
+        .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 8px 0; }
+        
         .card {
-            background: white;
-            border-radius: 8px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            background: white; border-radius: 8px; padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px;
         }
 
         /* Formulario y Búsqueda */
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
         .search-grid {
             display: grid;
             grid-template-columns: 1fr auto;
             gap: 12px;
-            margin-bottom: 20px;
+            align-items: end;
         }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .input-group label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        input[type="text"], input[type="number"] {
-            padding: 10px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 14px;
-            width: 100%;
-            box-sizing: border-box;
-            text-transform: uppercase; /* Fuerza mayúsculas visualmente */
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-blue);
-            color: white;
-        }
-
-        .btn-primary:hover { background-color: #172554; }
-
-        .btn-qr {
-            background-color: var(--text-main);
-            color: white;
-        }
-
-        .btn-pdf {
-            background-color: var(--accent-green);
-            color: white;
-            width: 100%;
-            justify-content: center;
-            font-size: 16px;
-            padding: 12px;
-            margin-top: 20px;
-        }
-
-        .btn-danger {
-            background-color: #ef4444;
-            color: white;
-            padding: 6px 10px;
-        }
-
-        /* Tabla de Ticket */
-        .ticket-container {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow-x: auto;
-        }
-
-        .ticket-header-info {
-            display: flex;
-            justify-content: space-between;
-            padding: 16px;
-            background-color: var(--light-blue);
-            border-bottom: 1px solid var(--border-color);
-            font-weight: bold;
-            color: var(--primary-blue);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 600px; /* Para scroll en móviles */
-        }
-
-        th, td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 14px;
-        }
-
-        th {
-            background-color: #f8fafc;
-            color: var(--primary-blue);
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        .text-right { text-align: right; }
+        .input-group { display: flex; flex-direction: column; gap: 4px; position: relative; }
+        .input-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
         
-        .ticket-totals {
-            padding: 16px;
-            background-color: #f8fafc;
-            display: flex;
-            justify-content: flex-end;
-            gap: 24px;
-            font-size: 16px;
-            font-weight: bold;
+        input[type="text"], input[type="number"] {
+            padding: 10px 14px; border: 1px solid var(--border-color);
+            border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box;
+            text-transform: uppercase;
         }
+        input:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1); }
+        input:read-only { background-color: #f9fafb; color: var(--text-muted); }
 
-        /* Responsive */
+        /* Lista desplegable (Autocompletado) */
+        .dropdown-list {
+            position: absolute;
+            top: 100%; left: 0; right: 0;
+            background: white; border: 1px solid var(--border-color);
+            border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-height: 200px; overflow-y: auto; z-index: 10;
+            display: none; list-style: none; padding: 0; margin: 4px 0 0 0;
+        }
+        .dropdown-item {
+            padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #f3f4f6;
+            display: flex; justify-content: space-between;
+        }
+        .dropdown-item:hover { background-color: var(--light-blue); }
+        .dropdown-item span.stock { font-size: 12px; color: var(--text-muted); }
+
+        /* Botones */
+        .button-group { display: flex; gap: 8px; }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 600;
+            cursor: pointer; border: none; transition: all 0.2s; height: 40px;
+        }
+        .btn-primary { background-color: var(--primary-blue); color: white; }
+        .btn-primary:hover { background-color: #172554; }
+        .btn-secondary { background-color: #e5e7eb; color: var(--text-main); }
+        .btn-secondary:hover { background-color: #d1d5db; }
+        .btn-qr { background-color: var(--text-main); color: white; }
+        .btn-pdf { background-color: var(--accent-green); color: white; width: 100%; font-size: 16px; padding: 12px; margin-top: 20px; }
+        .btn-danger { background-color: var(--danger-red); color: white; padding: 6px 10px; height: auto;}
+
+        /* Lector QR */
+        #qr-reader-container {
+            margin-top: 15px; display: none; border: 2px dashed var(--border-color);
+            border-radius: 8px; padding: 10px; text-align: center; background: #fafafa;
+        }
+        #qr-reader { width: 100%; max-width: 500px; margin: 0 auto; }
+
+        /* Tabla */
+        .ticket-container { border: 1px solid var(--border-color); border-radius: 8px; overflow-x: auto; }
+        .ticket-header-info { display: flex; justify-content: space-between; padding: 16px; background-color: var(--light-blue); border-bottom: 1px solid var(--border-color); font-weight: bold; color: var(--primary-blue); }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+        th { background-color: #f8fafc; color: var(--primary-blue); font-size: 12px; text-transform: uppercase; }
+        .text-right { text-align: right; }
+        .ticket-totals { padding: 16px; background-color: #f8fafc; display: flex; justify-content: flex-end; gap: 24px; font-size: 16px; font-weight: bold; }
+
         @media (max-width: 768px) {
             .search-grid { grid-template-columns: 1fr; }
-            .btn-qr { width: 100%; justify-content: center; }
+            .button-group { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
             .ticket-header-info { flex-direction: column; gap: 8px; }
-            .ticket-totals { flex-direction: column; align-items: flex-end; gap: 8px; }
         }
     </style>
 </head>
@@ -190,25 +118,40 @@
 <div class="main-content">
     <div class="page-header">
         <h1>Generar Ticket de Almacén</h1>
-        <p style="color: var(--text-muted); margin: 0; font-size: 14px;">Busca artículos, indica la cantidad y genera el comprobante (Máx. 20 artículos).</p>
+        <p style="color: var(--text-muted); margin: 0; font-size: 14px;">Busca artículos por código/nombre o usa la cámara para escanear el QR.</p>
     </div>
 
     <div class="card">
-        <div class="search-grid">
-            <div class="input-group">
-                <label>Buscar Concepto (Nombre o Clave)</label>
-                <input type="text" id="input-busqueda" placeholder="EJ. ABRAZADERA O CLAVE...">
+        <div class="search-container">
+            <div class="search-grid">
+                <div class="input-group">
+                    <label>Buscar Concepto (Nombre o Clave)</label>
+                    <input type="text" id="input-busqueda" placeholder="EJ. ABRAZADERA O CLAVE..." autocomplete="off">
+                    <ul id="lista-desplegable" class="dropdown-list"></ul>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="buscarArticuloManual()">
+                        <i data-lucide="search"></i> Buscar
+                    </button>
+                    <button class="btn btn-qr" onclick="toggleScanner()" id="btn-toggle-qr">
+                        <i data-lucide="qr-code"></i> Escanear QR
+                    </button>
+                </div>
             </div>
-            <div class="input-group">
-                <label>&nbsp;</label>
-                <button class="btn btn-qr" onclick="escanearQR()">
-                    <i data-lucide="qr-code"></i> Escanear QR
-                </button>
+            
+            <div id="qr-reader-container">
+                <p style="color: var(--text-muted); margin-bottom: 10px; font-size: 14px;">Apunta la cámara al código QR del artículo</p>
+                <div id="qr-reader"></div>
+                <button class="btn btn-danger" style="margin-top: 10px;" onclick="cerrarScanner()">Cancelar Escaneo</button>
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: end;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; align-items: end;">
             <div class="input-group">
+                <label>Clave</label>
+                <input type="text" id="input-clave" readonly placeholder="---">
+            </div>
+            <div class="input-group" style="grid-column: span 2;">
                 <label>Artículo Seleccionado</label>
                 <input type="text" id="input-articulo" readonly placeholder="SELECCIONA UN ARTÍCULO">
             </div>
@@ -217,11 +160,15 @@
                 <input type="number" id="input-precio" readonly placeholder="0.00">
             </div>
             <div class="input-group">
-                <label>Cantidad a extraer</label>
+                <label>Stock Disponible</label>
+                <input type="number" id="input-stock" readonly placeholder="0">
+            </div>
+            <div class="input-group">
+                <label>Cant. a extraer</label>
                 <input type="number" id="input-cantidad" min="1" value="1">
             </div>
             <button class="btn btn-primary" onclick="agregarArticulo()">
-                <i data-lucide="plus-circle"></i> Agregar al Ticket
+                <i data-lucide="plus-circle"></i> Agregar
             </button>
         </div>
     </div>
@@ -261,90 +208,190 @@
 </div>
 
 <script>
-    // Inicializar Iconos
     lucide.createIcons();
 
-    // Variables de Estado
+    // ---------------------------------------------------------
+    // BASE DE DATOS SIMULADA (Reemplazar con Firebase/Apps Script)
+    // ---------------------------------------------------------
+    const baseDatosAlmacen = [
+        { clave: "BARR-01", nombre: "26 BARROTES", precio: 45.00, stock: 11 },
+        { clave: "ABRA-01", nombre: "ABRAZADERA CLIP 1/2", precio: 9.00, stock: 2 },
+        { clave: "ABRA-02", nombre: "ABRAZADERA CLIP 3/4", precio: 9.00, stock: 40 },
+        { clave: "ABRA-03", nombre: "ABRAZADERA DE 4 SIN FIN", precio: 14.00, stock: 6 },
+        { clave: "ACEI-01", nombre: "ACEITE QUEMADO", precio: 4.00, stock: 22 }
+    ];
+
+    // Variables globales
     let ticketActual = [];
     const LIMITE_ARTICULOS = 20;
-    
-    // Forzar mayúsculas en todos los inputs de texto
+    let html5QrcodeScanner = null;
+    let articuloTemporal = null; // Guarda temporalmente el artículo seleccionado
+
+    // Forzar mayúsculas
     document.querySelectorAll('input[type="text"]').forEach(input => {
-        input.addEventListener('input', function() {
-            this.value = this.value.toUpperCase();
-        });
+        input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
     });
 
-    // Inicializar página
     document.addEventListener('DOMContentLoaded', () => {
         establecerNumeroTicket();
         document.getElementById('ticket-fecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-MX')} ${new Date().toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'})}`;
         
-        // Simulación de búsqueda (Aquí conectarías con tu base de datos Firebase/Apps Script)
-        document.getElementById('input-busqueda').addEventListener('change', buscarArticuloMock);
+        // Listener para la barra de búsqueda en tiempo real
+        const inputBusqueda = document.getElementById('input-busqueda');
+        inputBusqueda.addEventListener('input', manejarBusquedaDesplegable);
+        
+        // Ocultar desplegable al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.input-group')) {
+                document.getElementById('lista-desplegable').style.display = 'none';
+            }
+        });
     });
 
-    // Generador de número de ticket irrepetible (secuencial local por ahora)
-    function establecerNumeroTicket() {
-        let ultimoTicket = localStorage.getItem('loreto_ultimo_ticket') || 0;
-        let nuevoNumero = parseInt(ultimoTicket) + 1;
-        document.getElementById('ticket-numero').innerText = `TICKET-${nuevoNumero}`;
-    }
+    // --- LÓGICA DE BÚSQUEDA Y DESPLEGABLE ---
+    function manejarBusquedaDesplegable(e) {
+        const texto = e.target.value.toUpperCase();
+        const lista = document.getElementById('lista-desplegable');
+        lista.innerHTML = '';
 
-    function confirmarTicketGuardado() {
-        let ultimoTicket = localStorage.getItem('loreto_ultimo_ticket') || 0;
-        localStorage.setItem('loreto_ultimo_ticket', parseInt(ultimoTicket) + 1);
-        establecerNumeroTicket(); // Prepara el siguiente
-    }
+        if (texto.length < 2) {
+            lista.style.display = 'none';
+            return;
+        }
 
-    // Simulación: Al escribir algo en buscar y perder el foco, llena los campos
-    function buscarArticuloMock(e) {
-        const busqueda = e.target.value;
-        if(busqueda) {
-            // Aquí harías la consulta real. Esto es un Mock.
-            document.getElementById('input-articulo').value = busqueda;
-            document.getElementById('input-precio').value = (Math.random() * 100 + 10).toFixed(2); // Precio aleatorio simulado
+        // Filtrar base de datos
+        const resultados = baseDatosAlmacen.filter(item => 
+            item.nombre.includes(texto) || item.clave.includes(texto)
+        );
+
+        if (resultados.length > 0) {
+            resultados.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'dropdown-item';
+                li.innerHTML = `<span><strong>${item.clave}</strong> - ${item.nombre}</span> <span class="stock">Stock: ${item.stock}</span>`;
+                li.onclick = () => seleccionarArticulo(item);
+                lista.appendChild(li);
+            });
+            lista.style.display = 'block';
+        } else {
+            lista.style.display = 'none';
         }
     }
 
-    function escanearQR() {
-        alert("Abriendo cámara para escanear QR... (Aquí puedes integrar html5-qrcode)");
+    // Botón manual de búsqueda (Busca el primero que coincida)
+    function buscarArticuloManual() {
+        const texto = document.getElementById('input-busqueda').value.toUpperCase();
+        if(!texto) return;
+
+        const encontrado = baseDatosAlmacen.find(item => 
+            item.nombre.includes(texto) || item.clave.includes(texto)
+        );
+
+        if (encontrado) {
+            seleccionarArticulo(encontrado);
+        } else {
+            alert("No se encontró ningún artículo con esa clave o nombre.");
+        }
     }
 
+    function seleccionarArticulo(item) {
+        articuloTemporal = item;
+        document.getElementById('input-busqueda').value = ''; // Limpiar barra
+        document.getElementById('lista-desplegable').style.display = 'none'; // Ocultar lista
+        
+        // Llenar campos inferiores
+        document.getElementById('input-clave').value = item.clave;
+        document.getElementById('input-articulo').value = item.nombre;
+        document.getElementById('input-precio').value = item.precio.toFixed(2);
+        document.getElementById('input-stock').value = item.stock;
+        document.getElementById('input-cantidad').value = 1; // Reset cantidad
+        document.getElementById('input-cantidad').focus();
+    }
+
+    // --- LÓGICA DEL ESCÁNER QR ---
+    function toggleScanner() {
+        const contenedor = document.getElementById('qr-reader-container');
+        if (contenedor.style.display === 'none' || contenedor.style.display === '') {
+            contenedor.style.display = 'block';
+            
+            // Inicializar escáner
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
+            .catch(err => {
+                alert("Error al acceder a la cámara. Asegúrate de dar permisos y usar HTTPS.");
+                cerrarScanner();
+            });
+        }
+    }
+
+    function cerrarScanner() {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop().then(() => {
+                document.getElementById('qr-reader-container').style.display = 'none';
+            }).catch(err => console.log("Error al detener", err));
+        }
+    }
+
+    function onScanSuccess(decodedText) {
+        // Se asume que el código QR contiene la CLAVE del producto
+        cerrarScanner();
+        
+        const textoEscaneado = decodedText.toUpperCase().trim();
+        const encontrado = baseDatosAlmacen.find(item => item.clave === textoEscaneado);
+        
+        if (encontrado) {
+            seleccionarArticulo(encontrado);
+            alert(`Artículo escaneado: ${encontrado.nombre}`);
+        } else {
+            alert(`Código QR leído: ${textoEscaneado}, pero no existe en el inventario actual.`);
+        }
+    }
+
+    // --- LÓGICA DEL TICKET Y STOCK ---
     function agregarArticulo() {
+        if (!articuloTemporal) {
+            alert("Primero busca y selecciona un artículo.");
+            return;
+        }
+
         if (ticketActual.length >= LIMITE_ARTICULOS) {
             alert(`No puedes agregar más de ${LIMITE_ARTICULOS} artículos por ticket.`);
             return;
         }
 
-        const concepto = document.getElementById('input-articulo').value;
-        const precio = parseFloat(document.getElementById('input-precio').value);
-        const cantidad = parseFloat(document.getElementById('input-cantidad').value);
+        const cantidadRequerida = parseFloat(document.getElementById('input-cantidad').value);
 
-        if (!concepto || isNaN(precio) || isNaN(cantidad) || cantidad <= 0) {
-            alert("Por favor busca un artículo válido e ingresa una cantidad.");
+        // VALIDACIÓN DE STOCK
+        if (isNaN(cantidadRequerida) || cantidadRequerida <= 0) {
+            alert("Ingresa una cantidad válida mayor a 0.");
+            return;
+        }
+        if (cantidadRequerida > articuloTemporal.stock) {
+            alert(`¡No hay suficiente en almacén! \nStock disponible de ${articuloTemporal.nombre}: ${articuloTemporal.stock} piezas.`);
             return;
         }
 
-        // Generar clave simulada
-        const clave = concepto.substring(0, 5) + Math.floor(Math.random() * 100);
-
+        // Agregar al ticket
         const nuevoItem = {
             id: Date.now(),
-            clave: clave,
-            concepto: concepto,
-            cantidad: cantidad,
-            precio: precio,
-            importe: cantidad * precio
+            clave: articuloTemporal.clave,
+            concepto: articuloTemporal.nombre,
+            cantidad: cantidadRequerida,
+            precio: articuloTemporal.precio,
+            importe: cantidadRequerida * articuloTemporal.precio
         };
 
         ticketActual.push(nuevoItem);
         actualizarTabla();
         
-        // Limpiar campos para el siguiente artículo
-        document.getElementById('input-busqueda').value = '';
+        // Limpiar formulario inferior
+        articuloTemporal = null;
+        document.getElementById('input-clave').value = '';
         document.getElementById('input-articulo').value = '';
         document.getElementById('input-precio').value = '';
+        document.getElementById('input-stock').value = '';
         document.getElementById('input-cantidad').value = '1';
     }
 
@@ -362,7 +409,7 @@
 
         ticketActual.forEach(item => {
             totalImporte += item.importe;
-            totalArticulos += item.cantidad; // O .length si es por renglón
+            totalArticulos += item.cantidad;
             
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -382,7 +429,14 @@
 
         document.getElementById('total-articulos').innerText = ticketActual.length;
         document.getElementById('total-importe').innerText = totalImporte.toFixed(2);
-        lucide.createIcons(); // Re-renderizar iconos de basura
+        lucide.createIcons();
+    }
+
+    // --- MANEJO DE PDF ---
+    function establecerNumeroTicket() {
+        let ultimoTicket = localStorage.getItem('loreto_ultimo_ticket') || 0;
+        let nuevoNumero = parseInt(ultimoTicket) + 1;
+        document.getElementById('ticket-numero').innerText = `TICKET-${nuevoNumero}`;
     }
 
     function generarPDF() {
@@ -391,7 +445,6 @@
             return;
         }
 
-        // Ocultar botones de acción para el PDF
         const elementosAccion = document.querySelectorAll('.accion-columna');
         elementosAccion.forEach(el => el.style.display = 'none');
 
@@ -399,20 +452,18 @@
         const numTicket = document.getElementById('ticket-numero').innerText;
 
         const opciones = {
-            margin:       10,
-            filename:     `${numTicket}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            margin: 10, filename: `${numTicket}.pdf`, image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         html2pdf().set(opciones).from(elementoParaImprimir).save().then(() => {
-            // Restaurar vista y limpiar ticket una vez guardado
             elementosAccion.forEach(el => el.style.display = '');
-            confirmarTicketGuardado();
+            let ultimo = localStorage.getItem('loreto_ultimo_ticket') || 0;
+            localStorage.setItem('loreto_ultimo_ticket', parseInt(ultimo) + 1);
+            establecerNumeroTicket();
             ticketActual = [];
             actualizarTabla();
-            alert("Ticket generado y descargado exitosamente.");
+            alert("Ticket generado y guardado.");
         });
     }
 </script>
