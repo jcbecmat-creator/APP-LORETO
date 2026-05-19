@@ -11,12 +11,12 @@
     
     <style>
         :root {
-            --primary-blue: #263fa4; /* Azul Loreto */
+            --primary-blue: #263fa4;
             --light-blue: #eff6ff;
             --border-color: #e5e7eb;
             --text-main: #1f2937;
             --text-muted: #6b7280;
-            --accent-green: #14A981; /* Verde HDM */
+            --accent-green: #14A981;
             --danger-red: #ef4444;
             --sidebar-width: 250px;
         }
@@ -41,17 +41,7 @@
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
-        }
-
-        .sidebar-header-logo {
-            padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .sidebar-header-logo img {
-            max-width: 120px;
-            height: auto;
+            padding-top: 20px; /* Espacio superior para compensar logo eliminado */
         }
 
         .sidebar-nav {
@@ -60,47 +50,23 @@
             flex-direction: column;
         }
 
-        .sidebar-section {
-            margin-bottom: 15px;
-        }
+        .sidebar-section { margin-bottom: 15px; }
 
         .section-title {
-            padding: 0 20px;
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            font-weight: bold;
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
+            padding: 0 20px; font-size: 11px; text-transform: uppercase;
+            color: var(--text-muted); font-weight: bold; margin-bottom: 8px; letter-spacing: 0.5px;
         }
 
         .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            color: var(--text-main);
-            text-decoration: none;
-            font-size: 14px;
-            transition: background-color 0.2s, color 0.2s;
-            gap: 12px;
+            display: flex; align-items: center; padding: 10px 20px; color: var(--text-main);
+            text-decoration: none; font-size: 14px; transition: background-color 0.2s, color 0.2s; gap: 12px;
         }
 
-        .nav-item:hover {
-            background-color: var(--light-blue);
-            color: var(--primary-blue);
-        }
-
-        .nav-item i {
-            width: 18px;
-            height: 18px;
-            color: var(--primary-blue);
-        }
+        .nav-item:hover { background-color: var(--light-blue); color: var(--primary-blue); }
+        .nav-item i { width: 18px; height: 18px; color: var(--primary-blue); }
 
         .main-content {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            background-color: #f3f4f6;
+            flex: 1; padding: 30px; overflow-y: auto; background-color: #f3f4f6;
         }
 
         /* --- CONTENIDO DE LA PÁGINA --- */
@@ -158,9 +124,9 @@
         /* --- TICKET Y PDF --- */
         .ticket-container { border: 1px solid var(--border-color); border-radius: 8px; overflow-x: auto; background: white; }
         
-        /* Estilos del Membrete (Logos y Título) */
+        /* Membrete (Oculto en web, visible solo en PDF) */
         .membrete-pdf {
-            display: flex;
+            display: none; /* Oculto por defecto */
             align-items: center;
             justify-content: space-between;
             padding: 20px;
@@ -168,18 +134,8 @@
             background-color: white;
         }
         .membrete-pdf img { height: 60px; object-fit: contain; }
-        .membrete-titulo {
-            text-align: center;
-            flex: 1;
-            padding: 0 15px;
-        }
-        .membrete-titulo h2 {
-            margin: 0;
-            font-size: 18px;
-            color: var(--primary-blue);
-            text-transform: uppercase;
-            line-height: 1.2;
-        }
+        .membrete-titulo { text-align: center; flex: 1; padding: 0 15px; }
+        .membrete-titulo h2 { margin: 0; font-size: 18px; color: var(--primary-blue); text-transform: uppercase; line-height: 1.2; }
 
         .ticket-header-info { display: flex; justify-content: space-between; padding: 12px 20px; background-color: var(--light-blue); border-bottom: 1px solid var(--border-color); font-weight: bold; color: var(--primary-blue); font-size: 14px;}
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
@@ -188,29 +144,14 @@
         .text-right { text-align: right; }
         .ticket-totals { padding: 16px 20px; background-color: #f8fafc; display: flex; justify-content: flex-end; gap: 24px; font-size: 16px; font-weight: bold; }
 
-        /* --- MODAL DE ALERTA PERSONALIZADO --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s;
-        }
+        /* --- MODAL --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-content {
-            background: white; border-radius: 12px; padding: 30px;
-            width: 90%; max-width: 400px; text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); transform: translateY(-20px); transition: all 0.3s;
-        }
+        .modal-content { background: white; border-radius: 12px; padding: 30px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transform: translateY(-20px); transition: all 0.3s; }
         .modal-overlay.active .modal-content { transform: translateY(0); }
-        .modal-icon {
-            width: 48px; height: 48px; color: var(--primary-blue); margin: 0 auto 15px;
-        }
+        .modal-icon { width: 48px; height: 48px; color: var(--primary-blue); margin: 0 auto 15px; }
         .modal-text { font-size: 16px; color: var(--text-main); margin-bottom: 25px; line-height: 1.5; }
-        .modal-btn {
-            background-color: var(--accent-green); color: white; border: none;
-            padding: 12px 30px; border-radius: 6px; font-size: 15px; font-weight: bold;
-            cursor: pointer; width: 100%; transition: background 0.2s;
-        }
+        .modal-btn { background-color: var(--accent-green); color: white; border: none; padding: 12px 30px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.2s; }
         .modal-btn:hover { background-color: #118f6d; }
 
         @media (max-width: 768px) {
@@ -226,9 +167,6 @@
 <body>
 
 <aside class="sidebar">
-    <div class="sidebar-header-logo">
-        <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="Logo Loreto">
-    </div>
     <nav class="sidebar-nav">
         <a href="inicio.html" class="nav-item" id="link-inicio"><i data-lucide="home"></i> Inicio</a>
 
@@ -340,7 +278,7 @@
     <div id="area-imprimir" style="background: white; padding-bottom: 1px;">
         <div class="ticket-container">
             
-            <div class="membrete-pdf">
+            <div class="membrete-pdf" id="membrete-pdf">
                 <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="Logo Loreto">
                 <div class="membrete-titulo">
                     <h2>Loreto - Ingeniería, Construcción,<br>Edificación y Remodelación</h2>
@@ -356,7 +294,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Clave</th>
+                        <th style="width: 40px;">#</th> <th>Clave</th>
                         <th>Concepto</th>
                         <th class="text-right">Cant.</th>
                         <th class="text-right">Precio U.</th>
@@ -391,9 +329,6 @@
 <script>
     lucide.createIcons();
 
-    // ---------------------------------------------------------
-    // FUNCIONES DEL MODAL PERSONALIZADO (Reemplaza al alert)
-    // ---------------------------------------------------------
     function mostrarAlerta(mensaje) {
         document.getElementById('modal-mensaje').innerText = mensaje;
         document.getElementById('modal-alerta').classList.add('active');
@@ -404,14 +339,19 @@
     }
 
     // ---------------------------------------------------------
-    // BASE DE DATOS SIMULADA
+    // BASE DE DATOS SIMULADA (Actualizada con los artículos de tu captura)
     // ---------------------------------------------------------
     const baseDatosAlmacen = [
         { clave: "BARR-01", nombre: "26 BARROTES", precio: 45.00, stock: 11 },
         { clave: "ABRA-01", nombre: "ABRAZADERA CLIP 1/2", precio: 9.00, stock: 2 },
         { clave: "ABRA-02", nombre: "ABRAZADERA CLIP 3/4", precio: 9.00, stock: 40 },
         { clave: "ABRA-03", nombre: "ABRAZADERA DE 4 SIN FIN", precio: 14.00, stock: 6 },
-        { clave: "ACEI-01", nombre: "ACEITE QUEMADO", precio: 4.00, stock: 22 }
+        { clave: "ACEI-01", nombre: "ACEITE QUEMADO", precio: 4.00, stock: 22 },
+        // Artículos agregados para que funcione la búsqueda de tu ejemplo:
+        { clave: "FORRO 1/2*5/8", nombre: "AISLAN DE TUBERÍA A 1/2*5/8", precio: 15.00, stock: 26 },
+        { clave: "AISLANTE 7/8-1/2", nombre: "AISLANTE 7/8-1/2", precio: 18.00, stock: 30 },
+        { clave: "ALAMBRE N14", nombre: "ALAMBRE GALVANIZADO N14", precio: 22.00, stock: 2 },
+        { clave: "ACRILASTC", nombre: "ACRILASTC BLANCO", precio: 120.00, stock: 24 }
     ];
 
     let ticketActual = [];
@@ -476,7 +416,7 @@
         if (encontrado) {
             seleccionarArticulo(encontrado);
         } else {
-            mostrarAlerta("No se encontró ningún artículo con esa clave o nombre.");
+            mostrarAlerta("No se encontró ningún artículo con esa clave o nombre en la base de datos de prueba.");
         }
     }
 
@@ -584,13 +524,13 @@
         let totalImporte = 0;
         let totalArticulos = 0;
 
-        ticketActual.forEach(item => {
+        ticketActual.forEach((item, index) => {
             totalImporte += item.importe;
             totalArticulos += item.cantidad;
             
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${item.clave}</td>
+                <td><strong>${index + 1}</strong></td> <td>${item.clave}</td>
                 <td>${item.concepto}</td>
                 <td class="text-right">${item.cantidad}</td>
                 <td class="text-right">$${item.precio.toFixed(2)}</td>
@@ -621,8 +561,13 @@
             return;
         }
 
+        // 1. Ocultar botones de acción (basurero)
         const elementosAccion = document.querySelectorAll('.accion-columna');
         elementosAccion.forEach(el => el.style.display = 'none');
+
+        // 2. Mostrar el membrete SOLO para capturarlo en el PDF
+        const membrete = document.getElementById('membrete-pdf');
+        membrete.style.display = 'flex';
 
         const elementoParaImprimir = document.getElementById('area-imprimir');
         const numTicket = document.getElementById('ticket-numero').innerText;
@@ -631,12 +576,15 @@
             margin:       [5, 5, 5, 5],
             filename:     `${numTicket}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true }, // useCORS permite que los logos externos carguen en el PDF
+            html2canvas:  { scale: 2, useCORS: true }, 
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         html2pdf().set(opciones).from(elementoParaImprimir).save().then(() => {
+            // 3. Restaurar vista normal en la web
             elementosAccion.forEach(el => el.style.display = '');
+            membrete.style.display = 'none'; // Ocultar membrete de nuevo
+            
             let ultimo = localStorage.getItem('loreto_ultimo_ticket') || 0;
             localStorage.setItem('loreto_ultimo_ticket', parseInt(ultimo) + 1);
             establecerNumeroTicket();
