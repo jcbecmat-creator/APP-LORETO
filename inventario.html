@@ -23,26 +23,21 @@
 
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
+        /* --- LAYOUT --- */
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: white; border-bottom: 1px solid var(--border-color); z-index: 50; }
         .header-left { display: flex; align-items: center; gap: 15px; }
-        .menu-btn { background: none; border: none; cursor: pointer; color: var(--text-main); }
-        .header-title { margin: 0; font-size: 15px; font-weight: 700; color: var(--primary-blue); }
-        .header-right { display: flex; align-items: center; gap: 12px; }
-        .user-initial { width: 35px; height: 35px; border-radius: 50%; background-color: var(--primary-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-
         .main-layout { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 260px; background: white; border-right: 1px solid var(--border-color); overflow-y: auto; transition: transform 0.3s ease; display: flex; flex-direction: column; }
-        @media (max-width: 768px) { .sidebar { position: fixed; height: calc(100vh - 60px); transform: translateX(-100%); z-index: 40; } .sidebar.open { transform: translateX(0); } .header-title { display: none; } }
-
+        .sidebar { width: 260px; background: white; border-right: 1px solid var(--border-color); overflow-y: auto; display: flex; flex-direction: column; }
         .content { flex: 1; padding: 20px; overflow-y: auto; }
         .container { max-width: 98%; margin: 0 auto; }
-        
-        .page-header { margin-bottom: 25px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
-        .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
 
+        /* --- FILTROS Y TABLA --- */
         .filters-bar { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-color); display: flex; gap: 16px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap;}
         .form-input { padding: 0 16px; height: 42px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; color: var(--text-main); width: 100%; box-sizing: border-box; background: var(--bg-color); }
-        .btn-primary { background: var(--primary-blue); color: white; border: none; height: 42px; padding: 0 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .table-responsive { width: 100%; overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); background: white;}
+        .data-table { width: 100%; border-collapse: collapse; min-width: 1400px; }
+        .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 12px 10px; text-align: left; border-bottom: 2px solid var(--border-color); }
+        .data-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 12px; }
         
         /* Botón Flotante */
         .floating-btn {
@@ -51,15 +46,10 @@
             cursor: pointer; box-shadow: 0 4px 15px rgba(38, 63, 164, 0.4); z-index: 1000; transition: transform 0.2s;
         }
         #qr-counter { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
-
-        /* Tabla */
-        .table-responsive { width: 100%; overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); background: white;}
-        .data-table { width: 100%; border-collapse: collapse; min-width: 1200px; }
-        .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 12px; text-align: left; border-bottom: 2px solid var(--border-color); }
-        .data-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 12px; }
         
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .modal-card { background: white; width: 100%; max-width: 600px; border-radius: 16px; padding: 25px; }
+        .btn-primary { background: var(--primary-blue); color: white; border: none; height: 42px; padding: 0 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .btn-action-blue { background: var(--primary-blue); color: white; border: none; height: 30px; padding: 0 10px; border-radius: 6px; cursor: pointer;}
+        .btn-action-red { background: var(--danger); color: white; border: none; height: 30px; padding: 0 10px; border-radius: 6px; cursor: pointer;}
     </style>
 </head>
 <body>
@@ -67,34 +57,38 @@
     <header class="header">
         <div class="header-left">
             <button class="menu-btn" id="toggle-menu"><i data-lucide="menu"></i></button>
-            <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Logo" style="height: 35px; object-fit: contain;">
-            <h1 class="header-title">Almacén</h1>
+            <h1 class="header-title">Inventario de Almacén</h1>
         </div>
-        <div class="header-right"><div class="user-initial">A</div></div>
     </header>
 
     <div class="main-layout">
         <aside class="sidebar" id="sidebar"></aside>
-
         <main class="content">
             <div class="container">
                 <div class="page-header">
                     <h1>Inventario de Almacén</h1>
-                    <p>Administra materiales. Selecciona conceptos para generar etiquetas QR.</p>
+                    <p>Administra materiales y herramientas. Genera etiquetas QR.</p>
                 </div>
 
                 <div class="filters-bar">
-                    <input type="text" class="form-input" id="filtro-buscar" placeholder="Buscar..." onkeyup="renderTabla()" style="max-width: 300px;">
+                    <input type="text" class="form-input" id="filtro-buscar" placeholder="Buscar por clave o nombre..." onkeyup="renderTabla()" style="max-width: 300px;">
                     <button class="btn-primary" onclick="abrirModalArticulo()"><i data-lucide="plus-circle"></i> Agregar</button>
                 </div>
 
-                <div class="table-responsive">
+                <div class="table-responsive" id="tabla-container">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Seleccionar</th>
-                                <th>Nombre</th>
+                                <th>Fecha y Hora</th>
+                                <th>Categoría</th>
                                 <th>Clave</th>
+                                <th>Unidad</th>
+                                <th>Nombre</th>
+                                <th>Cantidad</th>
+                                <th>Costo</th>
+                                <th>Precio</th>
+                                <th>Importe</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
@@ -117,26 +111,50 @@
     let dataInventario = [];
 
     document.addEventListener('DOMContentLoaded', () => {
+        fetch('menu.html').then(res => res.text()).then(html => {
+            document.getElementById('sidebar').innerHTML = html; lucide.createIcons();
+        });
         cargarInventario();
     });
 
     async function cargarInventario() {
-        const snap = await db.collection("inventario").get();
+        const snap = await db.collection("inventario").orderBy("nombre").get();
         dataInventario = [];
         snap.forEach(doc => dataInventario.push({ id: doc.id, ...doc.data() }));
         renderTabla();
     }
 
+    function formatMoney(amount) { return parseFloat(amount).toLocaleString('es-MX', {style: 'currency', currency: 'MXN'}); }
+    function formatDate(timestampObj) {
+        if (!timestampObj) return '-';
+        let date = timestampObj.toDate ? timestampObj.toDate() : new Date(timestampObj);
+        return date.toLocaleString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+
     function renderTabla() {
         const tbody = document.getElementById('tabla-body');
         tbody.innerHTML = '';
-        dataInventario.forEach(row => {
+        const fBuscar = document.getElementById('filtro-buscar').value.toLowerCase();
+
+        dataInventario.filter(t => !fBuscar || (t.nombre || "").toLowerCase().includes(fBuscar) || (t.clave || "").toLowerCase().includes(fBuscar)).forEach(row => {
             let tr = document.createElement('tr');
+            let cant = parseFloat(row.cantidad) || 0;
+            let precio = parseFloat(row.precio) || 0;
             tr.innerHTML = `
                 <td><input type="checkbox" class="qr-chk" value="${row.id}" onchange="validarSeleccionQR()"></td>
-                <td>${row.nombre}</td>
+                <td>${formatDate(row.ultima_actualizacion)}</td>
+                <td>${row.categoria}</td>
                 <td>${row.clave}</td>
-                <td><button onclick="abrirModalArticulo('${row.id}')">Editar</button></td>
+                <td>${row.unidad}</td>
+                <td>${row.nombre}</td>
+                <td>${cant}</td>
+                <td>${formatMoney(row.costo)}</td>
+                <td>${formatMoney(precio)}</td>
+                <td>${formatMoney(cant * precio)}</td>
+                <td>
+                    <button class="btn-action-blue" onclick="abrirModalArticulo('${row.id}')"><i data-lucide="edit-3"></i></button>
+                    <button class="btn-action-red" onclick="eliminarArticulo('${row.id}')"><i data-lucide="trash-2"></i></button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -166,10 +184,10 @@
         hiddenContainer.style.top = '0';
         hiddenContainer.style.left = '0';
         hiddenContainer.style.visibility = 'hidden';
-        hiddenContainer.style.width = '750px';
+        hiddenContainer.style.width = '800px';
         
         const wrap = document.createElement('div');
-        wrap.style.width = '100%';
+        wrap.style.width = '800px';
         wrap.style.backgroundColor = '#ffffff';
 
         const items = Array.from(checked).map(chk => dataInventario.find(d => d.id === chk.value)).filter(Boolean);
@@ -179,37 +197,41 @@
             const chunk = items.slice(i, i + chunkSize);
             const pageDiv = document.createElement('div');
             pageDiv.style.padding = '30px';
-            pageDiv.style.width = '750px';
+            pageDiv.style.width = '800px';
+            pageDiv.style.height = '1050px';
             pageDiv.style.backgroundColor = '#ffffff';
             
-            const grid = document.createElement('div');
-            grid.style.display = 'flex';
-            grid.style.flexWrap = 'wrap';
-            grid.style.gap = '15px';
+            pageDiv.innerHTML = `
+                <div style="text-align:center; margin-bottom: 20px;">
+                    <h1 style="font-size: 20px; color: #263fa4;">Etiquetas de Almacén - Loreto</h1>
+                </div>
+                <div class="grid" style="display: flex; flex-wrap: wrap; gap: 15px;"></div>
+            `;
             
+            const grid = pageDiv.querySelector('.grid');
             chunk.forEach(item => {
                 const label = document.createElement('div');
-                label.style.width = '360px';
+                label.style.width = '370px';
+                label.style.height = '130px';
                 label.style.border = '2px dashed #94a3b8';
                 label.style.padding = '10px';
                 label.style.display = 'flex';
                 label.style.alignItems = 'center';
                 label.style.justifyContent = 'space-between';
-                label.style.height = '120px';
+                label.style.boxSizing = 'border-box';
                 
-                const info = document.createElement('div');
-                info.style.width = '60%';
-                info.innerHTML = `<div style="font-weight:900;">${item.nombre}</div><div>Clave: ${item.clave}</div>`;
+                label.innerHTML = `
+                    <div style="width:60%; font-size:12px;">
+                        <div style="font-weight:900; color:#263fa4;">${item.nombre}</div>
+                        <div>Clave: ${item.clave}</div>
+                        <div>Cat: ${item.categoria}</div>
+                    </div>
+                    <div class="qr-box" style="width:90px; height:90px;"></div>
+                `;
                 
-                const qrBox = document.createElement('div');
-                label.appendChild(info);
-                label.appendChild(qrBox);
                 grid.appendChild(label);
-                
-                // QR PERMANENTE basado en el ID único
-                new QRCode(qrBox, { text: item.id, width: 80, height: 80 });
+                new QRCode(label.querySelector('.qr-box'), { text: item.id, width: 90, height: 90 });
             });
-            pageDiv.appendChild(grid);
             wrap.appendChild(pageDiv);
         }
 
@@ -218,8 +240,8 @@
 
         setTimeout(() => {
             html2pdf().set({
-                margin: 10,
-                filename: 'Etiquetas.pdf',
+                margin: 0,
+                filename: 'Etiquetas_QR.pdf',
                 jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
             }).from(wrap).save().then(() => {
                 document.body.removeChild(hiddenContainer);
