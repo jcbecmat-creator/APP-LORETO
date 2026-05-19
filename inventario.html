@@ -340,6 +340,7 @@
         reader.readAsText(file, 'UTF-8');
     }
 
+
     async function cargarInventario() {
         document.getElementById('loader').style.display = 'flex';
         document.getElementById('tabla-container').style.display = 'none';
@@ -489,7 +490,7 @@
     // LÓGICA DE CÓDIGOS QR Y PAGINACIÓN DE PDF
     // ==========================================
     function validarSeleccionQR() {
-        // Se ha removido la validación de 8 elementos como solicitaste
+        // Se ha removido la validación de 8 elementos para permitir impresión masiva
         const btnPrint = document.getElementById('btn-imprimir-qr');
         if(document.querySelectorAll('.qr-chk:checked').length > 0) {
             btnPrint.style.display = 'inline-flex';
@@ -507,75 +508,76 @@
         btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando PDF...';
         lucide.createIcons();
 
-        // 1. Contenedor invisible absoluto para que html2canvas lo detecte sin mostrarlo al usuario
+        // 1. Contenedor invisible pero posicionado en (0,0) para evitar que html2canvas recorte la imagen.
         const hiddenContainer = document.createElement('div');
         hiddenContainer.style.position = 'absolute';
         hiddenContainer.style.top = '0';
-        hiddenContainer.style.left = '-9999px'; // Lo sacamos de la pantalla pero el DOM lo lee
-        hiddenContainer.style.width = '800px'; 
+        hiddenContainer.style.left = '0';
+        hiddenContainer.style.visibility = 'hidden'; // Oculto al ojo humano, visible para el motor
         hiddenContainer.style.zIndex = '-9999';
+        hiddenContainer.style.width = '750px'; 
         
         const wrap = document.createElement('div');
-        wrap.style.width = '800px'; 
+        wrap.style.width = '100%'; 
         wrap.style.backgroundColor = '#ffffff';
 
-        // 2. Extraer datos y separar en bloques de 8 (Paginación)
+        // 2. Extraer datos y separar en bloques de 10 (Paginación: 5 filas x 2 columnas)
         const items = Array.from(checked).map(chk => dataInventario.find(d => d.id === chk.value)).filter(Boolean);
-        const chunkSize = 8;
+        const chunkSize = 10;
         
         for (let i = 0; i < items.length; i += chunkSize) {
             const chunk = items.slice(i, i + chunkSize);
             
-            // Cada 'pageDiv' es físicamente una hoja
+            // Cada 'pageDiv' representa una hoja del PDF
             const pageDiv = document.createElement('div');
-            pageDiv.style.padding = '30px 40px';
+            pageDiv.style.padding = '0'; 
             pageDiv.style.boxSizing = 'border-box';
-            pageDiv.style.width = '800px';
-            pageDiv.style.height = '1050px'; // Forzar altura tipo Letter (Carta) en px
+            pageDiv.style.width = '100%';
             pageDiv.style.backgroundColor = '#ffffff';
 
             // Cabecera del PDF
             pageDiv.innerHTML = `
-                <div style="text-align:center; border-bottom: 2px solid #263fa4; padding-bottom: 10px; margin-bottom: 30px;">
-                    <h1 style="margin: 0; font-size: 22px; color: #263fa4; text-transform: uppercase; font-weight: 800; font-family: Arial, sans-serif;">Etiquetas de Almacén - Loreto</h1>
-                    <p style="margin: 5px 0 0 0; font-size: 13px; color: #64748b; font-family: Arial, sans-serif;">Escanear QR para identificar el concepto en el sistema.</p>
+                <div style="text-align:center; border-bottom: 2px solid #263fa4; padding-bottom: 10px; margin-bottom: 20px;">
+                    <h1 style="margin: 0; font-size: 20px; color: #263fa4; text-transform: uppercase; font-weight: 800; font-family: Arial, sans-serif;">Etiquetas de Almacén - Loreto</h1>
+                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #64748b; font-family: Arial, sans-serif;">Escanear QR para identificar el concepto en el sistema.</p>
                 </div>
-                <div class="etiquetas-grid" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-content: flex-start; font-family: Arial, sans-serif;"></div>
+                <div class="etiquetas-grid" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-content: flex-start; font-family: Arial, sans-serif;"></div>
             `;
 
             const grid = pageDiv.querySelector('.etiquetas-grid');
 
-            // Diseñar las etiquetas (sin precios, solo datos base)
+            // Diseñar las etiquetas (sin precios, solo datos base y QR Permanente)
             chunk.forEach(item => {
                 const label = document.createElement('div');
-                label.style.width = 'calc(50% - 10px)'; // 2 columnas
+                label.style.width = 'calc(50% - 7.5px)'; 
                 label.style.border = '2px dashed #94a3b8';
                 label.style.borderRadius = '12px';
-                label.style.padding = '15px';
+                label.style.padding = '12px';
                 label.style.boxSizing = 'border-box';
                 label.style.display = 'flex';
                 label.style.alignItems = 'center';
                 label.style.justifyContent = 'space-between';
                 label.style.marginBottom = '10px';
-                label.style.height = '150px'; 
+                label.style.height = '140px'; 
                 label.style.backgroundColor = '#ffffff';
                 
                 const info = document.createElement('div');
                 info.style.width = '65%';
                 info.style.fontSize = '12px';
-                info.style.lineHeight = '1.6';
+                info.style.lineHeight = '1.4';
                 info.style.color = '#1e293b';
+                info.style.overflow = 'hidden';
                 
                 info.innerHTML = `
-                    <div style="font-size:14px; font-weight:900; color:#263fa4; margin-bottom:8px; line-height:1.2; max-height:34px; overflow:hidden;">${item.nombre}</div>
+                    <div style="font-size:13px; font-weight:900; color:#263fa4; margin-bottom:6px; line-height:1.2; max-height:30px; overflow:hidden;">${item.nombre}</div>
                     <div><strong>Clave:</strong> <span style="font-weight:800;">${item.clave}</span></div>
-                    <div><strong>Categoría:</strong> ${item.categoria}</div>
+                    <div><strong>Cat:</strong> ${item.categoria}</div>
                     <div><strong>Unidad:</strong> ${item.unidad}</div>
                 `;
                 
                 const qrBox = document.createElement('div');
-                qrBox.style.width = '100px';
-                qrBox.style.height = '100px';
+                qrBox.style.width = '90px';
+                qrBox.style.height = '90px';
                 qrBox.style.display = 'flex';
                 qrBox.style.justifyContent = 'center';
                 qrBox.style.alignItems = 'center';
@@ -584,11 +586,11 @@
                 label.appendChild(qrBox);
                 grid.appendChild(label);
                 
-                // GENERAR QR CONSTANTE usando el ID de Firebase del artículo.
+                // GENERAR QR CONSTANTE usando el ID único de Firebase
                 new QRCode(qrBox, {
                     text: item.id, 
-                    width: 100,
-                    height: 100,
+                    width: 90,
+                    height: 90,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.M
@@ -610,15 +612,15 @@
 
         // 3. Configuración para HTML2PDF garantizando formato y saltos exactos
         const opt = {
-            margin:       0, // Los márgenes ya los programamos en la caja (padding)
+            margin:       10, // 10mm de margen en los bordes de la hoja Carta
             filename:     `Etiquetas_QR_Inventario.pdf`,
             image:        { type: 'jpeg', quality: 1 },
-            html2canvas:  { scale: 2, useCORS: true, letterRendering: true, windowWidth: 800 }, 
-            jsPDF:        { unit: 'px', format: [800, 1050], orientation: 'portrait' }, // Forzamos el tamaño exacto en Píxeles
+            html2canvas:  { scale: 2, useCORS: true, letterRendering: true }, 
+            jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }, 
             pagebreak:    { mode: 'css', before: '.html2pdf__page-break' }
         };
 
-        // Esperamos medio segundo para que QRCode termine de dibujar los canvas
+        // Esperamos un momento para que QRCode termine de dibujar los canvas
         setTimeout(() => {
             html2pdf().set(opt).from(wrap).save().then(() => {
                 btn.innerHTML = oldTxt;
@@ -636,7 +638,7 @@
                 lucide.createIcons();
                 document.body.removeChild(hiddenContainer);
             });
-        }, 600);
+        }, 800); 
     }
 </script>
 </body>
