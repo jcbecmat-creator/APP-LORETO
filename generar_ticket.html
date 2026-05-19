@@ -100,16 +100,6 @@
         .text-right { text-align: right; }
         .ticket-totals { padding: 16px 20px; background-color: #f8fafc; display: flex; justify-content: flex-end; gap: 24px; font-size: 16px; font-weight: bold; border-top: 2px solid var(--border-color);}
 
-        /* Clase dinámica que se activa SÓLO al imprimir para forzar ancho de PC */
-        .modo-impresion #area-imprimir {
-            width: 850px !important;
-            max-width: 850px !important;
-            margin: 0 auto;
-        }
-        .modo-impresion .ticket-container {
-            overflow: visible !important; /* Evita que la tabla se corte */
-        }
-
         /* Modales */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
@@ -123,8 +113,7 @@
         @media (max-width: 768px) {
             .search-grid { grid-template-columns: 1fr; }
             .button-group { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
-            /* Se eliminó intencionalmente el rediseño del membrete-pdf de aquí para que siempre sea tamaño PC en el PDF */
-            .input-articulo-container { grid-column: span 1 !important; } /* Ajuste de casillas mismo tamaño */
+            .input-articulo-container { grid-column: span 1 !important; } 
         }
         #conexion-loader { font-size: 12px; color: var(--success); font-weight: bold; display: flex; align-items: center; gap: 5px; }
     </style>
@@ -310,7 +299,6 @@
         });
     });
 
-    // --- SINCRONIZACIÓN GLOBAL DE NÚMERO DE TICKET ---
     async function establecerNumeroTicket() {
         document.getElementById('ticket-numero').innerText = `TICKET-Cargando...`;
         try {
@@ -574,9 +562,7 @@
             return; 
         }
 
-        // PREPARACIÓN DE IMPRESIÓN (Forzando modo escritorio temporalmente)
-        document.body.classList.add('modo-impresion');
-        
+        // PREPARACIÓN DE IMPRESIÓN 
         const elementosAccion = document.querySelectorAll('.accion-columna');
         elementosAccion.forEach(el => el.style.display = 'none');
         
@@ -586,22 +572,40 @@
         const elementoParaImprimir = document.getElementById('area-imprimir');
         const numTicket = document.getElementById('ticket-numero').innerText;
 
-        // Configuración correcta para forzar formato de escritorio en cualquier dispositivo
+        // Guardamos los estilos originales para no romper la vista del celular
+        const estiloOriginal = {
+            width: elementoParaImprimir.style.width,
+            maxWidth: elementoParaImprimir.style.maxWidth,
+            margin: elementoParaImprimir.style.margin,
+            padding: elementoParaImprimir.style.padding
+        };
+
+        // Forzamos temporalmente un tamaño fijo para la captura perfecta del PDF
+        elementoParaImprimir.style.width = '800px'; 
+        elementoParaImprimir.style.maxWidth = 'none';
+        elementoParaImprimir.style.margin = '0';
+        elementoParaImprimir.style.padding = '20px';
+
         const opciones = {
-            margin: [5, 5, 5, 5],
-            filename: `${numTicket}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true, 
-                windowWidth: 1024 // ESTO FORZA AL PDF A RENDERIZAR COMO SI FUERA UNA COMPUTADORA
-            }, 
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            margin:       [10, 10, 10, 10], 
+            filename:     `${numTicket}.pdf`,     
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { 
+                scale: 2,           
+                useCORS: true,      
+                scrollX: 0,         
+                scrollY: 0
+            },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         html2pdf().set(opciones).from(elementoParaImprimir).save().then(() => {
-            // Restaurar vista web
-            document.body.classList.remove('modo-impresion');
+            // Restaurar los estilos originales inmediatamente después de generar el PDF
+            elementoParaImprimir.style.width = estiloOriginal.width;
+            elementoParaImprimir.style.maxWidth = estiloOriginal.maxWidth;
+            elementoParaImprimir.style.margin = estiloOriginal.margin;
+            elementoParaImprimir.style.padding = estiloOriginal.padding;
+
             elementosAccion.forEach(el => el.style.display = '');
             membrete.style.display = 'none'; 
             
