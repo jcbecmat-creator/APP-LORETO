@@ -314,14 +314,11 @@
         reader.onload = async function(e) {
             const text = e.target.result;
             const rows = text.split('\n');
-            
             let count = 0;
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i].trim();
                 if(!row) continue;
-                
                 const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-
                 if (cols.length >= 7) {
                     const data = {
                         categoria: cols[0].replace(/"/g, '').trim(),
@@ -337,31 +334,22 @@
                     count++;
                 }
             }
-            
-            mostrarExito(`Se importaron exitosamente ${count} artículos desde el Excel a la Base de Datos.`);
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            lucide.createIcons();
-            input.value = ''; 
-            cargarInventario(); 
+            mostrarExito(`Se importaron exitosamente ${count} artículos.`);
+            btn.innerHTML = originalText; btn.disabled = false; lucide.createIcons();
+            input.value = ''; cargarInventario(); 
         };
         reader.readAsText(file, 'UTF-8');
     }
 
-
     async function cargarInventario() {
         document.getElementById('loader').style.display = 'flex';
         document.getElementById('tabla-container').style.display = 'none';
-        
         try {
             const snap = await db.collection("inventario").orderBy("nombre").get();
             dataInventario = [];
             snap.forEach(doc => { dataInventario.push({ id: doc.id, ...doc.data() }); });
             renderTabla();
-        } catch (e) { 
-            console.error("Error", e); 
-            mostrarAlerta("Error al cargar la base de datos del inventario.");
-        }
+        } catch (e) { console.error(e); mostrarAlerta("Error al cargar la base de datos."); }
         document.getElementById('loader').style.display = 'none';
         document.getElementById('tabla-container').style.display = 'block';
     }
@@ -370,12 +358,8 @@
         const tbody = document.getElementById('tabla-body');
         tbody.innerHTML = '';
         const fBuscar = document.getElementById('filtro-buscar').value.toLowerCase();
-
-        let filtrados = dataInventario.filter(t => {
-            if(fBuscar && !(t.nombre || "").toLowerCase().includes(fBuscar) && !(t.clave || "").toLowerCase().includes(fBuscar)) return false;
-            return true;
-        });
-
+        let filtrados = dataInventario.filter(t => !fBuscar || (t.nombre || "").toLowerCase().includes(fBuscar) || (t.clave || "").toLowerCase().includes(fBuscar));
+        
         if(filtrados.length === 0) {
             tbody.innerHTML = `<tr><td colspan="11" style="padding: 30px; text-align:center; color: var(--text-muted);">No hay artículos que coincidan con la búsqueda.</td></tr>`;
             return;
@@ -383,13 +367,12 @@
 
         filtrados.forEach(row => {
             let tr = document.createElement('tr');
-            
             let cant = parseFloat(row.cantidad) || 0;
             let precio = parseFloat(row.precio) || 0;
             let importe = cant * precio;
             let fechaHora = row.ultima_actualizacion ? formatDate(row.ultima_actualizacion) : '-';
 
-            let html = `
+            tr.innerHTML = `
                 <td class="center"><input type="checkbox" class="qr-chk" value="${row.id}" onchange="validarSeleccionQR()"></td>
                 <td style="font-size: 10px; color: var(--text-muted); font-weight: 600;">${fechaHora.replace(', ', '<br>')}</td>
                 <td style="font-weight: 700; color: var(--text-muted);">${row.categoria}</td>
@@ -405,17 +388,99 @@
                     <button class="btn-action-red" onclick="eliminarArticulo('${row.id}')" title="Eliminar"><i data-lucide="trash-2"></i></button>
                 </td>
             `;
-            tr.innerHTML = html;
             tbody.appendChild(tr);
         });
         
         lucide.createIcons();
     }
 
+    function validarSeleccionQR() {
+        const checked = document.querySelectorAll('.qr-chk:checked');
+        const count = checked.length;
+        const floatBtn = document.getElementById('floating-qr-btn');
+        const counter = document.getElementById('qr-counter');
+        const btnPrint = document.getElementById('btn-imprimir-qr');
+        
+        if(count > 0) {
+            floatBtn.style.display = 'flex';
+            btnPrint.style.display = 'inline-flex';
+            counter.innerText = count;
+        } else {
+            floatBtn.style.display = 'none';
+            btnPrint.style.display = 'none';
+        }
+        lucide.createIcons();
+    }
+
+    function imprimirQR() {
+        const checked = document.querySelectorAll('.qr-chk:checked');
+        if(checked.length === 0) return;
+        const btn = document.getElementById('btn-imprimir-qr');
+        const oldTxt = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando PDF...';
+        lucide.createIcons();
+
+        const hiddenContainer = document.createElement('div');
+        hiddenContainer.style.position = 'absolute'; hiddenContainer.style.top = '0'; hiddenContainer.style.visibility = 'hidden'; hiddenContainer.style.width = '800px'; 
+        
+        const wrap = document.createElement('div'); wrap.style.width = '800px';
+
+        const items = Array.from(checked).map(chk => dataInventario.find(d => d.id === chk.value)).filter(Boolean);
+        const chunkSize = 10;
+        
+        for (let i = 0; i < items.length; i += chunkSize) {
+            const pageDiv = document.createElement('div');
+            pageDiv.style.padding = '30px'; pageDiv.style.width = '800px'; pageDiv.style.height = '1050px'; pageDiv.style.display = 'flex'; pageDiv.style.flexWrap = 'wrap'; pageDiv.style.gap = '15px'; pageDiv.style.backgroundColor = '#ffffff';
+
+            pageDiv.innerHTML = `<div style="text-align:center; border-bottom: 2px solid #263fa4; padding-bottom: 10px; margin-bottom: 20px; width:100%;"><h1 style="margin: 0; font-size: 20px; color: #263fa4; text-transform: uppercase; font-weight: 800; font-family: Arial, sans-serif;">Etiquetas de Almacén - Loreto</h1></div><div class="etiquetas-grid" style="display: flex; flex-wrap: wrap; gap: 15px; width:100%;"></div>`;
+            const grid = pageDiv.querySelector('.etiquetas-grid');
+            chunk.forEach(item => {
+                const label = document.createElement('div');
+                label.style.width = '370px'; label.style.height = '140px'; label.style.border = '2px dashed #94a3b8'; label.style.padding = '10px'; label.style.display = 'flex'; label.style.alignItems = 'center'; label.style.justifyContent = 'space-between'; label.style.boxSizing = 'border-box'; label.style.marginBottom = '10px';
+                label.innerHTML = `
+                    <div style="width:60%; font-size:12px; line-height:1.4;">
+                        <div style="font-size:13px; font-weight:900; color:#263fa4; margin-bottom:6px; line-height:1.2; max-height:30px; overflow:hidden;">${item.nombre}</div>
+                        <div><strong>Clave:</strong> ${item.clave}</div>
+                        <div><strong>Cat:</strong> ${item.categoria}</div>
+                        <div><strong>Unidad:</strong> ${item.unidad}</div>
+                    </div>
+                    <div class="qr-box" style="width:90px; height:90px;"></div>
+                `;
+                grid.appendChild(label);
+                new QRCode(label.querySelector('.qr-box'), { text: item.id, width: 90, height: 90 });
+            });
+            wrap.appendChild(pageDiv);
+            if (i + chunkSize < items.length) {
+                const pageBreak = document.createElement('div'); pageBreak.style.pageBreakBefore = 'always'; wrap.appendChild(pageBreak);
+            }
+        }
+        hiddenContainer.appendChild(wrap); document.body.appendChild(hiddenContainer);
+
+        setTimeout(() => {
+            html2pdf().set({
+                margin: 10,
+                filename: 'Etiquetas_QR_Inventario.pdf',
+                jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
+                pagebreak: { mode: 'css', before: '.html2pdf__page-break' }
+            }).from(wrap).save().then(() => {
+                btn.innerHTML = oldTxt; document.body.removeChild(hiddenContainer);
+                document.querySelectorAll('.qr-chk').forEach(c => c.checked = false);
+                btn.style.display = 'none';
+                document.getElementById('floating-qr-btn').style.display = 'none';
+                mostrarExito("PDF generado correctamente.");
+                lucide.createIcons();
+            }).catch(err => {
+                console.error(err);
+                mostrarAlerta("Error al generar el PDF.");
+                btn.innerHTML = oldTxt;
+                document.body.removeChild(hiddenContainer);
+            });
+        }, 1200);
+    }
+
     function abrirModalArticulo(id = null) {
         document.getElementById('modal-id').value = id || '';
         document.getElementById('modal-titulo').innerText = id ? "Editar Concepto" : "Agregar Concepto";
-        
         if(id) {
             const item = dataInventario.find(x => x.id === id);
             document.getElementById('inp-categoria').value = item.categoria || '';
@@ -434,7 +499,6 @@
             document.getElementById('inp-costo').value = 0;
             document.getElementById('inp-precio').value = 0;
         }
-        
         document.getElementById('modalArticulo').style.display = 'flex';
         lucide.createIcons();
     }
@@ -445,167 +509,24 @@
         const id = document.getElementById('modal-id').value;
         const nombre = document.getElementById('inp-nombre').value.toUpperCase();
         const clave = document.getElementById('inp-clave').value.toUpperCase();
-
-        if(!nombre || !clave) { mostrarAlerta("El Nombre y la Clave son obligatorios."); return; }
-
-        const data = {
-            categoria: document.getElementById('inp-categoria').value.toUpperCase(),
-            clave: clave,
-            nombre: nombre,
-            unidad: document.getElementById('inp-unidad').value.toUpperCase(),
-            cantidad: parseFloat(document.getElementById('inp-cantidad').value) || 0,
-            costo: parseFloat(document.getElementById('inp-costo').value) || 0,
-            precio: parseFloat(document.getElementById('inp-precio').value) || 0,
-            ultima_actualizacion: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
+        if(!nombre || !clave) { mostrarAlerta("Datos obligatorios."); return; }
+        const data = { categoria: document.getElementById('inp-categoria').value.toUpperCase(), clave: clave, nombre: nombre, unidad: document.getElementById('inp-unidad').value.toUpperCase(), cantidad: parseFloat(document.getElementById('inp-cantidad').value) || 0, costo: parseFloat(document.getElementById('inp-costo').value) || 0, precio: parseFloat(document.getElementById('inp-precio').value) || 0, ultima_actualizacion: firebase.firestore.FieldValue.serverTimestamp() };
+        
         const btn = document.querySelector('#modalArticulo .btn-guardar');
         const oldHtml = btn.innerHTML;
         btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Guardando...';
-
+        
         try {
-            if(id) {
-                await db.collection("inventario").doc(id).update(data);
-                mostrarExito("Concepto actualizado correctamente.");
-            } else {
-                await db.collection("inventario").add(data);
-                mostrarExito("Concepto agregado al inventario.");
-            }
-            cerrarModal();
-            cargarInventario();
-        } catch (e) {
-            console.error(e);
-            mostrarAlerta("Error al guardar en la base de datos.");
-        } finally {
-            btn.disabled = false; btn.innerHTML = oldHtml;
-        }
+            if(id) await db.collection("inventario").doc(id).update(data);
+            else await db.collection("inventario").add(data);
+            cerrarModal(); cargarInventario(); mostrarExito("Guardado con éxito.");
+        } catch (e) { mostrarAlerta("Error al guardar."); } finally { btn.disabled = false; btn.innerHTML = oldHtml; }
     }
 
     async function eliminarArticulo(id) {
-        if(confirm("¿Estás seguro de eliminar este concepto definitivamente del almacén?")) {
-            try {
-                await db.collection("inventario").doc(id).delete();
-                mostrarExito("Concepto eliminado.");
-                cargarInventario();
-            } catch(e) {
-                mostrarAlerta("Error al eliminar el artículo.");
-            }
+        if(confirm("¿Eliminar definitivamente?")) {
+            try { await db.collection("inventario").doc(id).delete(); cargarInventario(); mostrarExito("Eliminado."); } catch(e) { mostrarAlerta("Error al eliminar."); }
         }
-    }
-
-    function validarSeleccionQR() {
-        const checked = document.querySelectorAll('.qr-chk:checked');
-        const count = checked.length;
-        const floatBtn = document.getElementById('floating-qr-btn');
-        const counter = document.getElementById('qr-counter');
-        const btnPrint = document.getElementById('btn-imprimir-qr');
-        
-        if(count > 0) {
-            btnPrint.style.display = 'inline-flex';
-            floatBtn.style.display = 'flex';
-            counter.innerText = count;
-        } else {
-            btnPrint.style.display = 'none';
-            floatBtn.style.display = 'none';
-        }
-        lucide.createIcons();
-    }
-
-    function imprimirQR() {
-        const checked = document.querySelectorAll('.qr-chk:checked');
-        if(checked.length === 0) return;
-
-        const btn = document.getElementById('btn-imprimir-qr');
-        const oldTxt = btn.innerHTML;
-        btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generando PDF...';
-        lucide.createIcons();
-
-        const hiddenContainer = document.createElement('div');
-        hiddenContainer.style.position = 'absolute';
-        hiddenContainer.style.top = '0';
-        hiddenContainer.style.left = '0';
-        hiddenContainer.style.visibility = 'hidden'; 
-        hiddenContainer.style.zIndex = '-9999';
-        hiddenContainer.style.width = '800px'; 
-        
-        const wrap = document.createElement('div');
-        wrap.style.width = '800px'; 
-        wrap.style.backgroundColor = '#ffffff';
-
-        const items = Array.from(checked).map(chk => dataInventario.find(d => d.id === chk.value)).filter(Boolean);
-        const chunkSize = 10;
-        
-        for (let i = 0; i < items.length; i += chunkSize) {
-            const chunk = items.slice(i, i + chunkSize);
-            const pageDiv = document.createElement('div');
-            pageDiv.style.padding = '30px';
-            pageDiv.style.width = '800px';
-            pageDiv.style.height = '1050px';
-            pageDiv.style.backgroundColor = '#ffffff';
-            pageDiv.innerHTML = `
-                <div style="text-align:center; border-bottom: 2px solid #263fa4; padding-bottom: 10px; margin-bottom: 20px;">
-                    <h1 style="margin: 0; font-size: 20px; color: #263fa4; text-transform: uppercase; font-weight: 800; font-family: Arial, sans-serif;">Etiquetas de Almacén - Loreto</h1>
-                </div>
-                <div class="etiquetas-grid" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-content: flex-start; font-family: Arial, sans-serif;"></div>
-            `;
-
-            const grid = pageDiv.querySelector('.etiquetas-grid');
-
-            chunk.forEach(item => {
-                const label = document.createElement('div');
-                label.style.width = '370px';
-                label.style.height = '140px';
-                label.style.border = '2px dashed #94a3b8';
-                label.style.padding = '10px';
-                label.style.display = 'flex';
-                label.style.alignItems = 'center';
-                label.style.justifyContent = 'space-between';
-                label.style.boxSizing = 'border-box';
-                label.style.marginBottom = '10px';
-                
-                label.innerHTML = `
-                    <div style="width:60%; font-size:12px; line-height:1.4;">
-                        <div style="font-size:13px; font-weight:900; color:#263fa4; margin-bottom:6px;">${item.nombre}</div>
-                        <div><strong>Clave:</strong> ${item.clave}</div>
-                        <div><strong>Cat:</strong> ${item.categoria}</div>
-                        <div><strong>Unidad:</strong> ${item.unidad}</div>
-                    </div>
-                    <div class="qr-box" style="width:90px; height:90px;"></div>
-                `;
-                
-                grid.appendChild(label);
-                new QRCode(label.querySelector('.qr-box'), { text: item.id, width: 90, height: 90 });
-            });
-            wrap.appendChild(pageDiv);
-            if (i + chunkSize < items.length) {
-                const pageBreak = document.createElement('div');
-                pageBreak.classList.add('html2pdf__page-break');
-                wrap.appendChild(pageBreak);
-            }
-        }
-
-        hiddenContainer.appendChild(wrap);
-        document.body.appendChild(hiddenContainer);
-
-        const opt = {
-            margin:       10,
-            filename:     `Etiquetas_QR_Inventario.pdf`,
-            image:        { type: 'jpeg', quality: 1 },
-            html2canvas:  { scale: 2, useCORS: true, letterRendering: true }, 
-            jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }, 
-            pagebreak:    { mode: 'css', before: '.html2pdf__page-break' }
-        };
-
-        setTimeout(() => {
-            html2pdf().set(opt).from(wrap).save().then(() => {
-                btn.innerHTML = oldTxt;
-                document.body.removeChild(hiddenContainer);
-                document.querySelectorAll('.qr-chk').forEach(c => c.checked = false);
-                btn.style.display = 'none';
-                document.getElementById('floating-qr-btn').style.display = 'none';
-                mostrarExito("PDF generado correctamente.");
-            });
-        }, 1000);
     }
 </script>
 </body>
