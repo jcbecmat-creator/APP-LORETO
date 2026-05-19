@@ -7,7 +7,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -192,7 +192,6 @@
                     </div>
                 </div>
 
-                <!-- TABLA VISIBLE EN PANTALLA -->
                 <div class="ticket-container">
                     <div class="ticket-header-info">
                         <div id="ticket-numero">TICKET-Cargando...</div>
@@ -234,6 +233,45 @@
         </div>
     </div>
 
+    <div id="contenedor-pdf-oculto" style="display: none; position: absolute; top: -9999px; left: -9999px;">
+        <div id="plantilla-loreto-pdf" style="width: 210mm; min-height: 297mm; background: white; padding: 15mm; font-family: 'Inter', Arial, sans-serif; box-sizing: border-box; color: #1e293b;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #263fa4; padding-bottom: 15px; margin-bottom: 25px;">
+                <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 50px;" crossorigin="anonymous">
+                <div style="text-align: center; color: #263fa4;">
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 800;">LORETO - TICKET DE ALMACÉN</h2>
+                    <p style="margin: 5px 0 0 0; font-size: 11px; font-weight: bold;">INGENIERIA, CONSTRUCCION, EDIFICACION Y REMODELACION</p>
+                </div>
+                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 50px;" crossorigin="anonymous">
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; background: #eef2ff; padding: 10px; border-radius: 8px;">
+                <div><strong>Número de Ticket:</strong> <span id="pdf-ticket-num" style="color: #263fa4;"></span></div>
+                <div><strong>Fecha:</strong> <span id="pdf-ticket-fecha"></span></div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 12px;">
+                <thead>
+                    <tr style="background-color: #263fa4; color: white;">
+                        <th style="padding: 10px; text-align: left;">#</th>
+                        <th style="padding: 10px; text-align: left;">CLAVE</th>
+                        <th style="padding: 10px; text-align: left;">CONCEPTO</th>
+                        <th style="padding: 10px; text-align: right;">CANT.</th>
+                        <th style="padding: 10px; text-align: right;">PRECIO U.</th>
+                        <th style="padding: 10px; text-align: right;">IMPORTE</th>
+                    </tr>
+                </thead>
+                <tbody id="pdf-ticket-body">
+                    </tbody>
+            </table>
+
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 30px; font-size: 16px; font-weight: bold; border-top: 2px solid #e2e8f0; padding-top: 15px;">
+                <div style="font-size: 14px; color: #64748b;">Artículos: <span id="pdf-ticket-arts">0</span></div>
+                <div style="color: #263fa4;">Total: $<span id="pdf-ticket-total">0.00</span></div>
+            </div>
+        </div>
+    </div>
+
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyDkwUT5MrsJV2IMp18-RT20829M9c3-zfk",
@@ -262,7 +300,8 @@
             lucide.createIcons();
             const linkInicio = document.getElementById('link-inicio'); if(linkInicio) linkInicio.classList.remove('active');
             const linkGen = document.getElementById('link-generar-ticket'); if(linkGen) linkGen.classList.add('active');
-        });
+        }).catch(err => console.log("Menu externo no cargado localmente (normal si no hay servidor)."));
+        
         document.getElementById('toggle-menu').addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('open'); });
 
         establecerNumeroTicket();
@@ -278,6 +317,8 @@
                 document.getElementById('lista-desplegable').style.display = 'none';
             }
         });
+        
+        lucide.createIcons();
     });
 
     async function establecerNumeroTicket() {
@@ -308,7 +349,7 @@
             console.error(e);
             loader.innerHTML = `<i data-lucide="alert-triangle" style="color:var(--danger);"></i> Error BD`;
             lucide.createIcons();
-            mostrarAlerta("No se pudo conectar con Firebase. Revisa tu internet.");
+            mostrarAlerta("No se pudo conectar con Firebase. Revisa tu internet.", "error");
         }
     }
 
@@ -343,7 +384,7 @@
             (item.clave && item.clave.includes(texto))
         );
         if (encontrado) { seleccionarArticulo(encontrado); }
-        else { mostrarAlerta("No se encontró el artículo en Firebase."); }
+        else { mostrarAlerta("No se encontró el artículo en Firebase.", "error"); }
     }
 
     function seleccionarArticulo(item) {
@@ -365,7 +406,7 @@
             html5QrcodeScanner = new Html5Qrcode("qr-reader");
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
             html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
-            .catch(err => { mostrarAlerta("Error al acceder a la cámara."); cerrarScanner(); });
+            .catch(err => { mostrarAlerta("Error al acceder a la cámara.", "error"); cerrarScanner(); });
         }
     }
 
@@ -385,7 +426,7 @@
             (item.clave && item.clave.toUpperCase() === textoEscaneado.toUpperCase())
         );
         if (encontrado) { seleccionarArticulo(encontrado); mostrarAlerta(`Artículo escaneado: ${encontrado.nombre}`); }
-        else { mostrarAlerta(`Código leído: ${textoEscaneado}, no existe en Firebase.`); }
+        else { mostrarAlerta(`Código leído: ${textoEscaneado}, no existe en Firebase.`, "error"); }
     }
 
     function agregarArticulo() {
@@ -446,6 +487,8 @@
         });
         document.getElementById('total-articulos').innerText = ticketActual.length;
         document.getElementById('total-importe').innerText = totalImporte.toFixed(2);
+        
+        document.getElementById('btn-generar-pdf').disabled = ticketActual.length === 0;
         lucide.createIcons();
     }
 
@@ -461,40 +504,14 @@
     function cerrarAlerta() { document.getElementById('modal-alerta').classList.remove('active'); }
 
     /* ============================================================
-       HELPER: convierte URL de imagen a base64 usando un proxy canvas
-       Tiene timeout de 5s — si falla, el PDF se genera igual sin logo
-       ============================================================ */
-    function imgABase64(url) {
-        return new Promise(function(resolve) {
-            var timeout = setTimeout(function() { resolve(null); }, 5000);
-            var img = new Image();
-            img.setAttribute('crossOrigin', 'anonymous');
-            img.onload = function() {
-                clearTimeout(timeout);
-                try {
-                    var c = document.createElement('canvas');
-                    c.width = img.naturalWidth;
-                    c.height = img.naturalHeight;
-                    c.getContext('2d').drawImage(img, 0, 0);
-                    resolve(c.toDataURL('image/jpeg', 0.92));
-                } catch(e) { resolve(null); }
-            };
-            img.onerror = function() { clearTimeout(timeout); resolve(null); };
-            // Forzar recarga limpia evitando caché CORS
-            img.src = url + '?t=' + Date.now();
-        });
-    }
-
-    /* ============================================================
-       GENERAR PDF CON jsPDF — dibujado programáticamente
-       Sin html2canvas. Idéntico en celular y laptop.
+       GENERAR PDF CON HTML2PDF
        ============================================================ */
     async function generarPDFyDescontar() {
         if (ticketActual.length === 0) { mostrarAlerta("El ticket está vacío."); return; }
 
         var btnGenerar = document.getElementById('btn-generar-pdf');
         btnGenerar.disabled = true;
-        btnGenerar.innerHTML = '<i data-lucide="loader-2"></i> Procesando...';
+        btnGenerar.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Procesando...';
         lucide.createIcons();
 
         // ── 1. SINCRONIZAR FIREBASE ───────────────────────────────
@@ -502,6 +519,7 @@
             var batch = db.batch();
             var counterRef = db.collection("sistema").doc("contador_tickets");
             batch.set(counterRef, { ultimo: window.numeroTicketActual }, { merge: true });
+            
             ticketActual.forEach(function(item) {
                 var docRef = db.collection("inventario").doc(item.idFirebase);
                 batch.update(docRef, {
@@ -510,7 +528,7 @@
                 });
             });
             await batch.commit();
-            await cargarInventarioDeFirebase();
+            await cargarInventarioDeFirebase(); // Refrescar stock en memoria
         } catch(error) {
             console.error(error);
             mostrarAlerta("Error al sincronizar con Firebase. Operación cancelada.", "error");
@@ -520,175 +538,71 @@
             return;
         }
 
-        // ── 2. DATOS DEL TICKET ───────────────────────────────────
-        var numTicket = document.getElementById('ticket-numero').innerText;
-        var fecha     = document.getElementById('ticket-fecha').innerText;
+        // ── 2. POBLAR LA PLANTILLA HTML OCULTA ────────────────────
+        document.getElementById('pdf-ticket-num').innerText = document.getElementById('ticket-numero').innerText;
+        document.getElementById('pdf-ticket-fecha').innerText = document.getElementById('ticket-fecha').innerText;
+        document.getElementById('pdf-ticket-arts').innerText = ticketActual.length;
+        
+        const tbody = document.getElementById('pdf-ticket-body');
+        tbody.innerHTML = '';
+        let totalImporte = 0;
+        
+        ticketActual.forEach((item, index) => {
+            totalImporte += item.importe;
+            // Colores alternados para las filas
+            const bg = index % 2 === 0 ? 'background-color: #f8fafc;' : 'background-color: white;';
+            
+            tbody.innerHTML += `
+                <tr style="${bg} border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 10px;">${index + 1}</td>
+                    <td style="padding: 10px;">${item.clave || 'S/C'}</td>
+                    <td style="padding: 10px;">${item.concepto}</td>
+                    <td style="padding: 10px; text-align: right;">${item.cantidad}</td>
+                    <td style="padding: 10px; text-align: right;">$${item.precio.toFixed(2)}</td>
+                    <td style="padding: 10px; text-align: right; font-weight: bold;">$${item.importe.toFixed(2)}</td>
+                </tr>
+            `;
+        });
+        
+        document.getElementById('pdf-ticket-total').innerText = totalImporte.toFixed(2);
 
-        // ── 3. CARGAR LOGOS (con timeout, no bloquea) ─────────────
-        var logo1 = await imgABase64('https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg');
-        var logo2 = await imgABase64('https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg');
+        // ── 3. GENERAR EL PDF CON HTML2PDF ────────────────────────
+        // Mostramos el contenedor fuera de pantalla para que html2pdf lo pueda procesar
+        const contenedorOculto = document.getElementById('contenedor-pdf-oculto');
+        contenedorOculto.style.display = 'block'; 
+        const elemento = document.getElementById('plantilla-loreto-pdf');
+        const numTicket = document.getElementById('ticket-numero').innerText;
 
-        // ── 4. CREAR DOCUMENTO jsPDF ──────────────────────────────
-        var doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-
-        var pW = 210;   // ancho A4
-        var pH = 297;   // alto  A4
-        var mL = 12;    // margen izq
-        var mR = 12;    // margen der
-        var cW = pW - mL - mR; // ancho útil = 186 mm
-        var y  = 12;    // cursor Y
-
-        // ── 5. MEMBRETE ───────────────────────────────────────────
-        var logoW = 28, logoH = 18;
-        var memH  = logoH + 6;
-
-        // Fondo blanco membrete
-        doc.setFillColor(255, 255, 255);
-        doc.rect(mL, y, cW, memH, 'F');
-
-        // Logo izquierdo
-        if (logo1) {
-            doc.addImage(logo1, 'JPEG', mL, y + 3, logoW, logoH);
-        }
-        // Logo derecho
-        if (logo2) {
-            doc.addImage(logo2, 'JPEG', mL + cW - logoW, y + 3, logoW, logoH);
-        }
-
-        // Texto central
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.setTextColor(38, 63, 164);
-        doc.text('LORETO - INGENIERIA, CONSTRUCCION,', pW / 2, y + 9, { align: 'center' });
-        doc.text('EDIFICACION Y REMODELACION', pW / 2, y + 15, { align: 'center' });
-
-        y += memH + 2;
-
-        // Línea azul gruesa bajo membrete
-        doc.setDrawColor(38, 63, 164);
-        doc.setLineWidth(0.8);
-        doc.line(mL, y, mL + cW, y);
-        y += 3;
-
-        // ── 6. BANDA ENCABEZADO TICKET ────────────────────────────
-        doc.setFillColor(238, 242, 255);
-        doc.rect(mL, y, cW, 9, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(38, 63, 164);
-        doc.text(numTicket, mL + 3, y + 6.2);
-        doc.text(fecha,     mL + cW - 3, y + 6.2, { align: 'right' });
-        y += 9;
-
-        // ── 7. ENCABEZADOS DE COLUMNAS ────────────────────────────
-        // Anchos de columna en mm (total = cW = 186)
-        var c = {
-            n:  { x: mL,        w: 10  },   // #
-            cl: { x: mL + 10,   w: 36  },   // CLAVE
-            co: { x: mL + 46,   w: 70  },   // CONCEPTO
-            ca: { x: mL + 116,  w: 18  },   // CANT
-            pu: { x: mL + 134,  w: 28  },   // PRECIO U
-            im: { x: mL + 162,  w: 36  }    // IMPORTE  (162+36=198 = mL+cW ✓)
+        const opciones = {
+            margin:       0,
+            filename:     `${numTicket}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, logging: false },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        var thH = 8;
-        doc.setFillColor(238, 242, 255);
-        doc.rect(mL, y, cW, thH, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
-        doc.setTextColor(38, 63, 164);
-
-        doc.text('#',         c.n.x  + 2,              y + 5.5);
-        doc.text('CLAVE',     c.cl.x + 2,              y + 5.5);
-        doc.text('CONCEPTO',  c.co.x + 2,              y + 5.5);
-        doc.text('CANT.',     c.ca.x + c.ca.w - 2,    y + 5.5, { align: 'right' });
-        doc.text('PRECIO U.', c.pu.x + c.pu.w - 2,    y + 5.5, { align: 'right' });
-        doc.text('IMPORTE',   c.im.x + c.im.w - 2,    y + 5.5, { align: 'right' });
-
-        y += thH;
-
-        // ── 8. FILAS DE ARTÍCULOS ─────────────────────────────────
-        var totalImporte = 0;
-        var rowH = 9;
-
-        doc.setFontSize(9);
-
-        ticketActual.forEach(function(item, i) {
-            totalImporte += item.importe;
-
-            // Fondo alternado suave
-            if (i % 2 === 1) {
-                doc.setFillColor(248, 250, 252);
-                doc.rect(mL, y, cW, rowH, 'F');
-            }
-
-            // Línea divisoria
-            doc.setDrawColor(226, 232, 240);
-            doc.setLineWidth(0.2);
-            doc.line(mL, y, mL + cW, y);
-
-            doc.setTextColor(30, 41, 59);
-
-            // #
-            doc.setFont('helvetica', 'bold');
-            doc.text(String(i + 1), c.n.x + 2, y + 6);
-
-            doc.setFont('helvetica', 'normal');
-
-            // Clave (máx 18 chars para que no se pise con concepto)
-            doc.text(String(item.clave  || '').substring(0, 18), c.cl.x + 2, y + 6);
-
-            // Concepto (máx 34 chars)
-            doc.text(String(item.concepto || '').substring(0, 34), c.co.x + 2, y + 6);
-
-            // Cantidad
-            doc.text(String(item.cantidad), c.ca.x + c.ca.w - 2, y + 6, { align: 'right' });
-
-            // Precio unitario
-            doc.text('$' + item.precio.toFixed(2), c.pu.x + c.pu.w - 2, y + 6, { align: 'right' });
-
-            // Importe
-            doc.setFont('helvetica', 'bold');
-            doc.text('$' + item.importe.toFixed(2), c.im.x + c.im.w - 2, y + 6, { align: 'right' });
-
-            y += rowH;
+        html2pdf().set(opciones).from(elemento).save().then(() => {
+            // Volvemos a ocultar el contenedor
+            contenedorOculto.style.display = 'none';
+            
+            // ── 4. RESETEAR UI ────────────────────────────────────
+            establecerNumeroTicket();
+            ticketActual = [];
+            actualizarTabla();
+            mostrarAlerta('¡Ticket generado y sincronizado con Firebase exitosamente!');
+            
+            btnGenerar.disabled = false;
+            btnGenerar.innerHTML = '<i data-lucide="file-down"></i> Generar PDF y Descontar de Almacén';
+            lucide.createIcons();
+        }).catch(err => {
+            console.error("Error al generar PDF: ", err);
+            contenedorOculto.style.display = 'none';
+            mostrarAlerta("Hubo un error gráfico al compilar el PDF.", "error");
+            
+            btnGenerar.disabled = false;
+            btnGenerar.innerHTML = '<i data-lucide="file-down"></i> Generar PDF y Descontar de Almacén';
+            lucide.createIcons();
         });
-
-        // Línea final de tabla
-        doc.setDrawColor(226, 232, 240);
-        doc.setLineWidth(0.4);
-        doc.line(mL, y, mL + cW, y);
-
-        // ── 9. BANDA TOTALES ──────────────────────────────────────
-        var totH = 11;
-        doc.setFillColor(248, 250, 252);
-        doc.rect(mL, y, cW, totH, 'F');
-
-        doc.setDrawColor(38, 63, 164);
-        doc.setLineWidth(0.5);
-        doc.line(mL, y, mL + cW, y);
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-
-        doc.setTextColor(30, 41, 59);
-        doc.text('Articulos: ' + ticketActual.length + '/20', mL + 3, y + 7.5);
-
-        doc.setTextColor(38, 63, 164);
-        doc.text('Total: $' + totalImporte.toFixed(2), mL + cW - 3, y + 7.5, { align: 'right' });
-
-        // ── 10. GUARDAR ───────────────────────────────────────────
-        doc.save(numTicket + '.pdf');
-
-        // ── 11. RESETEAR ──────────────────────────────────────────
-        establecerNumeroTicket();
-        ticketActual = [];
-        actualizarTabla();
-        mostrarAlerta('¡Ticket generado y sincronizado con Firebase exitosamente!');
-
-        btnGenerar.disabled = false;
-        btnGenerar.innerHTML = '<i data-lucide="file-down"></i> Generar PDF y Descontar de Almacén';
-        lucide.createIcons();
     }
 </script>
 </body>
