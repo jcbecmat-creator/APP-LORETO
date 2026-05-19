@@ -59,7 +59,7 @@
 
         /* Tabla */
         .table-responsive { width: 100%; overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); background: white;}
-        .data-table { width: 100%; border-collapse: collapse; min-width: 1400px; }
+        .data-table { width: 100%; border-collapse: collapse; min-width: 1300px; } /* Ajuste el ancho mínimo porque quitamos una columna */
         .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 12px 8px; text-align: center; border-bottom: 2px solid var(--border-color); white-space: nowrap; border-right: 1px solid var(--border-color); }
         .data-table td { padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 12px; color: var(--text-main); vertical-align: middle; text-align: center; border-right: 1px solid var(--border-color); }
         .data-table tbody tr:hover { background-color: #f8fafc; }
@@ -138,10 +138,11 @@
                                 <th>CARGO</th>
                                 <th>CUENTA CLABE</th>
                                 <th style="background: #dcfce7; color: #166534;">SALARIO<br>SEMANAL</th>
-                                <th>SALARIO BASE<br>(DIURNO)</th>
+                                
+                                <th>SALARIO BASE<br>DIARIO</th>
                                 <th>COSTO HORA<br>(DIURNO)</th>
-                                <th style="background: #f1f5f9;">SALARIO BASE<br>(NOCTURNO)</th>
                                 <th style="background: #f1f5f9;">COSTO HORA<br>(NOCTURNO)</th>
+                                
                                 <th>ACCIÓN</th>
                                 <th style="width: 10%;">FECHA Y HORA</th>
                             </tr>
@@ -192,6 +193,7 @@
     let dataGlobal = [];
 
     document.addEventListener('DOMContentLoaded', () => {
+        // Cargar el menú lateral dinámicamente
         fetch('menu.html').then(res => res.text()).then(html => {
             document.getElementById('sidebar').innerHTML = html; lucide.createIcons();
             const linkInicio = document.getElementById('link-inicio'); if(linkInicio) linkInicio.classList.remove('active');
@@ -225,7 +227,6 @@
                 const nombreCompleto = `${d.nombre || ''} ${d.paterno || ''} ${d.materno || ''}`.trim().toUpperCase();
                 let foto = (d.urls_fotos && d.urls_fotos.selfie) ? d.urls_fotos.selfie : 'https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg';
                 let clabe = d.cuenta_clabe || 'Sin registrar';
-                // El campo cargo generalmente no estaba en el expediente base, le pondremos un default o si existe.
                 let cargo = d.cargo || d.puesto || 'Trabajador';
                 
                 workers.push({ id: doc.id, nombre: nombreCompleto || 'SIN NOMBRE', foto: foto, clabe: clabe, cargo: cargo });
@@ -261,7 +262,7 @@
         });
 
         if(filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="12" style="padding: 30px; color: var(--text-muted);">No hay trabajadores que coincidan con la búsqueda.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="11" style="padding: 30px; color: var(--text-muted);">No hay trabajadores que coincidan con la búsqueda.</td></tr>`;
             return;
         }
 
@@ -270,12 +271,13 @@
         filtrados.forEach(row => {
             let tr = document.createElement('tr');
             
-            // Cálculos
+            // Cálculos actualizados para coincidir con la vista del trabajador
             let salSemanal = parseFloat(row.salario_semanal) || 0;
-            let baseDiurno = salSemanal / 6;
-            let baseNocturno = salSemanal / 5;
-            let horaDiurno = baseDiurno / 8;
-            let horaNocturno = baseNocturno / 8;
+            let baseDiario = salSemanal / 6;
+            let horaDiurno = baseDiario / 8;
+            
+            let baseNocturnoTemp = salSemanal / 5;
+            let horaNocturno = baseNocturnoTemp / 8;
 
             let fechaHora = row.ultima_actualizacion ? formatDate(row.ultima_actualizacion).replace(', ', '<br>') : '-';
 
@@ -286,10 +288,11 @@
                 <td>${row.cargo}</td>
                 <td style="font-weight: 600;">${row.clabe}</td>
                 <td class="money-text" style="font-size: 14px;">${formatMoney(salSemanal)}</td>
-                <td class="money-base">${formatMoney(baseDiurno)}</td>
+                
+                <td class="money-base">${formatMoney(baseDiario)}</td>
                 <td>${formatMoney(horaDiurno)}</td>
-                <td class="money-base" style="background: #f8fafc;">${formatMoney(baseNocturno)}</td>
-                <td style="background: #f8fafc;">${formatMoney(horaNocturno)}</td>
+                <td style="background: #f1f5f9; font-weight: 600; color: var(--primary-blue);">${formatMoney(horaNocturno)}</td>
+                
                 <td>
                     <button class="btn-action-red" onclick="abrirModal('${row.id}', '${row.nombre}', ${salSemanal})">
                         <i data-lucide="banknote"></i> Editar Salario
