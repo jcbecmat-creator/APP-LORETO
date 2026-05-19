@@ -7,7 +7,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -110,92 +110,6 @@
             .input-articulo-container { grid-column: span 1 !important; } 
         }
         #conexion-loader { font-size: 12px; color: var(--success); font-weight: bold; display: flex; align-items: center; gap: 5px; }
-
-        /* ============================================================
-           PLANTILLA OCULTA PARA PDF - SIEMPRE 800px, NUNCA EN PANTALLA
-           ============================================================ */
-        #pdf-template {
-            position: fixed;
-            left: -9999px;
-            top: 0;
-            width: 800px;
-            background: white;
-            font-family: 'Inter', sans-serif;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        /* Membrete del PDF */
-        .pdf-membrete {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            padding: 18px 24px;
-            border-bottom: 3px solid #263fa4;
-            background: white;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .pdf-membrete img { height: 55px; object-fit: contain; }
-        .pdf-membrete-titulo { text-align: center; flex: 1; padding: 0 12px; }
-        .pdf-membrete-titulo h2 { margin: 0; font-size: 16px; color: #263fa4; text-transform: uppercase; line-height: 1.4; font-weight: 800; font-family: 'Inter', sans-serif; }
-
-        /* Encabezado del ticket */
-        .pdf-ticket-header {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 24px;
-            background-color: #eef2ff;
-            border-bottom: 1px solid #e2e8f0;
-            font-weight: 700;
-            color: #263fa4;
-            font-size: 13px;
-            font-family: 'Inter', sans-serif;
-        }
-
-        /* Tabla PDF */
-        .pdf-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: 'Inter', sans-serif;
-        }
-        .pdf-table th {
-            background-color: #eef2ff;
-            color: #263fa4;
-            font-size: 10px;
-            text-transform: uppercase;
-            font-weight: 800;
-            padding: 10px 16px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .pdf-table td {
-            padding: 11px 16px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 12px;
-            color: #1e293b;
-        }
-        .pdf-table .tr-right { text-align: right; }
-        .pdf-table .td-bold { font-weight: 700; }
-
-        /* Totales PDF */
-        .pdf-totales {
-            display: flex;
-            justify-content: flex-end;
-            gap: 32px;
-            padding: 14px 24px;
-            background-color: #f8fafc;
-            border-top: 2px solid #e2e8f0;
-            font-size: 15px;
-            font-weight: 700;
-            color: #1e293b;
-            font-family: 'Inter', sans-serif;
-        }
-        .pdf-totales .total-azul { color: #263fa4; }
     </style>
 </head>
 <body>
@@ -310,11 +224,6 @@
 
             </div>
         </main>
-    </div>
-
-    <!-- PLANTILLA INVISIBLE PARA PDF - SIEMPRE CONSISTENTE -->
-    <div id="pdf-template">
-        <!-- Se construye dinámicamente en JS antes de capturar -->
     </div>
 
     <div id="modal-alerta" class="modal-overlay">
@@ -552,146 +461,234 @@
     function cerrarAlerta() { document.getElementById('modal-alerta').classList.remove('active'); }
 
     /* ============================================================
-       CONSTRUIR PLANTILLA PDF EN EL DIV OCULTO
-       Siempre 800px, mismo HTML sin importar celular o laptop
+       HELPER: convierte URL de imagen a base64 usando un proxy canvas
+       Tiene timeout de 5s — si falla, el PDF se genera igual sin logo
        ============================================================ */
-    function construirPlantillaPDF() {
-        const numTicket = document.getElementById('ticket-numero').innerText;
-        const fecha = document.getElementById('ticket-fecha').innerText;
-
-        let totalImporte = 0;
-        let filas = '';
-        ticketActual.forEach((item, index) => {
-            totalImporte += item.importe;
-            filas += `
-                <tr>
-                    <td style="padding:10px 16px; border-bottom:1px solid #e2e8f0; font-size:12px; color:#1e293b;"><strong>${index + 1}</strong></td>
-                    <td style="padding:10px 16px; border-bottom:1px solid #e2e8f0; font-size:12px; color:#1e293b;">${item.clave}</td>
-                    <td style="padding:10px 16px; border-bottom:1px solid #e2e8f0; font-size:12px; color:#1e293b;">${item.concepto}</td>
-                    <td style="padding:10px 16px; border-bottom:1px solid #e2e8f0; font-size:12px; color:#1e293b; text-align:right;">${item.cantidad}</td>
-                    <td style="padding:10px 16px; border-bottom:1px solid #e2e8f0; font-size:12px; color:#1e293b; text-align:right;">$${item.precio.toFixed(2)}</td>
-                    <td style="padding:10px 16px; border-bottom:1px solid #e2e8f0; font-size:12px; color:#1e293b; text-align:right; font-weight:700;">$${item.importe.toFixed(2)}</td>
-                </tr>
-            `;
+    function imgABase64(url) {
+        return new Promise(function(resolve) {
+            var timeout = setTimeout(function() { resolve(null); }, 5000);
+            var img = new Image();
+            img.setAttribute('crossOrigin', 'anonymous');
+            img.onload = function() {
+                clearTimeout(timeout);
+                try {
+                    var c = document.createElement('canvas');
+                    c.width = img.naturalWidth;
+                    c.height = img.naturalHeight;
+                    c.getContext('2d').drawImage(img, 0, 0);
+                    resolve(c.toDataURL('image/jpeg', 0.92));
+                } catch(e) { resolve(null); }
+            };
+            img.onerror = function() { clearTimeout(timeout); resolve(null); };
+            // Forzar recarga limpia evitando caché CORS
+            img.src = url + '?t=' + Date.now();
         });
-
-        const html = `
-        <div style="width:800px; background:white; font-family:'Inter',sans-serif;">
-
-            <!-- MEMBRETE -->
-            <div style="display:flex; flex-direction:row; align-items:center; justify-content:space-between; padding:18px 24px; border-bottom:3px solid #263fa4; background:white; box-sizing:border-box;">
-                <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" alt="Logo1" style="height:55px; object-fit:contain;" crossorigin="anonymous">
-                <div style="text-align:center; flex:1; padding:0 12px;">
-                    <h2 style="margin:0; font-size:16px; color:#263fa4; text-transform:uppercase; line-height:1.4; font-weight:800; font-family:'Inter',sans-serif;">
-                        Loreto - Ingeniería, Construcción,<br>Edificación y Remodelación
-                    </h2>
-                </div>
-                <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Logo2" style="height:55px; object-fit:contain;" crossorigin="anonymous">
-            </div>
-
-            <!-- ENCABEZADO TICKET -->
-            <div style="display:flex; flex-direction:row; justify-content:space-between; align-items:center; padding:10px 24px; background-color:#eef2ff; border-bottom:1px solid #e2e8f0; font-weight:700; color:#263fa4; font-size:13px; font-family:'Inter',sans-serif;">
-                <span>${numTicket}</span>
-                <span>${fecha}</span>
-            </div>
-
-            <!-- TABLA -->
-            <table style="width:100%; border-collapse:collapse; font-family:'Inter',sans-serif;">
-                <thead>
-                    <tr>
-                        <th style="background:#eef2ff; color:#263fa4; font-size:10px; text-transform:uppercase; font-weight:800; padding:10px 16px; text-align:left; border-bottom:1px solid #e2e8f0; width:40px;">#</th>
-                        <th style="background:#eef2ff; color:#263fa4; font-size:10px; text-transform:uppercase; font-weight:800; padding:10px 16px; text-align:left; border-bottom:1px solid #e2e8f0;">Clave</th>
-                        <th style="background:#eef2ff; color:#263fa4; font-size:10px; text-transform:uppercase; font-weight:800; padding:10px 16px; text-align:left; border-bottom:1px solid #e2e8f0;">Concepto</th>
-                        <th style="background:#eef2ff; color:#263fa4; font-size:10px; text-transform:uppercase; font-weight:800; padding:10px 16px; text-align:right; border-bottom:1px solid #e2e8f0;">Cant.</th>
-                        <th style="background:#eef2ff; color:#263fa4; font-size:10px; text-transform:uppercase; font-weight:800; padding:10px 16px; text-align:right; border-bottom:1px solid #e2e8f0;">Precio U.</th>
-                        <th style="background:#eef2ff; color:#263fa4; font-size:10px; text-transform:uppercase; font-weight:800; padding:10px 16px; text-align:right; border-bottom:1px solid #e2e8f0;">Importe</th>
-                    </tr>
-                </thead>
-                <tbody>${filas}</tbody>
-            </table>
-
-            <!-- TOTALES -->
-            <div style="display:flex; justify-content:flex-end; gap:32px; padding:14px 24px; background-color:#f8fafc; border-top:2px solid #e2e8f0; font-size:14px; font-weight:700; color:#1e293b; font-family:'Inter',sans-serif;">
-                <span>Artículos: ${ticketActual.length}/20</span>
-                <span style="color:#263fa4;">Total: $${totalImporte.toFixed(2)}</span>
-            </div>
-
-        </div>
-        `;
-
-        const plantilla = document.getElementById('pdf-template');
-        plantilla.innerHTML = html;
-        plantilla.style.visibility = 'visible'; // Visible para html2canvas pero fuera de pantalla
-        return plantilla;
     }
 
+    /* ============================================================
+       GENERAR PDF CON jsPDF — dibujado programáticamente
+       Sin html2canvas. Idéntico en celular y laptop.
+       ============================================================ */
     async function generarPDFyDescontar() {
         if (ticketActual.length === 0) { mostrarAlerta("El ticket está vacío."); return; }
 
-        const btnGenerar = document.getElementById('btn-generar-pdf');
+        var btnGenerar = document.getElementById('btn-generar-pdf');
         btnGenerar.disabled = true;
-        btnGenerar.innerHTML = `<i data-lucide="loader-2" class="animate-spin"></i> Procesando y Sincronizando...`;
+        btnGenerar.innerHTML = '<i data-lucide="loader-2"></i> Procesando...';
         lucide.createIcons();
 
-        // 1. SINCRONIZAR CON FIREBASE
+        // ── 1. SINCRONIZAR FIREBASE ───────────────────────────────
         try {
-            const batch = db.batch();
-            const counterRef = db.collection("sistema").doc("contador_tickets");
+            var batch = db.batch();
+            var counterRef = db.collection("sistema").doc("contador_tickets");
             batch.set(counterRef, { ultimo: window.numeroTicketActual }, { merge: true });
-            ticketActual.forEach(item => {
-                const docRef = db.collection("inventario").doc(item.idFirebase);
-                batch.update(docRef, { 
+            ticketActual.forEach(function(item) {
+                var docRef = db.collection("inventario").doc(item.idFirebase);
+                batch.update(docRef, {
                     cantidad: firebase.firestore.FieldValue.increment(-item.cantidad),
                     ultima_actualizacion: firebase.firestore.FieldValue.serverTimestamp()
                 });
             });
             await batch.commit();
-            await cargarInventarioDeFirebase(); 
-        } catch (error) {
+            await cargarInventarioDeFirebase();
+        } catch(error) {
             console.error(error);
             mostrarAlerta("Error al sincronizar con Firebase. Operación cancelada.", "error");
             btnGenerar.disabled = false;
-            btnGenerar.innerHTML = `<i data-lucide="file-down"></i> Generar PDF y Descontar de Almacén`;
+            btnGenerar.innerHTML = '<i data-lucide="file-down"></i> Generar PDF y Descontar de Almacén';
             lucide.createIcons();
-            return; 
+            return;
         }
 
-        // 2. CONSTRUIR PLANTILLA PDF OCULTA (siempre 800px, igual en celular y laptop)
-        const numTicket = document.getElementById('ticket-numero').innerText;
-        const elementoParaImprimir = construirPlantillaPDF();
+        // ── 2. DATOS DEL TICKET ───────────────────────────────────
+        var numTicket = document.getElementById('ticket-numero').innerText;
+        var fecha     = document.getElementById('ticket-fecha').innerText;
 
-        // 3. GENERAR PDF DESDE LA PLANTILLA OCULTA
-        const opciones = {
-            margin:      [10, 10, 10, 10], 
-            filename:    `${numTicket}.pdf`,     
-            image:       { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                scrollX: 0,
-                scrollY: 0,
-                width: 800,
-                windowWidth: 800
-            },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        // ── 3. CARGAR LOGOS (con timeout, no bloquea) ─────────────
+        var logo1 = await imgABase64('https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg');
+        var logo2 = await imgABase64('https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg');
+
+        // ── 4. CREAR DOCUMENTO jsPDF ──────────────────────────────
+        var doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+
+        var pW = 210;   // ancho A4
+        var pH = 297;   // alto  A4
+        var mL = 12;    // margen izq
+        var mR = 12;    // margen der
+        var cW = pW - mL - mR; // ancho útil = 186 mm
+        var y  = 12;    // cursor Y
+
+        // ── 5. MEMBRETE ───────────────────────────────────────────
+        var logoW = 28, logoH = 18;
+        var memH  = logoH + 6;
+
+        // Fondo blanco membrete
+        doc.setFillColor(255, 255, 255);
+        doc.rect(mL, y, cW, memH, 'F');
+
+        // Logo izquierdo
+        if (logo1) {
+            doc.addImage(logo1, 'JPEG', mL, y + 3, logoW, logoH);
+        }
+        // Logo derecho
+        if (logo2) {
+            doc.addImage(logo2, 'JPEG', mL + cW - logoW, y + 3, logoW, logoH);
+        }
+
+        // Texto central
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(38, 63, 164);
+        doc.text('LORETO - INGENIERIA, CONSTRUCCION,', pW / 2, y + 9, { align: 'center' });
+        doc.text('EDIFICACION Y REMODELACION', pW / 2, y + 15, { align: 'center' });
+
+        y += memH + 2;
+
+        // Línea azul gruesa bajo membrete
+        doc.setDrawColor(38, 63, 164);
+        doc.setLineWidth(0.8);
+        doc.line(mL, y, mL + cW, y);
+        y += 3;
+
+        // ── 6. BANDA ENCABEZADO TICKET ────────────────────────────
+        doc.setFillColor(238, 242, 255);
+        doc.rect(mL, y, cW, 9, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(38, 63, 164);
+        doc.text(numTicket, mL + 3, y + 6.2);
+        doc.text(fecha,     mL + cW - 3, y + 6.2, { align: 'right' });
+        y += 9;
+
+        // ── 7. ENCABEZADOS DE COLUMNAS ────────────────────────────
+        // Anchos de columna en mm (total = cW = 186)
+        var c = {
+            n:  { x: mL,        w: 10  },   // #
+            cl: { x: mL + 10,   w: 36  },   // CLAVE
+            co: { x: mL + 46,   w: 70  },   // CONCEPTO
+            ca: { x: mL + 116,  w: 18  },   // CANT
+            pu: { x: mL + 134,  w: 28  },   // PRECIO U
+            im: { x: mL + 162,  w: 36  }    // IMPORTE  (162+36=198 = mL+cW ✓)
         };
 
-        html2pdf().set(opciones).from(elementoParaImprimir).save().then(() => {
-            // Limpiar plantilla oculta
-            document.getElementById('pdf-template').innerHTML = '';
-            document.getElementById('pdf-template').style.visibility = 'hidden';
+        var thH = 8;
+        doc.setFillColor(238, 242, 255);
+        doc.rect(mL, y, cW, thH, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(38, 63, 164);
 
-            // Resetear ticket
-            establecerNumeroTicket();
-            ticketActual = [];
-            actualizarTabla();
-            mostrarAlerta("¡Ticket generado y sincronizado con Firebase exitosamente!");
+        doc.text('#',         c.n.x  + 2,              y + 5.5);
+        doc.text('CLAVE',     c.cl.x + 2,              y + 5.5);
+        doc.text('CONCEPTO',  c.co.x + 2,              y + 5.5);
+        doc.text('CANT.',     c.ca.x + c.ca.w - 2,    y + 5.5, { align: 'right' });
+        doc.text('PRECIO U.', c.pu.x + c.pu.w - 2,    y + 5.5, { align: 'right' });
+        doc.text('IMPORTE',   c.im.x + c.im.w - 2,    y + 5.5, { align: 'right' });
 
-            btnGenerar.disabled = false;
-            btnGenerar.innerHTML = `<i data-lucide="file-down"></i> Generar PDF y Descontar de Almacén`;
-            lucide.createIcons();
+        y += thH;
+
+        // ── 8. FILAS DE ARTÍCULOS ─────────────────────────────────
+        var totalImporte = 0;
+        var rowH = 9;
+
+        doc.setFontSize(9);
+
+        ticketActual.forEach(function(item, i) {
+            totalImporte += item.importe;
+
+            // Fondo alternado suave
+            if (i % 2 === 1) {
+                doc.setFillColor(248, 250, 252);
+                doc.rect(mL, y, cW, rowH, 'F');
+            }
+
+            // Línea divisoria
+            doc.setDrawColor(226, 232, 240);
+            doc.setLineWidth(0.2);
+            doc.line(mL, y, mL + cW, y);
+
+            doc.setTextColor(30, 41, 59);
+
+            // #
+            doc.setFont('helvetica', 'bold');
+            doc.text(String(i + 1), c.n.x + 2, y + 6);
+
+            doc.setFont('helvetica', 'normal');
+
+            // Clave (máx 18 chars para que no se pise con concepto)
+            doc.text(String(item.clave  || '').substring(0, 18), c.cl.x + 2, y + 6);
+
+            // Concepto (máx 34 chars)
+            doc.text(String(item.concepto || '').substring(0, 34), c.co.x + 2, y + 6);
+
+            // Cantidad
+            doc.text(String(item.cantidad), c.ca.x + c.ca.w - 2, y + 6, { align: 'right' });
+
+            // Precio unitario
+            doc.text('$' + item.precio.toFixed(2), c.pu.x + c.pu.w - 2, y + 6, { align: 'right' });
+
+            // Importe
+            doc.setFont('helvetica', 'bold');
+            doc.text('$' + item.importe.toFixed(2), c.im.x + c.im.w - 2, y + 6, { align: 'right' });
+
+            y += rowH;
         });
+
+        // Línea final de tabla
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.4);
+        doc.line(mL, y, mL + cW, y);
+
+        // ── 9. BANDA TOTALES ──────────────────────────────────────
+        var totH = 11;
+        doc.setFillColor(248, 250, 252);
+        doc.rect(mL, y, cW, totH, 'F');
+
+        doc.setDrawColor(38, 63, 164);
+        doc.setLineWidth(0.5);
+        doc.line(mL, y, mL + cW, y);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+
+        doc.setTextColor(30, 41, 59);
+        doc.text('Articulos: ' + ticketActual.length + '/20', mL + 3, y + 7.5);
+
+        doc.setTextColor(38, 63, 164);
+        doc.text('Total: $' + totalImporte.toFixed(2), mL + cW - 3, y + 7.5, { align: 'right' });
+
+        // ── 10. GUARDAR ───────────────────────────────────────────
+        doc.save(numTicket + '.pdf');
+
+        // ── 11. RESETEAR ──────────────────────────────────────────
+        establecerNumeroTicket();
+        ticketActual = [];
+        actualizarTabla();
+        mostrarAlerta('¡Ticket generado y sincronizado con Firebase exitosamente!');
+
+        btnGenerar.disabled = false;
+        btnGenerar.innerHTML = '<i data-lucide="file-down"></i> Generar PDF y Descontar de Almacén';
+        lucide.createIcons();
     }
 </script>
 </body>
