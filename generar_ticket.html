@@ -65,12 +65,23 @@
         input:focus { background: white; outline: none; border-color: var(--primary-blue); }
         input:read-only { color: var(--text-muted); background: #f1f5f9; }
 
+        /* NUEVOS COLORES DE INPUTS */
+        #input-clave, #input-articulo, #input-precio {
+            color: var(--primary-blue);
+            font-weight: 800;
+        }
+        #input-stock {
+            color: var(--danger);
+            font-weight: 800;
+        }
+
         .dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; z-index: 10; display: none; list-style: none; padding: 0; margin: 4px 0 0 0; }
         .dropdown-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; font-size: 13px;}
         .dropdown-item:hover { background-color: var(--bg-color); }
 
         .button-group { display: flex; gap: 8px; }
-        .btn-accion { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 42px; padding: 0 20px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
+        /* AJUSTE DE TAMAÑO PARA TODOS LOS BOTONES */
+        .btn-accion { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 42px; padding: 0 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; box-sizing: border-box;}
         .btn-primary { background-color: var(--primary-blue); color: white; }
         .btn-primary:hover { background-color: #1a2a6e; }
         .btn-secondary { background-color: white; color: var(--text-main); border: 1px solid var(--border-color); }
@@ -144,7 +155,7 @@
                     <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed var(--border-color);">
                         <div class="input-group">
                             <label>Nombre del Trabajador que genera el ticket</label>
-                            <input type="text" id="input-trabajador" placeholder="EJ. JUAN PÉREZ" autocomplete="off" required>
+                            <input type="text" id="input-trabajador" readonly style="background-color: #f1f5f9; color: var(--primary-blue); font-weight: 800; border: 1px solid var(--border-color);">
                         </div>
                     </div>
 
@@ -183,11 +194,11 @@
                         </div>
                         <div class="input-group">
                             <label>Precio U. ($)</label>
-                            <input type="number" id="input-precio" readonly placeholder="0.00">
+                            <input type="text" id="input-precio" readonly placeholder="0.00">
                         </div>
                         <div class="input-group">
                             <label>Stock Disp.</label>
-                            <input type="number" id="input-stock" readonly placeholder="0">
+                            <input type="text" id="input-stock" readonly placeholder="0">
                         </div>
                         <div class="input-group">
                             <label>Cant. Extraer</label>
@@ -241,7 +252,7 @@
     </div>
 
     <div id="contenedor-pdf-oculto" style="display: none; position: absolute; top: -9999px; left: -9999px;">
-        <div id="plantilla-loreto-pdf" style="width: 210mm; min-height: 297mm; background: white; padding: 15mm; font-family: 'Inter', Arial, sans-serif; box-sizing: border-box; color: #1e293b;">
+        <div id="plantilla-loreto-pdf" style="width: 210mm; background: white; padding: 15mm; font-family: 'Inter', Arial, sans-serif; box-sizing: border-box; color: #1e293b;">
             
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #263fa4; padding-bottom: 15px; margin-bottom: 25px;">
                 <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 50px;" crossorigin="anonymous">
@@ -277,7 +288,7 @@
                 <div style="color: #263fa4;">Total: $<span id="pdf-ticket-total">0.00</span></div>
             </div>
 
-            <div style="margin-top: 50px; text-align: center; font-size: 14px; color: #1e293b;">
+            <div style="margin-top: 40px; text-align: center; font-size: 14px; color: #1e293b;">
                 <p style="margin: 0 0 40px 0; font-weight: bold;">Trabajador que genera:</p>
                 <div style="width: 250px; border-bottom: 1px solid #1e293b; margin: 0 auto;"></div>
                 <p style="margin: 5px 0 0 0; text-transform: uppercase; font-weight: bold;" id="pdf-ticket-trabajador"></p>
@@ -320,6 +331,11 @@
         establecerNumeroTicket();
         document.getElementById('ticket-fecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-MX')} ${new Date().toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'})}`;
         
+        // ASIGNACIÓN AUTOMÁTICA DEL TRABAJADOR
+        const trabajadorLogueado = localStorage.getItem('usuarioActivo') || localStorage.getItem('nombreTrabajador') || 'JOVANI MARTINEZ';
+        document.getElementById('input-trabajador').value = trabajadorLogueado;
+        document.getElementById('user-initial').innerText = trabajadorLogueado.charAt(0);
+
         cargarInventarioDeFirebase();
 
         const inputBusqueda = document.getElementById('input-busqueda');
@@ -516,12 +532,8 @@
 
     function cerrarAlerta() { document.getElementById('modal-alerta').classList.remove('active'); }
 
-    /* ============================================================
-       GENERAR PDF CON HTML2PDF
-       ============================================================ */
     async function generarPDFyDescontar() {
         const nombreTrabajador = document.getElementById('input-trabajador').value.trim().toUpperCase();
-        if (!nombreTrabajador) { mostrarAlerta("Por favor, ingresa el nombre del trabajador.", "error"); return; }
         if (ticketActual.length === 0) { mostrarAlerta("El ticket está vacío."); return; }
 
         var btnGenerar = document.getElementById('btn-generar-pdf');
@@ -529,7 +541,6 @@
         btnGenerar.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Procesando...';
         lucide.createIcons();
 
-        // ── 1. SINCRONIZAR FIREBASE ───────────────────────────────
         try {
             var batch = db.batch();
             var counterRef = db.collection("sistema").doc("contador_tickets");
@@ -559,7 +570,7 @@
                 });
             });
             await batch.commit();
-            await cargarInventarioDeFirebase(); // Refrescar stock en memoria
+            await cargarInventarioDeFirebase(); 
         } catch(error) {
             console.error(error);
             mostrarAlerta("Error al sincronizar con Firebase. Operación cancelada.", "error");
@@ -569,7 +580,6 @@
             return;
         }
 
-        // ── 2. POBLAR LA PLANTILLA HTML OCULTA ────────────────────
         document.getElementById('pdf-ticket-num').innerText = document.getElementById('ticket-numero').innerText;
         document.getElementById('pdf-ticket-fecha').innerText = document.getElementById('ticket-fecha').innerText;
         document.getElementById('pdf-ticket-arts').innerText = ticketActual.length;
@@ -581,7 +591,6 @@
         
         ticketActual.forEach((item, index) => {
             totalImporte += item.importe;
-            // Colores alternados para las filas
             const bg = index % 2 === 0 ? 'background-color: #f8fafc;' : 'background-color: white;';
             
             tbody.innerHTML += `
@@ -598,8 +607,6 @@
         
         document.getElementById('pdf-ticket-total').innerText = totalImporte.toFixed(2);
 
-        // ── 3. GENERAR EL PDF CON HTML2PDF ────────────────────────
-        // Mostramos el contenedor fuera de pantalla para que html2pdf lo pueda procesar
         const contenedorOculto = document.getElementById('contenedor-pdf-oculto');
         contenedorOculto.style.display = 'block'; 
         const elemento = document.getElementById('plantilla-loreto-pdf');
@@ -614,14 +621,10 @@
         };
 
         html2pdf().set(opciones).from(elemento).save().then(() => {
-            // Volvemos a ocultar el contenedor
             contenedorOculto.style.display = 'none';
-            
-            // ── 4. RESETEAR UI ────────────────────────────────────
             establecerNumeroTicket();
             ticketActual = [];
             actualizarTabla();
-            document.getElementById('input-trabajador').value = '';
             mostrarAlerta('¡Ticket generado y sincronizado con Firebase exitosamente!');
             
             btnGenerar.disabled = false;
