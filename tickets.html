@@ -160,7 +160,7 @@
     </div>
 
     <div id="contenedor-pdf-oculto" style="display: none; position: absolute; top: -9999px; left: -9999px;">
-        <div id="plantilla-loreto-pdf" style="width: 210mm; min-height: 297mm; background: white; padding: 15mm; font-family: 'Inter', Arial, sans-serif; box-sizing: border-box; color: #1e293b;">
+        <div id="plantilla-loreto-pdf" style="width: 210mm; background: white; padding: 15mm; font-family: 'Inter', Arial, sans-serif; box-sizing: border-box; color: #1e293b;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #263fa4; padding-bottom: 15px; margin-bottom: 25px;">
                 <img src="https://i.ibb.co/8Lk54Gkb/LOGOTIPO-1.jpg" style="height: 50px;" crossorigin="anonymous">
                 <div style="text-align: center; color: #263fa4;">
@@ -194,7 +194,7 @@
                 <div style="color: #263fa4;">Total: $<span id="pdf-ticket-total">0.00</span></div>
             </div>
 
-            <div style="margin-top: 50px; text-align: center; font-size: 14px; color: #1e293b;">
+            <div style="margin-top: 40px; text-align: center; font-size: 14px; color: #1e293b;">
                 <p style="margin: 0 0 40px 0; font-weight: bold;">Trabajador que genera:</p>
                 <div style="width: 250px; border-bottom: 1px solid #1e293b; margin: 0 auto;"></div>
                 <p style="margin: 5px 0 0 0; text-transform: uppercase; font-weight: bold;" id="pdf-ticket-trabajador"></p>
@@ -224,6 +224,10 @@
         });
         document.getElementById('toggle-menu').addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('open'); });
 
+        // COLOCAR LETRA DE INICIO DEL USUARIO LOGUEADO
+        const trabajadorLogueado = localStorage.getItem('usuarioActivo') || localStorage.getItem('nombreTrabajador') || 'JOVANI MARTINEZ';
+        document.getElementById('user-initial').innerText = trabajadorLogueado.charAt(0);
+
         cargarTickets();
     });
 
@@ -234,7 +238,6 @@
         document.getElementById('tabla-container').style.display = 'none';
         
         try {
-            // Ordenamos por fecha de creación descendente (del más reciente al más antiguo)
             const snap = await db.collection("tickets").orderBy("fecha_creacion", "desc").get();
             dataTickets = [];
             snap.forEach(doc => { dataTickets.push({ id: doc.id, ...doc.data() }); });
@@ -257,7 +260,6 @@
         const fBuscar = document.getElementById('filtro-busqueda').value.toLowerCase();
 
         let filtrados = dataTickets.filter(t => {
-            // Filtro por Fechas
             if (fInicio || fFin) {
                 if(!t.fecha_creacion) return false;
                 const fechaTicket = t.fecha_creacion.toDate();
@@ -273,7 +275,6 @@
                 }
             }
 
-            // Filtro por Búsqueda (Número de Ticket, Trabajador, Artículos, Importe)
             if (fBuscar) {
                 const numTicket = (t.numero || "").toLowerCase();
                 const trabajadorStr = (t.trabajador || "").toLowerCase();
@@ -295,7 +296,6 @@
         filtrados.forEach((row, index) => {
             let tr = document.createElement('tr');
             
-            // Calculamos el número de visualización (1, 2, 3...)
             let numIndice = index + 1;
             let trabajador = row.trabajador || 'NO REGISTRADO';
             let fechaStr = row.fecha_str || 'Sin Fecha';
@@ -329,14 +329,12 @@
             return;
         }
 
-        // Cambiamos el estado del botón a cargando
         const btn = document.getElementById(`btn-pdf-${ticketId}`);
         const oldHtml = btn.innerHTML;
         btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i>';
         btn.disabled = true;
         lucide.createIcons();
 
-        // Poblar la plantilla oculta
         document.getElementById('pdf-ticket-num').innerText = ticket.numero;
         document.getElementById('pdf-ticket-fecha').innerText = ticket.fecha_str;
         document.getElementById('pdf-ticket-arts').innerText = ticket.total_articulos;
@@ -361,7 +359,6 @@
         
         document.getElementById('pdf-ticket-total').innerText = ticket.total_importe.toFixed(2);
 
-        // Generar el PDF
         const contenedorOculto = document.getElementById('contenedor-pdf-oculto');
         contenedorOculto.style.display = 'block'; 
         const elemento = document.getElementById('plantilla-loreto-pdf');
