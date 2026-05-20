@@ -141,6 +141,13 @@
                 </div>
 
                 <div class="card">
+                    <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed var(--border-color);">
+                        <div class="input-group">
+                            <label>Nombre del Trabajador que genera el ticket</label>
+                            <input type="text" id="input-trabajador" placeholder="EJ. JUAN PÉREZ" autocomplete="off" required>
+                        </div>
+                    </div>
+
                     <div class="search-container">
                         <div class="search-grid">
                             <div class="input-group">
@@ -268,6 +275,12 @@
             <div style="display: flex; justify-content: flex-end; align-items: center; gap: 30px; font-size: 16px; font-weight: bold; border-top: 2px solid #e2e8f0; padding-top: 15px;">
                 <div style="font-size: 14px; color: #64748b;">Artículos: <span id="pdf-ticket-arts">0</span></div>
                 <div style="color: #263fa4;">Total: $<span id="pdf-ticket-total">0.00</span></div>
+            </div>
+
+            <div style="margin-top: 50px; text-align: center; font-size: 14px; color: #1e293b;">
+                <p style="margin: 0 0 40px 0; font-weight: bold;">Trabajador que genera:</p>
+                <div style="width: 250px; border-bottom: 1px solid #1e293b; margin: 0 auto;"></div>
+                <p style="margin: 5px 0 0 0; text-transform: uppercase; font-weight: bold;" id="pdf-ticket-trabajador"></p>
             </div>
         </div>
     </div>
@@ -507,6 +520,8 @@
        GENERAR PDF CON HTML2PDF
        ============================================================ */
     async function generarPDFyDescontar() {
+        const nombreTrabajador = document.getElementById('input-trabajador').value.trim().toUpperCase();
+        if (!nombreTrabajador) { mostrarAlerta("Por favor, ingresa el nombre del trabajador.", "error"); return; }
         if (ticketActual.length === 0) { mostrarAlerta("El ticket está vacío."); return; }
 
         var btnGenerar = document.getElementById('btn-generar-pdf');
@@ -520,7 +535,6 @@
             var counterRef = db.collection("sistema").doc("contador_tickets");
             batch.set(counterRef, { ultimo: window.numeroTicketActual }, { merge: true });
             
-            // --- NUEVO CÓDIGO PARA GUARDAR EL TICKET EN FIREBASE ---
             var ticketDoc = `TICKET-${window.numeroTicketActual}`;
             var nuevoTicketRef = db.collection("tickets").doc(ticketDoc);
             
@@ -531,11 +545,11 @@
                 numero: ticketDoc,
                 fecha_creacion: firebase.firestore.FieldValue.serverTimestamp(),
                 fecha_str: document.getElementById('ticket-fecha').innerText.replace('Fecha: ', ''),
+                trabajador: nombreTrabajador,
                 total_articulos: ticketActual.length,
                 total_importe: totalImporteGuardar,
                 detalle: ticketActual
             });
-            // --- FIN DEL NUEVO CÓDIGO ---
 
             ticketActual.forEach(function(item) {
                 var docRef = db.collection("inventario").doc(item.idFirebase);
@@ -559,6 +573,7 @@
         document.getElementById('pdf-ticket-num').innerText = document.getElementById('ticket-numero').innerText;
         document.getElementById('pdf-ticket-fecha').innerText = document.getElementById('ticket-fecha').innerText;
         document.getElementById('pdf-ticket-arts').innerText = ticketActual.length;
+        document.getElementById('pdf-ticket-trabajador').innerText = nombreTrabajador;
         
         const tbody = document.getElementById('pdf-ticket-body');
         tbody.innerHTML = '';
@@ -606,6 +621,7 @@
             establecerNumeroTicket();
             ticketActual = [];
             actualizarTabla();
+            document.getElementById('input-trabajador').value = '';
             mostrarAlerta('¡Ticket generado y sincronizado con Firebase exitosamente!');
             
             btnGenerar.disabled = false;
