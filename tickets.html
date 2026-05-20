@@ -55,6 +55,10 @@
         .form-input { padding: 0 16px; height: 42px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; color: var(--text-main); width: 100%; box-sizing: border-box; background: var(--bg-color); }
         .form-input:focus { background: white; outline: none; border-color: var(--primary-blue); }
 
+        /* Botón Primario para Filtros */
+        .btn-primary { background: var(--primary-blue); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-primary:hover { background: #1a2a6e; }
+
         /* Tabla */
         .table-responsive { width: 100%; overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); background: white;}
         .data-table { width: 100%; border-collapse: collapse; min-width: 800px; }
@@ -75,6 +79,7 @@
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal-small { background: white; border-radius: 16px; padding: 30px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transform: translateY(-20px); transition: all 0.3s; }
         .modal-overlay.active .modal-small { transform: translateY(0); }
+        .modal-small p { font-size: 15px; color: var(--text-main); margin-bottom: 25px; line-height: 1.5; font-weight: 600; }
         .modal-btn { border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.2s; }
     </style>
 </head>
@@ -105,16 +110,19 @@
                 <div class="filters-bar">
                     <div class="filter-group">
                         <label class="filter-label">Fecha Inicio</label>
-                        <input type="date" class="form-input" id="filtro-fecha-inicio" onchange="renderTabla()">
+                        <input type="date" class="form-input" id="filtro-fecha-inicio">
                     </div>
                     <div class="filter-group">
                         <label class="filter-label">Fecha Término</label>
-                        <input type="date" class="form-input" id="filtro-fecha-fin" onchange="renderTabla()">
+                        <input type="date" class="form-input" id="filtro-fecha-fin">
                     </div>
                     <div class="filter-group" style="flex: 2;">
-                        <label class="filter-label">Buscar (Artículos, Importe o Número de Ticket)</label>
-                        <input type="text" class="form-input" id="filtro-busqueda" placeholder="Ej. TICKET-5, 200.00, 15..." onkeyup="renderTabla()">
+                        <label class="filter-label">Buscar (Artículos, Importe, Trabajador o Número de Ticket)</label>
+                        <input type="text" class="form-input" id="filtro-busqueda" placeholder="Ej. TICKET-5, JUAN, 200.00, 15...">
                     </div>
+                    <button class="btn-primary" onclick="renderTabla()" style="height: 42px; padding: 0 24px; display: inline-flex; align-items: center; gap: 8px;">
+                        <i data-lucide="search"></i> Buscar
+                    </button>
                 </div>
 
                 <div id="loader" class="loader-container">
@@ -128,6 +136,7 @@
                             <tr>
                                 <th style="width: 50px;">#</th>
                                 <th>Número de Ticket</th>
+                                <th>Trabajador</th>
                                 <th>Fecha</th>
                                 <th class="text-center">Artículos</th>
                                 <th class="text-right">Importe Total</th>
@@ -183,6 +192,12 @@
             <div style="display: flex; justify-content: flex-end; align-items: center; gap: 30px; font-size: 16px; font-weight: bold; border-top: 2px solid #e2e8f0; padding-top: 15px;">
                 <div style="font-size: 14px; color: #64748b;">Artículos: <span id="pdf-ticket-arts">0</span></div>
                 <div style="color: #263fa4;">Total: $<span id="pdf-ticket-total">0.00</span></div>
+            </div>
+
+            <div style="margin-top: 50px; text-align: center; font-size: 14px; color: #1e293b;">
+                <p style="margin: 0 0 40px 0; font-weight: bold;">Trabajador que genera:</p>
+                <div style="width: 250px; border-bottom: 1px solid #1e293b; margin: 0 auto;"></div>
+                <p style="margin: 5px 0 0 0; text-transform: uppercase; font-weight: bold;" id="pdf-ticket-trabajador"></p>
             </div>
         </div>
     </div>
@@ -258,13 +273,14 @@
                 }
             }
 
-            // Filtro por Búsqueda (Número de Ticket, Artículos, Importe)
+            // Filtro por Búsqueda (Número de Ticket, Trabajador, Artículos, Importe)
             if (fBuscar) {
                 const numTicket = (t.numero || "").toLowerCase();
+                const trabajadorStr = (t.trabajador || "").toLowerCase();
                 const totalArt = (t.total_articulos || 0).toString();
                 const totalImp = (t.total_importe || 0).toString();
                 
-                if (!numTicket.includes(fBuscar) && !totalArt.includes(fBuscar) && !totalImp.includes(fBuscar)) {
+                if (!numTicket.includes(fBuscar) && !trabajadorStr.includes(fBuscar) && !totalArt.includes(fBuscar) && !totalImp.includes(fBuscar)) {
                     return false;
                 }
             }
@@ -272,7 +288,7 @@
         });
 
         if(filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="padding: 30px; text-align:center; color: var(--text-muted);">No se encontraron tickets con los filtros actuales.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="padding: 30px; text-align:center; color: var(--text-muted);">No se encontraron tickets con los filtros actuales.</td></tr>`;
             return;
         }
 
@@ -281,6 +297,7 @@
             
             // Calculamos el número de visualización (1, 2, 3...)
             let numIndice = index + 1;
+            let trabajador = row.trabajador || 'NO REGISTRADO';
             let fechaStr = row.fecha_str || 'Sin Fecha';
             let articulos = row.total_articulos || 0;
             let importe = row.total_importe || 0;
@@ -288,6 +305,7 @@
             let html = `
                 <td style="font-weight: 800; color: var(--text-muted);">${numIndice}</td>
                 <td><span class="badge">${row.numero}</span></td>
+                <td style="font-weight: 600; text-transform: uppercase;">${trabajador}</td>
                 <td>${fechaStr}</td>
                 <td class="text-center" style="font-weight: 700;">${articulos}</td>
                 <td class="text-right" style="font-weight: 800; color: #16a34a;">${formatMoney(importe)}</td>
@@ -322,6 +340,7 @@
         document.getElementById('pdf-ticket-num').innerText = ticket.numero;
         document.getElementById('pdf-ticket-fecha').innerText = ticket.fecha_str;
         document.getElementById('pdf-ticket-arts').innerText = ticket.total_articulos;
+        document.getElementById('pdf-ticket-trabajador').innerText = ticket.trabajador || 'NO REGISTRADO';
         
         const tbody = document.getElementById('pdf-ticket-body');
         tbody.innerHTML = '';
