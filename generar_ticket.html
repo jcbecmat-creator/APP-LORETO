@@ -520,6 +520,23 @@
             var counterRef = db.collection("sistema").doc("contador_tickets");
             batch.set(counterRef, { ultimo: window.numeroTicketActual }, { merge: true });
             
+            // --- NUEVO CÓDIGO PARA GUARDAR EL TICKET EN FIREBASE ---
+            var ticketDoc = `TICKET-${window.numeroTicketActual}`;
+            var nuevoTicketRef = db.collection("tickets").doc(ticketDoc);
+            
+            let totalImporteGuardar = 0;
+            ticketActual.forEach(i => totalImporteGuardar += i.importe);
+
+            batch.set(nuevoTicketRef, {
+                numero: ticketDoc,
+                fecha_creacion: firebase.firestore.FieldValue.serverTimestamp(),
+                fecha_str: document.getElementById('ticket-fecha').innerText.replace('Fecha: ', ''),
+                total_articulos: ticketActual.length,
+                total_importe: totalImporteGuardar,
+                detalle: ticketActual
+            });
+            // --- FIN DEL NUEVO CÓDIGO ---
+
             ticketActual.forEach(function(item) {
                 var docRef = db.collection("inventario").doc(item.idFirebase);
                 batch.update(docRef, {
