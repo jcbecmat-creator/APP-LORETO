@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Reporte Integral | Loreto Ingeniería</title>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root { --primary-blue: #263fa4; --text-main: #1e293b; --bg-color: #f8fafc; --border: #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-main); }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
+        .title { color: var(--primary-blue); font-weight: 800; font-size: 18px; margin-bottom: 15px; border-bottom: 2px solid var(--primary-blue); padding-bottom: 8px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .tabla-costos { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .tabla-costos th { background: var(--primary-blue); color: white; padding: 10px; font-size: 12px; }
+        .tabla-costos td { padding: 8px; border-bottom: 1px solid #ddd; }
+        .btn-accion { background: var(--primary-blue); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-pdf { background: #10b981; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        /* Firma */
+        canvas { border: 1px solid #ccc; width: 100%; height: 150px; background: #fafafa; }
+    </style>
+</head>
+<body>
+
+    <div id="app" style="max-width: 800px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 50px;">
+            <h2>Reporte de Servicio</h2>
+        </div>
+
+        <div class="card">
+            <div class="title">Datos del Servicio</div>
+            <div class="input-group">
+                <label>Trabajador</label>
+                <input type="text" id="nombre_trabajador" readonly style="background:#f1f5f9;">
+            </div>
+            <div class="input-group">
+                <label>Sucursal / Ubicación</label>
+                <input type="text" id="sucursal" placeholder="Ej. Sucursal Norte">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="title">Evidencia y Descripción</div>
+            <div class="input-group">
+                <label>Falla</label>
+                <textarea id="desc_falla" rows="2"></textarea>
+            </div>
+            <div class="input-group">
+                <label>Solución</label>
+                <textarea id="desc_solucion" rows="2"></textarea>
+            </div>
+        </div>
+
+        <div class="card" id="seccion-costos">
+            <div class="title">Costos de Materiales y Mano de Obra</div>
+            <table class="tabla-costos">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Concepto</th>
+                        <th>Cantidad</th>
+                        <th>P. Unitario</th>
+                        <th>Importe</th>
+                    </tr>
+                </thead>
+                <tbody id="body-costos">
+                    <tr>
+                        <td><select><option>Material</option><option>Mano de Obra</option></select></td>
+                        <td><input type="text"></td>
+                        <td><input type="number" class="calc-cant" value="0" oninput="calcularTotal()"></td>
+                        <td><input type="number" class="calc-precio" value="0" oninput="calcularTotal()"></td>
+                        <td><input type="text" class="calc-importe" value="$0.00" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button onclick="agregarFila()" style="margin-top:10px; background:none; border:none; color:var(--primary-blue); cursor:pointer;">+ Agregar fila</button>
+            <div style="text-align: right; margin-top: 15px; font-weight: bold; font-size: 16px;">
+                Total: <span id="total-general">$0.00</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="title">Firma del Responsable</div>
+            <canvas id="firma_pad"></canvas>
+            <button onclick="limpiarFirma()" style="margin-top:5px;">Limpiar Firma</button>
+        </div>
+
+        <button class="btn-pdf" onclick="generarReportePDF()">Descargar Reporte PDF</button>
+    </div>
+
+<script>
+    // Sesión
+    document.addEventListener('DOMContentLoaded', () => {
+        const user = sessionStorage.getItem('loginUser') || 'Técnico';
+        document.getElementById('nombre_trabajador').value = user;
+    });
+
+    // Costos
+    function agregarFila() {
+        const tbody = document.getElementById('body-costos');
+        const row = document.createElement('tr');
+        row.innerHTML = `<td><select><option>Material</option><option>Mano de Obra</option></select></td>
+                        <td><input type="text"></td>
+                        <td><input type="number" class="calc-cant" value="0" oninput="calcularTotal()"></td>
+                        <td><input type="number" class="calc-precio" value="0" oninput="calcularTotal()"></td>
+                        <td><input type="text" class="calc-importe" value="$0.00" readonly></td>`;
+        tbody.appendChild(row);
+    }
+
+    function calcularTotal() {
+        let total = 0;
+        document.querySelectorAll('#body-costos tr').forEach(tr => {
+            const cant = parseFloat(tr.querySelector('.calc-cant').value) || 0;
+            const prec = parseFloat(tr.querySelector('.calc-precio').value) || 0;
+            const imp = cant * prec;
+            tr.querySelector('.calc-importe').value = '$' + imp.toFixed(2);
+            total += imp;
+        });
+        document.getElementById('total-general').innerText = '$' + total.toFixed(2);
+    }
+
+    // Firma
+    const canvas = document.getElementById('firma_pad');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    canvas.onmousedown = () => drawing = true;
+    canvas.onmouseup = () => drawing = false;
+    canvas.onmousemove = (e) => {
+        if(!drawing) return;
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+    };
+    function limpiarFirma() { ctx.clearRect(0,0, canvas.width, canvas.height); ctx.beginPath(); }
+
+    // PDF
+    async function generarReportePDF() {
+        const element = document.getElementById('app');
+        // Aquí insertamos el salto de página antes de la sección de costos
+        document.getElementById('seccion-costos').style.pageBreakBefore = 'always';
+        
+        const opt = {
+            margin: 10,
+            filename: 'Reporte_Loreto.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
+</script>
+</body>
+</html>
