@@ -65,10 +65,10 @@
         input:focus { background: white; outline: none; border-color: var(--primary-blue); }
         input:read-only { color: var(--text-muted); background: #f1f5f9; }
 
-        /* --- COLORES Y FUENTES DE INPUTS (SIN NEGRITAS, PLACEHOLDERS INCLUIDOS) --- */
+        /* --- COLORES Y FUENTES DE INPUTS (SIN NEGRITAS) --- */
         #input-clave, #input-articulo, #input-precio {
             color: var(--primary-blue) !important;
-            font-weight: 400 !important; /* Quita las negritas */
+            font-weight: 400 !important;
         }
         #input-clave::placeholder, #input-articulo::placeholder, #input-precio::placeholder {
             color: var(--primary-blue) !important;
@@ -78,7 +78,7 @@
         
         #input-stock {
             color: var(--danger) !important;
-            font-weight: 400 !important; /* Quita las negritas */
+            font-weight: 400 !important;
         }
         #input-stock::placeholder {
             color: var(--danger) !important;
@@ -103,15 +103,33 @@
         .btn-pdf:disabled { background-color: #9ca3af; cursor: not-allowed; }
         .btn-danger { background-color: var(--danger); color: white; padding: 6px 10px; height: auto; border-radius: 6px;}
 
-        /* --- AJUSTE TAMAÑO DE BOTONES EN LAPTOP --- */
+        /* --- ESTRUCTURA ROW 2 (ALINEACIÓN EXACTA CON BOTONES SUPERIORES) --- */
+        .row2-wrapper {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            align-items: end;
+        }
+        .inputs-row2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        /* --- AJUSTE TAMAÑO DE BOTONES Y ALINEACIÓN EN LAPTOP --- */
         @media (min-width: 769px) {
             #btn-buscar, #btn-toggle-qr, #btn-agregar {
                 width: 170px !important;
                 min-width: 170px !important;
                 max-width: 170px !important;
             }
-            #btn-agregar {
-                justify-self: end; /* Alinea perfectamente el borde derecho con Escanear QR */
+            .row2-wrapper {
+                grid-template-columns: 1fr 170px;
+                gap: 8px; /* Mismo gap que el .button-group superior para alinear perfectamente */
+            }
+            .inputs-row2 {
+                /* Clave(1fr) y Artículo Seleccionado(2.5fr) más anchos */
+                grid-template-columns: 1fr 2.5fr 1fr 1fr 1fr; 
             }
         }
 
@@ -135,12 +153,9 @@
         .modal-small p { font-size: 15px; color: var(--text-main); margin-bottom: 25px; line-height: 1.5; font-weight: 600; }
         .modal-btn { border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.2s; }
 
-        .input-articulo-container { grid-column: span 2; }
-
         @media (max-width: 768px) {
             .search-grid { grid-template-columns: 1fr; }
             .button-group { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
-            .input-articulo-container { grid-column: span 1 !important; } 
         }
         #conexion-loader { font-size: 12px; color: var(--success); font-weight: bold; display: flex; align-items: center; gap: 5px; }
     </style>
@@ -177,7 +192,7 @@
                     <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed var(--border-color);">
                         <div class="input-group">
                             <label>Nombre del Trabajador que genera el ticket</label>
-                            <input type="text" id="input-trabajador" readonly style="background-color: #f1f5f9; color: var(--primary-blue); font-weight: 800; border: 1px solid var(--border-color);">
+                            <input type="text" id="input-trabajador" readonly style="background-color: #f1f5f9; color: var(--primary-blue); font-weight: 400; border: 1px solid var(--border-color);">
                         </div>
                     </div>
 
@@ -205,26 +220,28 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; align-items: end;">
-                        <div class="input-group">
-                            <label>Clave</label>
-                            <input type="text" id="input-clave" readonly placeholder="---">
-                        </div>
-                        <div class="input-group input-articulo-container">
-                            <label>Artículo Seleccionado</label>
-                            <input type="text" id="input-articulo" readonly placeholder="SELECCIONA UN ARTÍCULO">
-                        </div>
-                        <div class="input-group">
-                            <label>Precio U. ($)</label>
-                            <input type="text" id="input-precio" readonly placeholder="0.00">
-                        </div>
-                        <div class="input-group">
-                            <label>Stock Disp.</label>
-                            <input type="text" id="input-stock" readonly placeholder="0">
-                        </div>
-                        <div class="input-group">
-                            <label>Cant. Extraer</label>
-                            <input type="number" id="input-cantidad" min="1" placeholder="Ej: 5">
+                    <div class="row2-wrapper">
+                        <div class="inputs-row2">
+                            <div class="input-group">
+                                <label>Clave</label>
+                                <input type="text" id="input-clave" readonly placeholder="---">
+                            </div>
+                            <div class="input-group">
+                                <label>Artículo Seleccionado</label>
+                                <input type="text" id="input-articulo" readonly placeholder="SELECCIONA UN ARTÍCULO">
+                            </div>
+                            <div class="input-group">
+                                <label>Precio U. ($)</label>
+                                <input type="text" id="input-precio" readonly placeholder="0.00">
+                            </div>
+                            <div class="input-group">
+                                <label>Stock Disp.</label>
+                                <input type="text" id="input-stock" readonly placeholder="0">
+                            </div>
+                            <div class="input-group">
+                                <label>Cant. Extraer</label>
+                                <input type="number" id="input-cantidad" min="1" placeholder="Ej: 5">
+                            </div>
                         </div>
                         <button class="btn-accion btn-primary" onclick="agregarArticulo()" id="btn-agregar">
                             <i data-lucide="plus-circle"></i> Agregar
