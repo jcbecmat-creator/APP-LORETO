@@ -38,6 +38,19 @@
         .sidebar { width: 260px; background: white; border-right: 1px solid var(--border-color); overflow-y: auto; transition: transform 0.3s ease; display: flex; flex-direction: column; }
         @media (max-width: 768px) { .sidebar { position: fixed; height: calc(100vh - 60px); transform: translateX(-100%); z-index: 40; } .sidebar.open { transform: translateX(0); } .header-title { display: none; } }
 
+        /* ============================================ */
+        /* --- ESTILOS DEL MENÚ (Idénticos a nomina.html) --- */
+        /* ============================================ */
+        .sidebar-nav { padding: 15px 10px; }
+        .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        .sidebar-section:last-child { border-bottom: none; }
+        .sidebar .section-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin: 10px 15px; padding-bottom: 0; display: block; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 8px; margin-bottom: 2px; transition: all 0.2s; }
+        .nav-item:hover { background-color: var(--bg-color); }
+        .nav-item.active { background-color: var(--light-blue); color: var(--primary-blue); font-weight: 700; border-left: 4px solid var(--primary-blue); }
+        .nav-item.active i { color: var(--primary-blue); }
+        /* ============================================ */
+
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .container { max-width: 900px; margin: 0 auto; padding-bottom: 50px; }
         
@@ -168,7 +181,6 @@
     </header>
 
     <div class="main-layout">
-        <!-- MENÚ LATERAL CARGADO DESDE MENU.HTML -->
         <aside class="sidebar" id="sidebar"></aside>
 
         <main class="content">
@@ -384,7 +396,7 @@
         let incidenciasPendientes = [], misOrdenes = [], tabActual = 'Nuevo reporte', appDataLoreto = { nombre: 'Residente', usuario: 'demo' }, costosDataConceptos = [], contadorFilas = 0;
 
         // ==========================================
-        // CARGA DE MENÚ POR SEPARADO (Idéntico a nomina.html)
+        // CARGA DE MENÚ (Idéntico a nomina.html)
         // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
             const usuario = localStorage.getItem('usuario'), nombre = localStorage.getItem('nombre');
