@@ -24,7 +24,7 @@
         .header-title { font-size: 18px; font-weight: 700; color: #263fa4; display: none; }
         @media (min-width: 768px) { .header-title { display: block; } }
         
-        /* BOTÓN HAMBURGUESA VISIBLE Y SEGURO */
+        /* BOTÓN HAMBURGUESA */
         .header-hamburger { background: none; border: none; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; color: #263fa4; }
         
         .user-circle-btn { border: 2px solid #263fa4; background-color: transparent; border-radius: 50%; padding: 2px; display: flex; align-items: center; justify-content: center; cursor: pointer; width: 40px; height: 40px; }
@@ -35,7 +35,7 @@
         .user-meta .user-name { font-weight: 700; font-size: 14px; color: #111827; }
         .user-actions .dropdown-link { display: flex; align-items: center; gap: 8px; padding: 12px 15px; color: #DC2626; font-size: 14px; text-decoration: none; font-weight: 500; }
 
-        /* SIDEBAR DINÁMICO LORETO */
+        /* SIDEBAR ESTILO LORETO */
         .main-layout { display: flex; height: calc(100vh - 60px); margin-top: 60px; }
         .sidebar { width: 280px; background-color: #ffffff; border-right: 1px solid #e5e7eb; overflow-y: auto; transition: transform 0.3s ease; z-index: 999; box-shadow: 2px 0 10px rgba(0,0,0,0.05); position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); }
         .sidebar.open { transform: translateX(0); }
@@ -103,7 +103,7 @@
         .btn-costos { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 20px; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; background: #f0f4ff; color: #263fa4; border: 2px solid #263fa4; width: 100%; }
         .btn-costos:hover { background: #d6e4ff; }
 
-        /* MODAL DE COSTOS (Homologado Loreto Azul) */
+        /* MODAL DE COSTOS */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         .modal-overlay.active { display: flex; }
         .modal-card { background: white; width: 100%; max-width: 1000px; border-radius: 16px; display: flex; flex-direction: column; max-height: 90vh; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); overflow: hidden; position: relative; }
@@ -174,7 +174,6 @@
 
     <header class="main-header">
         <div class="header-left">
-            <!-- BOTÓN HAMBURGUESA SEGURO CON ÍCONO -->
             <button class="header-hamburger" type="button" id="btn-open-menu">
                 <i data-lucide="menu" style="width:28px; height:28px;"></i>
             </button>
@@ -191,11 +190,53 @@
     </header>
 
     <div class="main-layout">
-        <!-- SIDEBAR QUE CARGA MENU.HTML DINÁMICAMENTE -->
+        <!-- MENÚ LATERAL INCrustADO DIRECTAMENTE -->
         <aside class="sidebar" id="sidebar">
             <button class="sidebar-close" type="button" id="btn-close-menu">&times;</button>
-            <div class="sidebar-content" id="menu-container">
-                <!-- El menú se inyectará aquí automáticamente desde menu.html -->
+            <div class="sidebar-content">
+                <nav class="sidebar-nav">
+                    <a href="inicio.html" class="nav-item" id="link-inicio"><i data-lucide="home"></i> Inicio</a>
+                    <div class="sidebar-section">
+                        <div class="section-title">Trabajador</div>
+                        <a href="asistencia.html" class="nav-item"><i data-lucide="calendar-check"></i> Asistencia</a>
+                        <a href="comprobante_pago.html" class="nav-item"><i data-lucide="receipt"></i> Comprobante de Pago</a>
+                        <a href="biometricos.html" class="nav-item"><i data-lucide="fingerprint"></i> Biométricos</a>
+                        <a href="credencial.html" class="nav-item"><i data-lucide="id-card"></i> Credencial</a>
+                        <a href="expediente.html" class="nav-item"><i data-lucide="folder"></i> Expediente</a>
+                        <a href="nomina.html" class="nav-item"><i data-lucide="banknote"></i> Nomina</a>
+                        <a href="vacaciones.html" class="nav-item"><i data-lucide="sun"></i> Vacaciones</a>
+                        <a href="gasolina.html" class="nav-item"><i data-lucide="fuel"></i> Gasolina</a>
+                    </div>
+                    <div class="sidebar-section">
+                        <div class="section-title">Residente</div>
+                        <a href="#" class="nav-item"><i data-lucide="pie-chart"></i> Presupuesto</a>
+                        <a href="Reportesemanal.html" class="nav-item active" id="link-reporte-semanal"><i data-lucide="calendar-days"></i> Reporte Semanal</a>
+                    </div>
+                    <div class="sidebar-section">
+                        <div class="section-title">Contadores</div>
+                        <a href="#" class="nav-item"><i data-lucide="clipboard-check"></i> Control Asistencia</a>
+                        <a href="control_gasolina.html" class="nav-item"><i data-lucide="fuel"></i> Control de Gasolina</a>
+                        <a href="control_nomina.html" class="nav-item"><i data-lucide="wallet"></i> Control de Nomina</a>
+                        <a href="control_vacaciones.html" class="nav-item"><i data-lucide="calendar-clock"></i> Control de Vacaciones</a>
+                        <a href="comprobantes_pago.html" class="nav-item"><i data-lucide="receipt"></i> Comprobantes de Pago</a>
+                        <a href="credenciales.html" class="nav-item"><i data-lucide="award"></i> Credenciales</a>
+                        <a href="expedientes.html" class="nav-item"><i data-lucide="folder-open"></i> Expedientes</a>
+                    </div>
+                    <div class="sidebar-section">
+                        <div class="section-title">Presupuesto</div>
+                        <a href="#" class="nav-item"><i data-lucide="hard-hat"></i> Obra Nueva</a>
+                        <a href="#" class="nav-item"><i data-lucide="building"></i> Asignación de Obra</a>
+                        <a href="#" class="nav-item"><i data-lucide="calculator"></i> Presupuestos</a>
+                        <a href="#" class="nav-item"><i data-lucide="file-bar-chart"></i> Reportes Semanales</a>
+                    </div>
+                    <div class="sidebar-section">
+                        <div class="section-title">Almacén</div>
+                        <a href="inventario.html" class="nav-item"><i data-lucide="package"></i> Inventario</a>
+                        <a href="tickets.html" class="nav-item"><i data-lucide="tickets"></i> Tickets</a>
+                        <a href="generar_ticket.html" class="nav-item"><i data-lucide="receipt"></i> Generar ticket</a>
+                        <a href="#" class="nav-item"><i data-lucide="clipboard-list"></i> Resumen</a>
+                    </div>
+                </nav>
             </div>
         </aside>
         <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
@@ -448,7 +489,7 @@
         let contadorFilas = 0;
 
         // ==========================================
-        // SESIÓN LORETO Y CARGA DE MENÚ DINÁMICO
+        // SESIÓN LORETO Y EVENTOS DEL MENÚ
         // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
             const usuario = localStorage.getItem('usuario');
@@ -467,19 +508,6 @@
             document.getElementById('welcome-username-display').innerText = appDataLoreto.nombre.toUpperCase();
             document.getElementById('user-dropdown-name').innerText = appDataLoreto.nombre;
             document.getElementById('nombre_tecnico').value = appDataLoreto.nombre;
-
-            // === CARGAR MENÚ LATERAL DINÁMICAMENTE DESDE menu.html ===
-            fetch('menu.html')
-                .then(response => response.text())
-                .then(html => {
-                    document.getElementById('menu-container').innerHTML = html;
-                    lucide.createIcons(); // Volver a renderizar íconos para el menú inyectado
-                    
-                    // Marcar enlace activo dinámicamente
-                    const activeLink = document.getElementById('link-reporte-semanal');
-                    if (activeLink) activeLink.classList.add('active');
-                })
-                .catch(err => console.error("Error al cargar el menú:", err));
 
             // Funcionalidad de menú lateral (Hamburguesa)
             const sidebar = document.getElementById('sidebar');
