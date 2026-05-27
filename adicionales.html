@@ -56,6 +56,19 @@
         .page-header h1 { font-size: 22px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; text-transform: uppercase; }
         .page-header p { color: var(--text-muted); margin: 0; font-size: 14px; }
 
+        .tabs-container { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { background: #eef1f6; border: none; padding: 10px 20px; border-radius: 25px; font-size: 14px; font-weight: 600; color: #555; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; white-space: nowrap; }
+        .tab-btn.active { background: var(--primary-blue) !important; color: #ffffff !important; }
+        .tab-badge { background: #d1d5db; color: #555; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+        .tab-btn.active .tab-badge { background: #ffffff; color: var(--primary-blue); }
+
+        .data-table-container { background: #FFFFFF; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid var(--border-color); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: center; }
+        thead { background: var(--light-blue); border-bottom: 1px solid var(--border-color); }
+        th, td { padding: 12px 15px; font-size: 14px; color: var(--text-main); }
+        tbody tr { border-bottom: 1px solid #f1f5f9; }
+        .btn-edit { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; }
+
         .form-card { background: #FFFFFF; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.03); margin-bottom: 24px; padding: 24px; }
         .section-title-form { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 700; color: var(--primary-blue); margin: 0 0 20px 0; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
         .section-title-form i { color: var(--primary-blue); }
@@ -87,10 +100,10 @@
         .signature-container { border: 2px dashed #d1d5db; border-radius: 8px; background: #fafafa; position: relative; margin-bottom: 10px; width: 100%; overflow: hidden; }
         .signature-pad { width: 100%; height: 200px; cursor: crosshair; touch-action: none; display: block; }
 
+        .btn-guardar { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 20px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; background: var(--success); color: white; border: none; width: 100%; }
         .btn-enviar { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 20px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; background: var(--primary-blue); color: white; border: none; width: 100%; }
-        .btn-limpiar { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 20px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; background: white; color: var(--danger); border: 2px solid var(--danger); width: 100%; }
 
-        /* MODALES FOTOS */
+        /* MODALES */
         .modal-enlarger { display: none; position: fixed !important; z-index: 999999 !important; left: 0 !important; top: 0 !important; width: 100vw !important; height: 100vh !important; background-color: rgba(0,0,0,0.95) !important; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
         .modal-enlarger.show { display: flex !important; }
         .modal-content-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; cursor: zoom-out; }
@@ -131,13 +144,32 @@
             <div class="container">
                 
                 <div class="page-header">
-                    <h1>Solicitud de adicionales / extraordinarios</h1>
-                    <p>Formato de solicitud y cuantificación</p>
+                    <h1>Solicitud de adicionales</h1>
+                    <p>Registrar y gestionar solicitudes de obra</p>
                 </div>
 
-                <form id="formAdicionales">
+                <div class="tabs-container">
+                    <button class="tab-btn active" onclick="cambiarTab('Nueva solicitud')" id="tab-Nueva solicitud"><i data-lucide="plus-circle" style="width: 16px;"></i> Nueva solicitud</button>
+                    <button class="tab-btn" onclick="cambiarTab('Guardados')" id="tab-Guardados">Guardados <span class="tab-badge" id="badge-Borrador">0</span></button>
+                    <button class="tab-btn" onclick="cambiarTab('Realizados')" id="tab-Realizados">Realizados <span class="tab-badge" id="badge-Realizado">0</span></button>
+                </div>
+
+                <!-- TABLA DE GUARDADOS / REALIZADOS -->
+                <div id="dashboard-solicitudes" style="display: none;">
+                    <div class="data-table-container">
+                        <table>
+                            <thead><tr><th>Proyecto</th><th>Concepto</th><th>Fecha</th><th>Acción</th></tr></thead>
+                            <tbody id="tabla-mis-solicitudes"><tr><td colspan="4" style="padding: 30px; color: var(--text-muted);">Cargando...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- FORMULARIO -->
+                <form id="formAdicionales" style="display: block;">
+                    <input type="hidden" id="doc_id_actual" value="">
                     
-                    <div class="form-card" style="border-left: 4px solid var(--warning);">
+                    <!-- BORDE CAMBIADO A AZUL (primary-blue) -->
+                    <div class="form-card" style="border-left: 4px solid var(--primary-blue);">
                         <h3 class="section-title-form"><i data-lucide="file-question"></i> Tipo de solicitud</h3>
                         <div class="grid-2">
                             <div class="form-group">
@@ -273,9 +305,10 @@
                         </div>
                     </div>
 
+                    <!-- BOTONES ACTUALIZADOS -->
                     <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px; max-width: 400px; margin-left: auto; margin-right: auto; padding-bottom: 40px;">
-                        <button type="button" class="btn-enviar" onclick="enviarSolicitud()"><i data-lucide="send"></i> Enviar solicitud</button>
-                        <button type="button" class="btn-limpiar" onclick="limpiarFormulario()"><i data-lucide="trash-2"></i> Limpiar formulario</button>
+                        <button type="button" id="btn-guardar-borrador" class="btn-guardar" onclick="procesarSolicitud('Borrador')"><i data-lucide="save"></i> Guardar solicitud</button>
+                        <button type="button" id="btn-enviar-orden" class="btn-enviar" onclick="procesarSolicitud('En proceso')"><i data-lucide="send"></i> Enviar solicitud</button>
                     </div>
                 </form>
             </div>
@@ -309,6 +342,7 @@
         const storage = firebase.storage();
 
         let appData = { nombre: 'Residente', usuario: 'demo' };
+        let misSolicitudes = [], tabActual = 'Nueva solicitud';
         let fotos = { evidencia: [null, null, null] };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -318,7 +352,7 @@
             document.getElementById('user-initial-header').innerText = appData.nombre.charAt(0).toUpperCase();
             document.getElementById('user-dropdown-name').innerText = appData.nombre;
 
-            fetch('menu.html').then(res => res.text()).then(html => {
+            fetch('menu.html?v=2').then(res => res.text()).then(html => {
                 document.getElementById('sidebar').innerHTML = html; lucide.createIcons();
                 const link = document.getElementById('link-adicionales'); if(link) link.classList.add('active');
             });
@@ -326,15 +360,114 @@
             window.addEventListener('click', (e) => { if (!e.target.matches('#user-initial-header')) { const dd = document.getElementById('user-dropdown'); if(dd.classList.contains('show')) dd.classList.remove('show'); } });
             
             inicializarFirma(); 
+            cargarMisSolicitudes();
             lucide.createIcons();
         });
 
+        // --- LÓGICA DE TABS Y TABLA ---
+        function cargarMisSolicitudes() {
+            db.collection("solicitudes_adicionales").where("residente_id","==",appData.usuario).get().then(q => {
+                misSolicitudes = [];
+                q.forEach(d => { misSolicitudes.push({ id_doc: d.id, ...d.data() }); });
+                misSolicitudes.sort((a, b) => (b.fecha_creacion || "").localeCompare(a.fecha_creacion || ""));
+                actualizarBadges();
+                if(tabActual !== 'Nueva solicitud') renderTablaMisSolicitudes();
+            }).catch(e => console.error(e));
+        }
+
+        function actualizarBadges() {
+            let b=0, r=0;
+            misSolicitudes.forEach(o => { if(o.estado==='Borrador') b++; else if(o.estado==='En proceso') r++; });
+            document.getElementById('badge-Borrador').innerText = b;
+            document.getElementById('badge-Realizado').innerText = r;
+        }
+
+        function cambiarTab(e, isEdit=false) {
+            tabActual = e;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            const a = document.getElementById(`tab-${e}`); if(a) a.classList.add('active');
+            if(e === 'Nueva solicitud') {
+                document.getElementById('dashboard-solicitudes').style.display = 'none';
+                document.getElementById('formAdicionales').style.display = 'block';
+                if(!isEdit) mostrarFormularioNuevaSolicitud();
+            } else {
+                document.getElementById('formAdicionales').style.display = 'none';
+                document.getElementById('dashboard-solicitudes').style.display = 'block';
+                renderTablaMisSolicitudes();
+            }
+        }
+
+        function renderTablaMisSolicitudes() {
+            const t = document.getElementById('tabla-mis-solicitudes'); t.innerHTML = '';
+            let f = misSolicitudes.filter(o => {
+                if(tabActual==='Guardados' && o.estado!=='Borrador') return false;
+                if(tabActual==='Realizados' && o.estado!=='En proceso') return false;
+                return true;
+            });
+            if(f.length===0) { t.innerHTML=`<tr><td colspan="4" style="padding:30px;color:var(--text-muted)">Sin solicitudes</td></tr>`; return; }
+            f.forEach(o => {
+                const r = document.createElement('tr');
+                r.innerHTML = `
+                    <td style="font-weight:bold">${o.proyecto||''}</td>
+                    <td>${o.concepto||''}</td>
+                    <td>${o.fecha||''}</td>
+                    <td>
+                        ${o.estado === 'Borrador' ? `<button type="button" onclick="cargarBorrador('${o.id_doc}')" class="btn-edit"><i data-lucide="edit-2" style="width:14px"></i> Editar</button>` : `<span style="color:var(--primary-blue); font-weight:700;">Enviado</span>`}
+                    </td>`;
+                t.appendChild(r);
+            });
+            lucide.createIcons();
+        }
+
+        function mostrarFormularioNuevaSolicitud() {
+            document.getElementById('formAdicionales').reset();
+            document.getElementById('doc_id_actual').value = '';
+            document.getElementById('resultado_val').innerText = '0.00';
+            document.getElementById('total_val').innerText = '$0.00';
+            fotos = { evidencia: [null, null, null] };
+            renderSlots('evidencia');
+            limpiarFirma('firma_residente');
+        }
+
+        function cargarBorrador(id) {
+            const o = misSolicitudes.find(x => x.id_doc === id); if(!o) return;
+            cambiarTab('Nueva solicitud', true);
+            document.getElementById('doc_id_actual').value = o.id_doc;
+            document.getElementById('tipo_solicitud').value = o.tipo_solicitud || 'Adicionales';
+            document.getElementById('proyecto').value = o.proyecto || '';
+            document.getElementById('partida').value = o.partida || '';
+            document.getElementById('fecha_solicitud').value = o.fecha || '';
+            document.getElementById('justificacion').value = o.justificacion || '';
+            document.getElementById('ubicacion').value = o.ubicacion || '';
+            document.getElementById('clave').value = o.clave || '';
+            document.getElementById('concepto').value = o.concepto || '';
+            document.getElementById('localizacion_proyecto').value = o.localizacion_proyecto || '';
+            document.getElementById('unidad').value = o.unidad || 'M2';
+            document.getElementById('largo').value = o.largo || '';
+            document.getElementById('ancho').value = o.ancho || '';
+            document.getElementById('alto').value = o.alto || '';
+            document.getElementById('pzas').value = o.pzas || '';
+            document.getElementById('resultado_val').innerText = o.resultado || '0.00';
+            document.getElementById('parcial').value = o.parcial || '';
+            document.getElementById('total_val').innerText = o.total ? '$' + o.total.toFixed(2) : '$0.00';
+            document.getElementById('observaciones').value = o.observaciones || '';
+            
+            fotos.evidencia = o.urls_evidencia && o.urls_evidencia.length ? [...o.urls_evidencia] : [null, null, null];
+            while(fotos.evidencia.length < 3) fotos.evidencia.push(null);
+            renderSlots('evidencia');
+
+            if(o.url_firma) {
+                document.getElementById('firma_residente_data').value = o.url_firma;
+                const img = new Image(); img.onload = () => { if(ctxFirma) ctxFirma.drawImage(img,0,0) }; img.src = o.url_firma;
+            } else { limpiarFirma('firma_residente'); }
+        }
+
+        // --- LÓGICA DE CÁLCULO ---
         function calcularResultado() {
             const l = parseFloat(document.getElementById('largo').value) || 0;
             const a = parseFloat(document.getElementById('ancho').value) || 0;
             const al = parseFloat(document.getElementById('alto').value) || 0;
             const p = parseFloat(document.getElementById('pzas').value) || 1;
-            // Si no hay alto o pzas, se asume multiplicación simple de área * piezas
             let res = l * a;
             if(al > 0) res *= al;
             if(p > 0) res *= p;
@@ -345,67 +478,74 @@
         function calcularTotal() {
             const res = parseFloat(document.getElementById('resultado_val').innerText) || 0;
             const par = parseFloat(document.getElementById('parcial').value) || 0;
-            document.getElementById('total_val').innerText = '$' + (res * par).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            const tot = res * par;
+            document.getElementById('total_val').innerText = '$' + tot.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
 
-        function limpiarFormulario() {
-            document.getElementById('formAdicionales').reset();
-            document.getElementById('resultado_val').innerText = '0.00';
-            document.getElementById('total_val').innerText = '$0.00';
-            fotos = { evidencia: [null, null, null] };
-            renderSlots('evidencia');
-            limpiarFirma('firma_residente');
-        }
-
-        async function enviarSolicitud() {
+        // --- LÓGICA DE GUARDAR / ENVIAR ---
+        async function procesarSolicitud(est) {
+            const g = document.getElementById('btn-guardar-borrador'), e = document.getElementById('btn-enviar-orden');
             const cf = document.getElementById('firma_residente'), fv = document.createElement('canvas');
             fv.width=cf.width; fv.height=cf.height;
-            if(cf.toDataURL()===fv.toDataURL() && !document.getElementById('firma_residente_data').value){ showCustomAlert("Atención","La firma es obligatoria.",false); return; }
+            
+            if(est === 'En proceso') {
+                const p = document.getElementById('proyecto').value, c = document.getElementById('concepto').value;
+                if(!p || !c) { showCustomAlert("Atención","Completa Proyecto y Concepto.",false); return; }
+                if(cf.toDataURL()===fv.toDataURL() && !document.getElementById('firma_residente_data').value){ showCustomAlert("Atención","La firma es obligatoria.",false); return; }
+            }
             if(cf.toDataURL()!==fv.toDataURL()) document.getElementById('firma_residente_data').value=cf.toDataURL();
 
-            const data = {
-                tipo_solicitud: document.getElementById('tipo_solicitud').value,
-                proyecto: document.getElementById('proyecto').value,
-                partida: document.getElementById('partida').value,
-                fecha: document.getElementById('fecha_solicitud').value,
-                justificacion: document.getElementById('justificacion').value,
-                ubicacion: document.getElementById('ubicacion').value,
-                clave: document.getElementById('clave').value,
-                concepto: document.getElementById('concepto').value,
-                localizacion_proyecto: document.getElementById('localizacion_proyecto').value,
-                unidad: document.getElementById('unidad').value,
-                largo: parseFloat(document.getElementById('largo').value) || 0,
-                ancho: parseFloat(document.getElementById('ancho').value) || 0,
-                alto: parseFloat(document.getElementById('alto').value) || 0,
-                pzas: parseFloat(document.getElementById('pzas').value) || 0,
-                resultado: parseFloat(document.getElementById('resultado_val').innerText) || 0,
-                parcial: parseFloat(document.getElementById('parcial').value) || 0,
-                total: parseFloat(document.getElementById('total_val').innerText.replace('$','').replace(',','')) || 0,
-                observaciones: document.getElementById('observaciones').value,
-                residente_id: appData.usuario,
-                residente_nombre: appData.nombre,
-                estado: 'Pendiente',
-                fecha_creacion: new Date().toISOString()
-            };
+            g.disabled=true; e.disabled=true; g.innerText='Procesando...'; e.innerText='Procesando...';
 
             try {
-                const folioDoc = `ADIC-${Date.now()}`;
                 let urlsFotos = [];
                 const up = async(d, p) => { if(d && d.startsWith('data:image')){ const r=storage.ref(p); await r.put(dataURItoBlob(d)); return await r.getDownloadURL(); } return d; };
-                for(let i=0; i<fotos.evidencia.length; i++){ if(fotos.evidencia[i]) urlsFotos.push(await up(fotos.evidencia[i], `adicionales_loreto/${folioDoc}/evidencia_${i}.jpg`)); }
-                data.urls_evidencia = urlsFotos;
-                data.url_firma = await up(document.getElementById('firma_residente_data').value, `adicionales_loreto/${folioDoc}/firma.png`);
+                for(let i=0; i<fotos.evidencia.length; i++){ if(fotos.evidencia[i]) urlsFotos.push(await up(fotos.evidencia[i], `adicionales_loreto/${Date.now()}/evidencia_${i}.jpg`)); }
+                
+                const did = document.getElementById('doc_id_actual').value || `ADIC-${Date.now()}`;
+                const data = {
+                    tipo_solicitud: document.getElementById('tipo_solicitud').value,
+                    proyecto: document.getElementById('proyecto').value,
+                    partida: document.getElementById('partida').value,
+                    fecha: document.getElementById('fecha_solicitud').value,
+                    justificacion: document.getElementById('justificacion').value,
+                    ubicacion: document.getElementById('ubicacion').value,
+                    clave: document.getElementById('clave').value,
+                    concepto: document.getElementById('concepto').value,
+                    localizacion_proyecto: document.getElementById('localizacion_proyecto').value,
+                    unidad: document.getElementById('unidad').value,
+                    largo: parseFloat(document.getElementById('largo').value) || 0,
+                    ancho: parseFloat(document.getElementById('ancho').value) || 0,
+                    alto: parseFloat(document.getElementById('alto').value) || 0,
+                    pzas: parseFloat(document.getElementById('pzas').value) || 0,
+                    resultado: parseFloat(document.getElementById('resultado_val').innerText) || 0,
+                    parcial: parseFloat(document.getElementById('parcial').value) || 0,
+                    total: parseFloat(document.getElementById('total_val').innerText.replace('$','').replace(',','')) || 0,
+                    observaciones: document.getElementById('observaciones').value,
+                    urls_evidencia: urlsFotos,
+                    url_firma: await up(document.getElementById('firma_residente_data').value, `adicionales_loreto/${did}/firma.png`),
+                    residente_id: appData.usuario,
+                    residente_nombre: appData.nombre,
+                    estado: est,
+                    fecha_creacion: new Date().toISOString()
+                };
 
-                await db.collection("solicitudes_adicionales").doc(folioDoc).set(data);
-                showCustomAlert("Éxito", "Solicitud enviada correctamente.", true);
-                limpiarFormulario();
-            } catch(e) {
-                console.error(e);
-                showCustomAlert("Error", "Ocurrió un error al enviar.", false);
+                await db.collection("solicitudes_adicionales").doc(did).set(data, {merge: true});
+                showCustomAlert("Éxito", est==='Borrador'?"Guardado correctamente.":"Enviado correctamente.", true);
+                cargarMisSolicitudes();
+                cambiarTab(est==='Borrador'?'Guardados':'Realizados');
+            } catch(err) {
+                console.error(err);
+                showCustomAlert("Error", "Ocurrió un error al guardar.", false);
+            } finally {
+                g.disabled=false; e.disabled=false;
+                g.innerHTML='<i data-lucide="save"></i> Guardar solicitud';
+                e.innerHTML='<i data-lucide="send"></i> Enviar solicitud';
+                lucide.createIcons();
             }
         }
 
-        // --- FUNCIONES DE FOTOS Y FIRMA (Idénticas a reporte_semanal) ---
+        // --- FUNCIONES DE FOTOS Y FIRMA ---
         function showCustomAlert(t, m, s=true) { const a = document.getElementById('custom-alert'); document.getElementById('alert-title').innerText=t; document.getElementById('alert-msg').innerText=m; const i = document.getElementById('alert-icon-container'), b = document.getElementById('alert-btn'); if(s){i.innerHTML='<i data-lucide="check-circle" style="width:48px;height:48px;color:var(--success)"></i>';b.style.background='var(--success)';}else{i.innerHTML='<i data-lucide="alert-triangle" style="width:48px;height:48px;color:var(--danger)"></i>';b.style.background='var(--danger)';} a.style.display='flex'; lucide.createIcons(); }
         function closeCustomAlert() { document.getElementById('custom-alert').style.display = 'none'; }
 
