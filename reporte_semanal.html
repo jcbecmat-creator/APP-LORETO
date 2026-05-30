@@ -21,7 +21,7 @@
 
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* --- HEADER Y LAYOUT (Idéntico a nomina.html) --- */
+        /* --- HEADER Y LAYOUT --- */
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: white; border-bottom: 1px solid var(--border-color); z-index: 50; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .menu-btn { background: none; border: none; cursor: pointer; color: var(--text-main); }
@@ -38,9 +38,7 @@
         .sidebar { width: 260px; background: white; border-right: 1px solid var(--border-color); overflow-y: auto; transition: transform 0.3s ease; display: flex; flex-direction: column; }
         @media (max-width: 768px) { .sidebar { position: fixed; height: calc(100vh - 60px); transform: translateX(-100%); z-index: 40; } .sidebar.open { transform: translateX(0); } .header-title { display: none; } }
 
-        /* ============================================ */
-        /* --- ESTILOS DEL MENÚ (Idénticos a nomina.html) --- */
-        /* ============================================ */
+        /* --- ESTILOS DEL MENÚ --- */
         .sidebar-nav { padding: 15px 10px; }
         .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .sidebar-section:last-child { border-bottom: none; }
@@ -49,7 +47,6 @@
         .nav-item:hover { background-color: var(--bg-color); }
         .nav-item.active { background-color: var(--light-blue); color: var(--primary-blue); font-weight: 700; border-left: 4px solid var(--primary-blue); }
         .nav-item.active i { color: var(--primary-blue); }
-        /* ============================================ */
 
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .container { max-width: 900px; margin: 0 auto; padding-bottom: 50px; }
@@ -95,39 +92,6 @@
 
         .btn-guardar { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 20px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; background: var(--success); color: white; border: none; width: 100%; }
         .btn-enviar { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 20px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; background: var(--primary-blue); color: white; border: none; width: 100%; }
-        .btn-costos { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 20px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; background: var(--light-blue); color: var(--primary-blue); border: 2px solid var(--primary-blue); width: 100%; }
-
-        /* --- MODAL DE COSTOS --- */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .modal-overlay.active { display: flex; }
-        .modal-card { background: white; width: 100%; max-width: 1000px; border-radius: 16px; display: flex; flex-direction: column; max-height: 90vh; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); overflow: hidden; position: relative; }
-        .modal-header-custom { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border-color); background: #fff; }
-        .header-left-group { display: flex; align-items: center; gap: 24px; }
-        .header-titles h2 { font-size: 20px; font-weight: 800; margin: 0; color: var(--primary-blue); }
-        .header-titles p { font-size: 13px; color: var(--text-muted); margin: 4px 0 0 0; }
-        .header-totals-group { display: flex; align-items: center; gap: 24px; }
-        .total-block { display: flex; flex-direction: row; align-items: center; gap: 6px; }
-        .total-label { font-size: 14px; font-weight: 600; color: var(--text-muted); }
-        .total-value { font-size: 16px; font-weight: 800; color: var(--primary-blue); }
-        .modal-close { background: none; border: none; font-size: 26px; cursor: pointer; color: var(--text-muted); position: absolute; top: 15px; right: 20px; }
-        .modal-body { padding: 24px; overflow-y: auto; background: #fff; }
-        .modal-footer { padding: 20px 24px; background: #fff; border-top: 1px solid var(--border-color); }
-        
-        .captura-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        .captura-table th { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; padding-bottom: 12px; text-align: left; border-bottom: 2px solid var(--border-color); }
-        .captura-table td { padding: 6px 4px; vertical-align: top; }
-        
-        .cap-input, .cap-select { width: 100%; padding: 0 0.8rem; line-height: 38px; font-size: 13px; color: var(--text-main); background-color: #f3f4f6; border-radius: 6px; border: 1px solid #d1d5db; box-sizing: border-box; font-family: inherit; height: 38px; display: block; transition: all 0.2s ease; }
-        .cap-input:focus, .cap-select:focus { outline: none; background-color: #ffffff; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(38, 63, 164, 0.15); }
-        .cap-input.money { text-align: right; }
-        select.cap-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; background-size: 14px; }
-
-        .section-agregar { width: 100%; padding-bottom: 20px; margin-bottom: 10px; text-align: right; border-bottom: 1px solid var(--border-color); }
-        .btn-add-concepto { background: var(--primary-blue); color: white; border: none; height: 40px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 200px; }
-        .botones-accion-group { display: flex; gap: 12px; justify-content: flex-end; width: 100%; }
-        .btn-cancelar { background: #ffffff; color: #334155; border: 1px solid #cbd5e1; height: 42px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 200px; }
-        .btn-confirmar { background: var(--primary-blue); color: white; border: none; height: 42px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 200px; }
-        .btn-eliminar-fila { background: none; border: none; color: var(--danger); cursor: pointer; display: flex; align-items: center; justify-content: center; height: 38px; width: 100%; }
 
         /* OTROS MODALES */
         .modal-enlarger { display: none; position: fixed !important; z-index: 999999 !important; left: 0 !important; top: 0 !important; width: 100vw !important; height: 100vh !important; background-color: rgba(0,0,0,0.95) !important; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
@@ -152,14 +116,6 @@
         tbody tr { border-bottom: 1px solid #f1f5f9; }
         .btn-edit { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; }
         .btn-pdf { background: var(--primary-blue); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; }
-
-        @media (max-width: 900px) {
-            .modal-header-custom { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .header-left-group { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .header-totals-group { flex-direction: row; flex-wrap: wrap; justify-content: flex-start; gap: 15px; }
-            .botones-accion-group { flex-direction: column; }
-            .btn-cancelar, .btn-confirmar, .btn-add-concepto { width: 100%; }
-        }
     </style>
 </head>
 <body>
@@ -285,18 +241,6 @@
                         </div>
                     </div>
 
-                    <!-- SECCIÓN COSTOS -->
-                    <div class="form-card" style="border: 2px dashed var(--primary-blue);">
-                        <h3 class="section-title-form"><i data-lucide="calculator"></i> Costos del Reporte</h3>
-                        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Registra los materiales y mano de obra utilizados.</p>
-                        <div class="info-grid" style="margin-bottom: 20px;">
-                            <div class="info-item"><label>Subtotal</label><span id="cost-subtotal-display" style="font-size: 16px;">$0.00</span></div>
-                            <div class="info-item"><label>IVA (16%)</label><span id="cost-iva-display" style="font-size: 16px;">$0.00</span></div>
-                            <div class="info-item"><label>Total</label><span id="cost-total-display" style="font-size: 18px; font-weight: 800; color: var(--primary-blue);">$0.00</span></div>
-                        </div>
-                        <button type="button" class="btn-costos" onclick="abrirModalCostos()"><i data-lucide="plus-circle"></i> Capturar Conceptos</button>
-                    </div>
-
                     <div class="form-card">
                         <h3 class="section-title-form"><i data-lucide="user-check"></i> Selfie en Sitio</h3>
                         <label class="form-label">Evidencia Fotográfica (Selfie - Máx 1)</label>
@@ -333,36 +277,6 @@
         </main>
     </div>
 
-    <!-- MODAL DE COSTOS -->
-    <div id="modalConceptos" class="modal-overlay">
-        <div class="modal-card">
-            <button class="modal-close" onclick="cerrarModalCostos()">&times;</button>
-            <div class="modal-header-custom">
-                <div class="header-left-group">
-                    <div class="header-titles"><h2>Costos del Reporte</h2><p>Carga los conceptos empleados para esta orden</p></div>
-                </div>
-                <div class="header-totals-group">
-                    <div class="total-block"><span class="total-label">Importe:</span> <span id="modal-importe-top" class="total-value">$0.00</span></div>
-                    <div class="total-block"><span class="total-label">IVA:</span> <span id="modal-iva-top" class="total-value">$0.00</span></div>
-                    <div class="total-block"><span class="total-label">Total:</span> <span id="modal-suma-total" class="total-value">$0.00</span></div>
-                </div>
-            </div>
-            <div class="modal-body">
-                <table class="captura-table">
-                    <thead><tr><th style="width: 18%;">TIPO</th><th style="width: 25%;">CONCEPTO</th><th style="width: 10%;">UNIDAD</th><th style="width: 9%;">CANT.</th><th style="width: 12%;">P. UNIT.</th><th style="width: 14%;">IMPORTE</th><th style="width: 12%;">NOTA</th><th style="width: 5%;"></th></tr></thead>
-                    <tbody id="conceptos-body"></tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <div class="section-agregar"><button type="button" class="btn-add-concepto" onclick="agregarFilaConcepto()"><i data-lucide="plus" style="width:16px;"></i> Agregar concepto</button></div>
-                <div class="botones-accion-group">
-                    <button type="button" class="btn-cancelar" onclick="cerrarModalCostos()">Cancelar</button>
-                    <button type="button" class="btn-confirmar" onclick="guardarCostosLocales()"><i data-lucide="check" style="width:16px;"></i> Confirmar Costos</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- OVERLAYS Y MODALES DE FOTOS -->
     <input type="file" id="fileInputGlobal" accept="image/*" style="display:none" onchange="processFile(this)">
     <canvas id="tempCanvas" style="display:none"></canvas>
@@ -393,10 +307,10 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        let incidenciasPendientes = [], misOrdenes = [], tabActual = 'Nuevo reporte', appDataLoreto = { nombre: 'Residente', usuario: 'demo' }, costosDataConceptos = [], contadorFilas = 0;
+        let incidenciasPendientes = [], misOrdenes = [], tabActual = 'Nuevo reporte', appDataLoreto = { nombre: 'Residente', usuario: 'demo' };
 
         // ==========================================
-        // CARGA DE MENÚ (Idéntico a nomina.html)
+        // CARGA DE MENÚ 
         // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
             const usuario = localStorage.getItem('usuario'), nombre = localStorage.getItem('nombre');
@@ -407,7 +321,7 @@
             document.getElementById('user-dropdown-name').innerText = appDataLoreto.nombre;
             document.getElementById('nombre_tecnico').value = appDataLoreto.nombre;
 
-            fetch('menu.html').then(res => res.text()).then(html => {
+            fetch('menu.html?v=2').then(res => res.text()).then(html => {
                 document.getElementById('sidebar').innerHTML = html; lucide.createIcons();
                 const linkInicio = document.getElementById('link-inicio'); if(linkInicio) linkInicio.classList.remove('active');
                 const linkReporte = document.getElementById('link-reporte-semanal'); if(linkReporte) linkReporte.classList.add('active');
@@ -431,21 +345,12 @@
         async function obtenerFolioGlobal(){const r=db.collection('metadata').doc('contadores_loreto');return await db.runTransaction(async t=>{const d=await t.get(r);let n=(d.exists&&d.data().rs_folio)?d.data().rs_folio+1:1;t.set(r,{rs_folio:n},{merge:true});return`RS-${n.toString().padStart(4,'0')}`});}
 
         let fotos={falla:[null,null,null],solucion:[null,null,null],soporte:[null],selfie:[null]};
-        function mostrarFormularioNuevaOrden(){document.getElementById('ordenMttoForm').reset();document.getElementById('doc_id_actual').value='';document.getElementById('folio_rs').value='';document.getElementById('incidencia_doc_id').value='';document.getElementById('sucursal-details').style.display='none';fotos={falla:[null,null,null],solucion:[null,null,null],soporte:[null],selfie:[null]};renderSlots('falla');renderSlots('solucion');renderSlots('soporte');renderSlots('selfie');limpiarFirma('firma_tecnico');document.getElementById('nombre_tecnico').value=appDataLoreto.nombre||'';resetCostDisplay();}
-        function cargarBorrador(id){const o=misOrdenes.find(x=>x.id_doc===id);if(!o)return;cambiarTab('Nuevo reporte',true);document.getElementById('doc_id_actual').value=o.id_doc;document.getElementById('folio_rs').value=o.id_ticket||'';document.getElementById('incidencia-input').value=o.id_incidencia||'';document.getElementById('incidencia_doc_id').value=o.id_incidencia_doc||'';document.getElementById('sucursal-input').value=o.proyecto||'';document.getElementById('sucursal-input').dispatchEvent(new Event('input'));document.getElementById('desc_falla').value=o.desc_avance||'';document.getElementById('desc_solucion').value=o.desc_observaciones||'';document.getElementById('nombre_tecnico').value=o.residente_nombre||'';document.getElementById('celular_tecnico').value=o.residente_celular||'';document.getElementById('comentario_salida').value=o.comentario||'';fotos.falla=o.urls_avance&&o.urls_avance.length?[...o.urls_avance]:[null,null,null];fotos.solucion=o.urls_observaciones&&o.urls_observaciones.length?[...o.urls_observaciones]:[null,null,null];fotos.soporte=o.url_soporte?[o.url_soporte]:[null];fotos.selfie=o.url_selfie?[o.url_selfie]:[null];while(fotos.falla.length<3)fotos.falla.push(null);while(fotos.solucion.length<3)fotos.solucion.push(null);renderSlots('falla');renderSlots('solucion');renderSlots('soporte');renderSlots('selfie');if(o.url_firma){document.getElementById('firma_tecnico_data').value=o.url_firma;const img=new Image();img.onload=()=>{if(ctxFirma)ctxFirma.drawImage(img,0,0)};img.src=o.url_firma}else{limpiarFirma('firma_tecnico')}costosDataConceptos=o.conceptos_costos||[];updateCostDisplay(o.costo_subtotal||0,o.costo_iva||0,o.costo_total||0);}
+        function mostrarFormularioNuevaOrden(){document.getElementById('ordenMttoForm').reset();document.getElementById('doc_id_actual').value='';document.getElementById('folio_rs').value='';document.getElementById('incidencia_doc_id').value='';document.getElementById('sucursal-details').style.display='none';fotos={falla:[null,null,null],solucion:[null,null,null],soporte:[null],selfie:[null]};renderSlots('falla');renderSlots('solucion');renderSlots('soporte');renderSlots('selfie');limpiarFirma('firma_tecnico');document.getElementById('nombre_tecnico').value=appDataLoreto.nombre||'';}
+        
+        function cargarBorrador(id){const o=misOrdenes.find(x=>x.id_doc===id);if(!o)return;cambiarTab('Nuevo reporte',true);document.getElementById('doc_id_actual').value=o.id_doc;document.getElementById('folio_rs').value=o.id_ticket||'';document.getElementById('incidencia-input').value=o.id_incidencia||'';document.getElementById('incidencia_doc_id').value=o.id_incidencia_doc||'';document.getElementById('sucursal-input').value=o.proyecto||'';document.getElementById('sucursal-input').dispatchEvent(new Event('input'));document.getElementById('desc_falla').value=o.desc_avance||'';document.getElementById('desc_solucion').value=o.desc_observaciones||'';document.getElementById('nombre_tecnico').value=o.residente_nombre||'';document.getElementById('celular_tecnico').value=o.residente_celular||'';document.getElementById('comentario_salida').value=o.comentario||'';fotos.falla=o.urls_avance&&o.urls_avance.length?[...o.urls_avance]:[null,null,null];fotos.solucion=o.urls_observaciones&&o.urls_observaciones.length?[...o.urls_observaciones]:[null,null,null];fotos.soporte=o.url_soporte?[o.url_soporte]:[null];fotos.selfie=o.url_selfie?[o.url_selfie]:[null];while(fotos.falla.length<3)fotos.falla.push(null);while(fotos.solucion.length<3)fotos.solucion.push(null);renderSlots('falla');renderSlots('solucion');renderSlots('soporte');renderSlots('selfie');if(o.url_firma){document.getElementById('firma_tecnico_data').value=o.url_firma;const img=new Image();img.onload=()=>{if(ctxFirma)ctxFirma.drawImage(img,0,0)};img.src=o.url_firma}else{limpiarFirma('firma_tecnico')}}
 
-        async function procesarOrden(est){const g=document.getElementById('btn-guardar-borrador'),e=document.getElementById('btn-enviar-orden');let fol=document.getElementById('folio_rs').value;const cf=document.getElementById('firma_tecnico'),fv=document.createElement('canvas');fv.width=cf.width;fv.height=cf.height;if(est==='En proceso'){const s=document.getElementById('sucursal-input').value,d=document.getElementById('desc_falla').value,n=document.getElementById('nombre_tecnico').value;if(!s||!d||!n){showCustomAlert("Atención","Completa Proyecto, Avance y Residente.",false);return}if(cf.toDataURL()===fv.toDataURL()&&!document.getElementById('firma_tecnico_data').value){showCustomAlert("Atención","Firma obligatoria.",false);return}}if(cf.toDataURL()!==fv.toDataURL())document.getElementById('firma_tecnico_data').value=cf.toDataURL();g.disabled=true;e.disabled=true;g.innerText='Procesando...';e.innerText='Procesando...';try{if(!fol){fol=await obtenerFolioGlobal();document.getElementById('folio_rs').value=fol}let ua=[],uo=[];let us=null,usl=null,uf=null;const up=async(d,p)=>{if(d&&d.startsWith('data:image')){const r=storage.ref(p);await r.put(dataURItoBlob(d));return await r.getDownloadURL()}return d};for(let i=0;i<fotos.falla.length;i++){if(fotos.falla[i])ua.push(await up(fotos.falla[i],`reportes_loreto/${fol}/avance_${i}_${Date.now()}.jpg`))}for(let i=0;i<fotos.solucion.length;i++){if(fotos.solucion[i])uo.push(await up(fotos.solucion[i],`reportes_loreto/${fol}/obs_${i}_${Date.now()}.jpg`))}us=await up(fotos.soporte[0],`reportes_loreto/${fol}/soporte_${Date.now()}.jpg`);usl=await up(fotos.selfie[0],`reportes_loreto/${fol}/selfie_${Date.now()}.jpg`);uf=await up(document.getElementById('firma_tecnico_data').value,`reportes_loreto/${fol}/firma_${Date.now()}.png`);const did=document.getElementById('doc_id_actual').value||fol;const od={id_ticket:fol,id_incidencia:document.getElementById('incidencia-input').value||'',id_incidencia_doc:document.getElementById('incidencia_doc_id').value||'',proyecto:document.getElementById('sucursal-input').value||'',residente_id:appDataLoreto.usuario,residente_nombre:document.getElementById('nombre_tecnico').value||'',residente_celular:document.getElementById('celular_tecnico').value||'',desc_avance:document.getElementById('desc_falla').value||'',desc_observaciones:document.getElementById('desc_solucion').value||'',comentario:document.getElementById('comentario_salida').value||'',fecha_creacion:new Date().toISOString().split('T')[0],fecha_hora_completa:new Date().toISOString(),estado:est,urls_avance:ua,urls_observaciones:uo,url_soporte:us,url_selfie:usl,url_firma:uf,conceptos_costos:costosDataConceptos,costo_subtotal:parseFloat(document.getElementById('cost-subtotal-display').innerText.replace('$','').replace(',',''))||0,costo_iva:parseFloat(document.getElementById('cost-iva-display').innerText.replace('$','').replace(',',''))||0,costo_total:parseFloat(document.getElementById('cost-total-display').innerText.replace('$','').replace(',',''))||0};await db.collection("reportes_semanales").doc(did).set(od,{merge:true});showCustomAlert("Éxito",est==='Borrador'?"Guardado.":"Enviado.",true);cargarMisOrdenes();cambiarTab(est==='Borrador'?'Guardados':'Realizados')}catch(er){console.error(er);showCustomAlert("Error","Ocurrió un error.",false)}finally{g.disabled=false;e.disabled=false;g.innerHTML='<i data-lucide="save"></i> Guardar Reporte';e.innerHTML='<i data-lucide="send"></i> Enviar Reporte';lucide.createIcons()}}
+        async function procesarOrden(est){const g=document.getElementById('btn-guardar-borrador'),e=document.getElementById('btn-enviar-orden');let fol=document.getElementById('folio_rs').value;const cf=document.getElementById('firma_tecnico'),fv=document.createElement('canvas');fv.width=cf.width;fv.height=cf.height;if(est==='En proceso'){const s=document.getElementById('sucursal-input').value,d=document.getElementById('desc_falla').value,n=document.getElementById('nombre_tecnico').value;if(!s||!d||!n){showCustomAlert("Atención","Completa Proyecto, Avance y Residente.",false);return}if(cf.toDataURL()===fv.toDataURL()&&!document.getElementById('firma_tecnico_data').value){showCustomAlert("Atención","Firma obligatoria.",false);return}}if(cf.toDataURL()!==fv.toDataURL())document.getElementById('firma_tecnico_data').value=cf.toDataURL();g.disabled=true;e.disabled=true;g.innerText='Procesando...';e.innerText='Procesando...';try{if(!fol){fol=await obtenerFolioGlobal();document.getElementById('folio_rs').value=fol}let ua=[],uo=[];let us=null,usl=null,uf=null;const up=async(d,p)=>{if(d&&d.startsWith('data:image')){const r=storage.ref(p);await r.put(dataURItoBlob(d));return await r.getDownloadURL()}return d};for(let i=0;i<fotos.falla.length;i++){if(fotos.falla[i])ua.push(await up(fotos.falla[i],`reportes_loreto/${fol}/avance_${i}_${Date.now()}.jpg`))}for(let i=0;i<fotos.solucion.length;i++){if(fotos.solucion[i])uo.push(await up(fotos.solucion[i],`reportes_loreto/${fol}/obs_${i}_${Date.now()}.jpg`))}us=await up(fotos.soporte[0],`reportes_loreto/${fol}/soporte_${Date.now()}.jpg`);usl=await up(fotos.selfie[0],`reportes_loreto/${fol}/selfie_${Date.now()}.jpg`);uf=await up(document.getElementById('firma_tecnico_data').value,`reportes_loreto/${fol}/firma_${Date.now()}.png`);const did=document.getElementById('doc_id_actual').value||fol;const od={id_ticket:fol,id_incidencia:document.getElementById('incidencia-input').value||'',id_incidencia_doc:document.getElementById('incidencia_doc_id').value||'',proyecto:document.getElementById('sucursal-input').value||'',residente_id:appDataLoreto.usuario,residente_nombre:document.getElementById('nombre_tecnico').value||'',residente_celular:document.getElementById('celular_tecnico').value||'',desc_avance:document.getElementById('desc_falla').value||'',desc_observaciones:document.getElementById('desc_solucion').value||'',comentario:document.getElementById('comentario_salida').value||'',fecha_creacion:new Date().toISOString().split('T')[0],fecha_hora_completa:new Date().toISOString(),estado:est,urls_avance:ua,urls_observaciones:uo,url_soporte:us,url_selfie:usl,url_firma:uf};await db.collection("reportes_semanales").doc(did).set(od,{merge:true});showCustomAlert("Éxito",est==='Borrador'?"Guardado.":"Enviado.",true);cargarMisOrdenes();cambiarTab(est==='Borrador'?'Guardados':'Realizados')}catch(er){console.error(er);showCustomAlert("Error","Ocurrió un error.",false)}finally{g.disabled=false;e.disabled=false;g.innerHTML='<i data-lucide="save"></i> Guardar Reporte';e.innerHTML='<i data-lucide="send"></i> Enviar Reporte';lucide.createIcons()}}
         function verPDFOrden(id){alert("PDF en desarrollo.");}
-
-        function abrirModalCostos(){const t=document.getElementById('conceptos-body');t.innerHTML='';contadorFilas=0;if(costosDataConceptos.length>0){costosDataConceptos.forEach(c=>agregarFilaConcepto(c))}else{for(let i=0;i<3;i++)agregarFilaConcepto(null)}calcularTotalModal();document.getElementById('modalConceptos').classList.add('active');lucide.createIcons()}
-        function cerrarModalCostos(){document.getElementById('modalConceptos').classList.remove('active')}
-        function agregarFilaConcepto(d=null){const t=document.getElementById('conceptos-body'),r=document.createElement('tr');r.className='cap-row';const tv=d?d.tipo:'',cv=d?d.concepto:'',uv=d?d.unidad:'',cav=d?d.cantidad:'',pv=d?d.precio_unitario:'',iv=d?formateaMoneda(d.importe):'$0.00',ov=d?d.observacion:'';const u=["Pza","Kg","Lts","Ml","M2","M3","Mano de obra","Paquete","Servicio","Boya","Lata"];const ot=`<option value="Material" ${tv==='Material'?'selected':''}>Material</option><option value="Mano de obra" ${tv==='Mano de obra'?'selected':''}>Mano de obra</option><option value="Suministro" ${tv==='Suministro'?'selected':''}>Suministro</option>`;const ou=u.map(x=>`<option value="${x}" ${uv===x?'selected':''}>${x}</option>`).join('');r.innerHTML=`<td><select class="cap-select inp-tipo">${ot}</select></td><td><input type="text" class="cap-input inp-concepto" placeholder="Concepto..." value="${cv}"></td><td><select class="cap-select inp-unidad">${ou}</select></td><td><input type="number" min="0" step="1" class="cap-input inp-cant" oninput="calcularTotalModal()" placeholder="0" value="${cav}"></td><td><input type="number" min="0" step="0.01" class="cap-input money inp-precio" placeholder="0.00" oninput="calcularTotalModal()" value="${pv}"></td><td><input type="text" class="cap-input money inp-importe" value="${iv}" readonly></td><td><input type="text" class="cap-input inp-obs" placeholder="Nota..." value="${ov}"></td><td><button class="btn-eliminar-fila" onclick="eliminarFilaConcepto(this)"><i data-lucide="trash-2" style="width:16px"></i></button></td>`;t.appendChild(r);contadorFilas++;lucide.createIcons()}
-        function eliminarFilaConcepto(b){b.closest('tr').remove();contadorFilas--;calcularTotalModal()}
-        function formateaMoneda(v){return"$"+v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",")}
-        function calcularTotalModal(){let s=0;document.querySelectorAll('.cap-row').forEach(f=>{const c=parseFloat(f.querySelector('.inp-cant').value)||0,p=parseFloat(f.querySelector('.inp-precio').value)||0,i=c*p;f.querySelector('.inp-importe').value=formateaMoneda(i);s+=i});const iv=s*0.16,t=s+iv;document.getElementById('modal-importe-top').innerText=formateaMoneda(s);document.getElementById('modal-iva-top').innerText=formateaMoneda(iv);document.getElementById('modal-suma-total').innerText=formateaMoneda(t)}
-        function guardarCostosLocales(){costosDataConceptos=[];let err=false;document.querySelectorAll('.cap-row').forEach(f=>{const t=f.querySelector('.inp-tipo').value,c=f.querySelector('.inp-concepto').value.trim(),u=f.querySelector('.inp-unidad').value,ca=parseFloat(f.querySelector('.inp-cant').value)||0,p=parseFloat(f.querySelector('.inp-precio').value)||0,o=f.querySelector('.inp-obs').value.trim(),i=ca*p;if(c!==""||ca>0||p>0){if(c===""||ca===0||p===0)err=true;costosDataConceptos.push({tipo:t,concepto:c,unidad:u,cantidad:ca,precio_unitario:p,importe:i,observacion:o})}});if(err){showCustomAlert("Atención","Algunos conceptos están incompletos.",false);return}let s=costosDataConceptos.reduce((a,c)=>a+c.importe,0),iv=s*0.16,t=s+iv;updateCostDisplay(s,iv,t);cerrarModalCostos()}
-        function updateCostDisplay(s,i,t){document.getElementById('cost-subtotal-display').innerText=formateaMoneda(s);document.getElementById('cost-iva-display').innerText=formateaMoneda(i);document.getElementById('cost-total-display').innerText=formateaMoneda(t)}
-        function resetCostDisplay(){costosDataConceptos=[];updateCostDisplay(0,0,0)}
 
         let activeTarget='falla',currentFacingMode='environment';
         function triggerFile(t){activeTarget=t;if(fotos[t].filter(f=>f!==null).length<fotos[t].length)document.getElementById('fileInputGlobal').click();else window.alert("Límite.")}
