@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PDF Solicitud Adicionales - Loreto Ingeniería</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root { --loreto-blue: #263fa4; --loreto-light: #eef2ff; --tm-text: #1e293b; --tm-border: #cbd5e1; }
+        body { font-family: 'Inter', Arial, Helvetica, sans-serif; margin: 0; padding: 20px; background-color: #555; color: var(--tm-text); font-size: 10px; line-height: 1.2; display: flex; flex-direction: column; align-items: center; }
+        
+        .btn-descargar { position: fixed; top: 15px; right: 15px; background-color: var(--loreto-blue); color: white; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000; }
+        .btn-descargar:hover { background-color: #1a2a6e; }
+        .btn-regresar { position: fixed; top: 15px; left: 15px; background-color: #64748b; color: white; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000; }
+        .btn-regresar:hover { background-color: #475569; }
+
+        /* HOJA CARTA HORIZONTAL */
+        .page { width: 279.4mm; height: 215.9mm; background: white; margin: 0 auto 20px auto; padding: 8mm 12mm; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.5); position: relative; display: flex; flex-direction: column; overflow: hidden; }
+        .content-wrapper { flex-grow: 1; display: flex; flex-direction: column; }
+
+        .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 3px solid var(--loreto-blue); padding-bottom: 8px; }
+        .logo-img { width: 160px; }
+        .header-titles { text-align: center; flex-grow: 1; padding: 0 20px; }
+        .title-blue { color: var(--loreto-blue); font-size: 13px; font-weight: 800; text-transform: uppercase; margin: 0; }
+        
+        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 8px; background: var(--loreto-light); padding: 8px; border: 1px solid var(--tm-border); border-radius: 4px; }
+        .info-item label { display: block; font-size: 8px; font-weight: 700; color: var(--loreto-blue); text-transform: uppercase; margin-bottom: 2px; }
+        .info-item span { display: block; font-size: 10px; color: var(--tm-text); font-weight: 600; }
+
+        .obs-box { border: 1px solid var(--tm-border); padding: 6px; border-radius: 4px; background: white; margin-bottom: 8px; min-height: 25px; }
+        .obs-title { font-size: 9px; font-weight: 800; color: var(--loreto-blue); text-transform: uppercase; border-bottom: 1px solid var(--tm-border); margin-bottom: 4px; padding-bottom: 2px; }
+
+        .main-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 9px; }
+        .main-table th { background-color: var(--loreto-blue); color: white; padding: 4px 6px; text-align: center; font-weight: 700; border: 1px solid var(--loreto-blue); }
+        .main-table td { border: 1px solid var(--tm-border); padding: 4px 6px; text-align: center; font-weight: 500; }
+        .main-table .label-cell { background-color: #f8fafc; font-weight: 700; text-align: left; }
+        
+        /* RENGLÓN DE DATOS MÁS ALTO */
+        .main-table .data-row td { padding: 10px 6px; font-size: 10px; }
+
+        .photos-title { font-size: 9px; font-weight: 800; color: var(--loreto-blue); margin-bottom: 5px; text-transform: uppercase; }
+        
+        /* GRID 2 ARRIBA, 2 ABAJO LLENANDO EL ESPACIO */
+        .photos-grid-2x2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; flex-grow: 1; margin-top: auto; }
+        .photo-box { border: 1px solid var(--tm-border); background-color: var(--loreto-light); display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 4px; width: 100%; height: 100%; }
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        .blue-footer { background-color: var(--loreto-blue); color: white; text-align: center; padding: 4px 10px; font-size: 7px; width: 100%; box-sizing: border-box; white-space: nowrap; font-weight: 600; letter-spacing: 0.5px; margin-top: 10px; }
+
+        @media print {
+            body { background-color: white; padding: 0; margin: 0; }
+            .page { box-shadow: none; margin: 0; border: none; }
+            .btn-descargar, .btn-regresar { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="btn-regresar" onclick="window.close()">Cerrar PDF</button>
+    <button class="btn-descargar" onclick="generarPDF()">Descargar PDF</button>
+
+    <div id="contenido-pdf">
+        <div class="page">
+            <div class="content-wrapper">
+                
+                <div class="header-container">
+                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Loreto Logo" class="logo-img" crossorigin="anonymous">
+                    <div class="header-titles">
+                        <h1 class="title-blue">FORMATO PARA SOLICITUD DE ADICIONALES / EXTRAORDINARIOS / DEDUCTIVAS</h1>
+                        <h2 class="title-blue" style="font-size: 11px; margin-top: 2px;">LORETO - INGENIERÍA, CONSTRUCCIÓN, EDIFICACIÓN Y REMODELACIÓN</h2>
+                    </div>
+                    <div style="text-align: right; font-size: 10px; font-weight: 700; color: var(--loreto-blue);">
+                        Folio: <span id="pdf-folio"></span><br>
+                        Fecha: <span id="pdf-fecha"></span>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item"><label>Tipo de Solicitud</label><span id="pdf-tipo"></span></div>
+                    <div class="info-item"><label>Proyecto</label><span id="pdf-proyecto"></span></div>
+                    <div class="info-item"><label>Partida</label><span id="pdf-partida"></span></div>
+                </div>
+
+                <!-- JUSTIFICACIÓN SEPARADA (COMO OBSERVACIONES) -->
+                <div class="obs-box">
+                    <div class="obs-title">Justificación de la Solicitud</div>
+                    <div id="pdf-justificacion" style="font-size: 9px;"></div>
+                </div>
+
+                <table class="main-table">
+                    <thead>
+                        <tr>
+                            <th width="8%">CLAVE</th>
+                            <th width="25%">CONCEPTO</th>
+                            <th width="15%">LOCALIZACIÓN</th>
+                            <th width="7%">UNIDAD</th>
+                            <th width="6%">LARGO</th>
+                            <th width="6%">ANCHO</th>
+                            <th width="6%">ALTO</th>
+                            <th width="6%">PZAS</th>
+                            <th width="7%">RESULTADO</th>
+                            <th width="7%">PARCIAL</th>
+                            <th width="7%">TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- RENGLÓN MÁS ALTO -->
+                        <tr class="data-row">
+                            <td id="pdf-clave"></td>
+                            <td id="pdf-concepto" style="text-align: left;"></td>
+                            <td id="pdf-localizacion" style="text-align: left;"></td>
+                            <td id="pdf-unidad"></td>
+                            <td id="pdf-largo"></td>
+                            <td id="pdf-ancho"></td>
+                            <td id="pdf-alto"></td>
+                            <td id="pdf-pzas"></td>
+                            <td style="font-weight:800;" id="pdf-resultado"></td>
+                            <td id="pdf-parcial"></td>
+                            <td style="font-weight:800; color: var(--loreto-blue);" id="pdf-total"></td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell" colspan="8" style="text-align: right;">TOTAL GENERAL:</td>
+                            <td class="label-cell" colspan="2"></td>
+                            <td style="font-weight:800; color: var(--loreto-blue); font-size: 12px;" id="pdf-total-general"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- OBSERVACIONES -->
+                <div class="obs-box">
+                    <div class="obs-title">Observaciones / Ubicación</div>
+                    <div id="pdf-observaciones" style="font-size: 9px;"></div>
+                </div>
+
+                <!-- 4 FOTOGRAFÍAS (2 ARRIBA, 2 ABAJO) LLENANDO EL ESPACIO -->
+                <div class="photos-title">Evidencia Fotográfica</div>
+                <div class="photos-grid-2x2">
+                    <div class="photo-box" id="pdf-foto-0"></div>
+                    <div class="photo-box" id="pdf-foto-1"></div>
+                    <div class="photo-box" id="pdf-foto-2"></div>
+                    <div class="photo-box" id="pdf-foto-3"></div>
+                </div>
+
+            </div>
+            <div class="blue-footer">
+                LORETO - INGENIERÍA, CONSTRUCCIÓN, EDIFICACIÓN Y REMODELACIÓN &nbsp;&nbsp;|&nbsp;&nbsp; SOLICITUD DE ADICIONALES &nbsp;&nbsp;|&nbsp;&nbsp; TODOS LOS DERECHOS RESERVADOS &copy; 2024
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dataStr = sessionStorage.getItem('DatosAdicionalPDF');
+            
+            if(dataStr) {
+                const data = JSON.parse(dataStr);
+                
+                document.getElementById('pdf-folio').innerText = data.folio || '';
+                document.getElementById('pdf-fecha').innerText = data.fecha || '';
+                document.getElementById('pdf-tipo').innerText = data.tipo_solicitud || '';
+                document.getElementById('pdf-proyecto').innerText = data.proyecto || '';
+                document.getElementById('pdf-partida').innerText = data.partida || '';
+                document.getElementById('pdf-justificacion').innerText = data.justificacion || '';
+                
+                document.getElementById('pdf-clave').innerText = data.clave || '';
+                document.getElementById('pdf-concepto').innerText = data.concepto || '';
+                document.getElementById('pdf-localizacion').innerText = data.localizacion_proyecto || '';
+                document.getElementById('pdf-unidad').innerText = data.unidad || '';
+                document.getElementById('pdf-largo').innerText = data.largo || '0';
+                document.getElementById('pdf-ancho').innerText = data.ancho || '0';
+                document.getElementById('pdf-alto').innerText = data.alto || '0';
+                document.getElementById('pdf-pzas').innerText = data.pzas || '0';
+                document.getElementById('pdf-resultado').innerText = data.resultado || '0.00';
+                document.getElementById('pdf-parcial').innerText = data.parcial || '$0.00';
+                document.getElementById('pdf-total').innerText = data.total || '$0.00';
+                document.getElementById('pdf-total-general').innerText = data.total || '$0.00';
+                
+                document.getElementById('pdf-observaciones').innerText = data.observaciones || '';
+
+                // Fotos (4 en grid 2x2)
+                data.fotos_evidencia.forEach((foto, index) => {
+                    if(foto) document.getElementById(`pdf-foto-${index}`).innerHTML = `<img src="${foto}">`;
+                });
+
+            } else { alert("No se encontraron datos de la solicitud."); }
+        });
+
+        function generarPDF() {
+            const btn = document.getElementById('btn-descargar');
+            const btnR = document.querySelector('.btn-regresar');
+            btn.style.display = 'none'; btnR.style.display = 'none';
+            window.scrollTo(0, 0);
+
+            const elemento = document.getElementById('contenido-pdf');
+            
+            const proyectoRaw = document.getElementById('pdf-proyecto').innerText;
+            const proyecto = proyectoRaw.replace(/\s+/g, '_'); 
+            
+            const opciones = {
+                margin: 0,
+                filename: `SOLICITUD_ADICIONAL_${proyecto}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true, scrollY: 0 }, 
+                jsPDF: { unit: 'mm', format: 'letter', orientation: 'landscape' } // CARTA HORIZONTAL
+            };
+
+            html2pdf().set(opciones).from(elemento).save().then(() => {
+                btn.style.display = 'block'; btnR.style.display = 'block';
+            });
+        }
+    </script>
+</body>
+</html>
