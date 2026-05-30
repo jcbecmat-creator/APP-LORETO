@@ -168,7 +168,6 @@
                 <form id="formAdicionales" style="display: block;">
                     <input type="hidden" id="doc_id_actual" value="">
                     
-                    <!-- BORDE CAMBIADO A AZUL (primary-blue) -->
                     <div class="form-card" style="border-left: 4px solid var(--primary-blue);">
                         <h3 class="section-title-form"><i data-lucide="file-question"></i> Tipo de solicitud</h3>
                         <div class="grid-2">
@@ -305,7 +304,6 @@
                         </div>
                     </div>
 
-                    <!-- BOTONES ACTUALIZADOS -->
                     <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px; max-width: 400px; margin-left: auto; margin-right: auto; padding-bottom: 40px;">
                         <button type="button" id="btn-guardar-borrador" class="btn-guardar" onclick="procesarSolicitud('Borrador')"><i data-lucide="save"></i> Guardar solicitud</button>
                         <button type="button" id="btn-enviar-orden" class="btn-enviar" onclick="procesarSolicitud('En proceso')"><i data-lucide="send"></i> Enviar solicitud</button>
@@ -412,7 +410,7 @@
                     <td>${o.concepto||''}</td>
                     <td>${o.fecha||''}</td>
                     <td>
-                        ${o.estado === 'Borrador' ? `<button type="button" onclick="cargarBorrador('${o.id_doc}')" class="btn-edit"><i data-lucide="edit-2" style="width:14px"></i> Editar</button>` : `<span style="color:var(--primary-blue); font-weight:700;">Enviado</span>`}
+                        ${o.estado === 'Borrador' ? `<button type="button" onclick="cargarBorrador('${o.id_doc}')" class="btn-edit"><i data-lucide="edit-2" style="width:14px"></i> Editar</button>` : `<button type="button" onclick="verPDFSolicitud('${o.id_doc}')" style="background:var(--primary-blue); color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; display:inline-flex; align-items:center; gap:5px; font-size:13px;"><i data-lucide="file-text" style="width:14px"></i> PDF</button>`}
                     </td>`;
                 t.appendChild(r);
             });
@@ -567,6 +565,64 @@
         function inicializarFirma(){canvasFirma=document.getElementById('firma_residente');if(!canvasFirma)return;ctxFirma=canvasFirma.getContext('2d');canvasFirma.width=600;canvasFirma.height=200;ctxFirma.lineWidth=3;ctxFirma.lineCap='round';ctxFirma.strokeStyle='var(--primary-blue)';let d=false;function g(e){const r=canvasFirma.getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;return{x:(cx-r.left)*(canvasFirma.width/r.width),y:(cy-r.top)*(canvasFirma.height/r.height)}}canvasFirma.addEventListener('mousedown',e=>{d=true;const p=g(e);ctxFirma.beginPath();ctxFirma.moveTo(p.x,p.y)});canvasFirma.addEventListener('mousemove',e=>{if(d){const p=g(e);ctxFirma.lineTo(p.x,p.y);ctxFirma.stroke()}});window.addEventListener('mouseup',()=>{if(d){d=false;document.getElementById('firma_residente_data').value=canvasFirma.toDataURL()}});canvasFirma.addEventListener('touchstart',e=>{e.preventDefault();d=true;const p=g(e);ctxFirma.beginPath();ctxFirma.moveTo(p.x,p.y)},{passive:false});canvasFirma.addEventListener('touchmove',e=>{e.preventDefault();if(d){const p=g(e);ctxFirma.lineTo(p.x,p.y);ctxFirma.stroke()}},{passive:false});window.addEventListener('touchend',()=>{if(d){d=false;document.getElementById('firma_residente_data').value=canvasFirma.toDataURL()}})}
         function limpiarFirma(id){if(ctxFirma)ctxFirma.clearRect(0,0,canvasFirma.width,canvasFirma.height);document.getElementById(id+'_data').value=''}
         function dataURItoBlob(u){if(!u)return null;const b=atob(u.split(',')[1]),m=u.split(',')[0].split(':')[1].split(';')[0],a=new ArrayBuffer(b.length),i=new Uint8Array(a);for(let x=0;x<b.length;x++)i[x]=b.charCodeAt(x);return new Blob([a],{type:m})}
+
+        // ==========================================
+        // FUNCIONES PARA GENERAR EL PDF
+        // ==========================================
+        async function fetchImageAsBase64(url) {
+            if(!url || url.startsWith('data:image')) return url;
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) { return null; }
+        }
+
+        async function verPDFSolicitud(id){
+            const o = misSolicitudes.find(x => x.id_doc === id); 
+            if(!o) return;
+            
+            // Convertir imágenes a Base64 (4 espacios en el PDF)
+            let fotosEvidencia = [];
+            for(let i=0; i < 4; i++) {
+                const url = o.urls_evidencia && o.urls_evidencia[i] ? o.urls_evidencia[i] : null;
+                fotosEvidencia.push(await fetchImageAsBase64(url));
+            }
+            
+            const firma = await fetchImageAsBase64(o.url_firma);
+
+            const data = {
+                folio: o.id_doc || '',
+                fecha: o.fecha || '',
+                tipo_solicitud: o.tipo_solicitud || '',
+                proyecto: o.proyecto || '',
+                partida: o.partida || '',
+                ubicacion: o.ubicacion || '',
+                justificacion: o.justificacion || '',
+                clave: o.clave || '',
+                concepto: o.concepto || '',
+                localizacion_proyecto: o.localizacion_proyecto || '',
+                unidad: o.unidad || '',
+                largo: o.largo || '0',
+                ancho: o.ancho || '0',
+                alto: o.alto || '0',
+                pzas: o.pzas || '0',
+                resultado: o.resultado || '0.00',
+                parcial: o.parcial ? '$' + o.parcial.toFixed(2) : '$0.00',
+                total: o.total ? '$' + o.total.toFixed(2) : '$0.00',
+                observaciones: o.observaciones || '',
+                residente_nombre: o.residente_nombre || '',
+                fotos_evidencia: fotosEvidencia,
+                firma: firma
+            };
+
+            sessionStorage.setItem('DatosAdicionalPDF', JSON.stringify(data));
+            window.open('pdf_reporte_adicionales.html', '_blank');
+        }
     </script>
 </body>
 </html>
