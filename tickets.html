@@ -48,20 +48,17 @@
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
         .page-header p { color: var(--text-muted); margin: 0; font-size: 14px; }
 
-        /* Filtros */
         .filters-bar { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--border-color); display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;}
         .filter-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px; }
         .filter-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
         .form-input { padding: 0 16px; height: 42px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; color: var(--text-main); width: 100%; box-sizing: border-box; background: var(--bg-color); }
         .form-input:focus { background: white; outline: none; border-color: var(--primary-blue); }
 
-        /* Botón Primario para Filtros */
         .btn-primary { background: var(--primary-blue); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .btn-primary:hover { background: #1a2a6e; }
 
-        /* Tabla */
         .table-responsive { width: 100%; overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); background: white;}
-        .data-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        .data-table { width: 100%; border-collapse: collapse; min-width: 900px; }
         .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 14px 15px; text-align: left; border-bottom: 2px solid var(--border-color); }
         .data-table td { padding: 14px 15px; border-bottom: 1px solid var(--border-color); font-size: 13px; color: var(--text-main); vertical-align: middle; }
         .data-table tbody tr:hover { background-color: #f8fafc; }
@@ -73,8 +70,8 @@
         .text-right { text-align: right !important; }
         .text-center { text-align: center !important; }
         .badge { background: var(--light-blue); color: var(--primary-blue); padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 12px;}
+        .badge-obra { background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 12px; }
 
-        /* Modales */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal-small { background: white; border-radius: 16px; padding: 30px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transform: translateY(-20px); transition: all 0.3s; }
@@ -117,8 +114,8 @@
                         <input type="date" class="form-input" id="filtro-fecha-fin">
                     </div>
                     <div class="filter-group" style="flex: 2;">
-                        <label class="filter-label">Buscar (Artículos, Importe, Trabajador o Número de Ticket)</label>
-                        <input type="text" class="form-input" id="filtro-busqueda" placeholder="Ej. TICKET-5, JUAN, 200.00, 15...">
+                        <label class="filter-label">Buscar (Artículos, Importe, Trabajador, Obra o Número de Ticket)</label>
+                        <input type="text" class="form-input" id="filtro-busqueda" placeholder="Ej. TICKET-5, JUAN, OBRA, 200.00, 15...">
                     </div>
                     <button class="btn-primary" onclick="renderTabla()" style="height: 42px; padding: 0 24px; display: inline-flex; align-items: center; gap: 8px;">
                         <i data-lucide="search"></i> Buscar
@@ -136,6 +133,7 @@
                             <tr>
                                 <th style="width: 50px;">#</th>
                                 <th>Número de Ticket</th>
+                                <th>Obra</th>
                                 <th>Trabajador</th>
                                 <th>Fecha</th>
                                 <th class="text-center">Artículos</th>
@@ -170,8 +168,10 @@
                 <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 50px;" crossorigin="anonymous">
             </div>
             
+            <!-- INFO TICKET + OBRA EN PDF -->
             <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; background: #eef2ff; padding: 10px; border-radius: 8px;">
                 <div><strong>Número de Ticket:</strong> <span id="pdf-ticket-num" style="color: #263fa4;"></span></div>
+                <div><strong>Obra:</strong> <span id="pdf-ticket-obra" style="color: #263fa4;"></span></div>
                 <div><strong>Fecha:</strong> <span id="pdf-ticket-fecha"></span></div>
             </div>
 
@@ -224,7 +224,6 @@
         });
         document.getElementById('toggle-menu').addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('open'); });
 
-        // COLOCAR LETRA DE INICIO DEL USUARIO LOGUEADO
         const trabajadorLogueado = localStorage.getItem('usuarioActivo') || localStorage.getItem('nombreTrabajador') || 'JOVANI MARTINEZ';
         document.getElementById('user-initial').innerText = trabajadorLogueado.charAt(0);
 
@@ -278,10 +277,11 @@
             if (fBuscar) {
                 const numTicket = (t.numero || "").toLowerCase();
                 const trabajadorStr = (t.trabajador || "").toLowerCase();
+                const obraStr = (t.obra || "").toLowerCase();
                 const totalArt = (t.total_articulos || 0).toString();
                 const totalImp = (t.total_importe || 0).toString();
                 
-                if (!numTicket.includes(fBuscar) && !trabajadorStr.includes(fBuscar) && !totalArt.includes(fBuscar) && !totalImp.includes(fBuscar)) {
+                if (!numTicket.includes(fBuscar) && !trabajadorStr.includes(fBuscar) && !obraStr.includes(fBuscar) && !totalArt.includes(fBuscar) && !totalImp.includes(fBuscar)) {
                     return false;
                 }
             }
@@ -289,7 +289,7 @@
         });
 
         if(filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="padding: 30px; text-align:center; color: var(--text-muted);">No se encontraron tickets con los filtros actuales.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="padding: 30px; text-align:center; color: var(--text-muted);">No se encontraron tickets con los filtros actuales.</td></tr>`;
             return;
         }
 
@@ -297,6 +297,7 @@
             let tr = document.createElement('tr');
             
             let numIndice = index + 1;
+            let obra = row.obra || 'SIN OBRA';
             let trabajador = row.trabajador || 'NO REGISTRADO';
             let fechaStr = row.fecha_str || 'Sin Fecha';
             let articulos = row.total_articulos || 0;
@@ -305,6 +306,7 @@
             let html = `
                 <td style="font-weight: 800; color: var(--text-muted);">${numIndice}</td>
                 <td><span class="badge">${row.numero}</span></td>
+                <td><span class="badge-obra">${obra}</span></td>
                 <td style="font-weight: 600; text-transform: uppercase;">${trabajador}</td>
                 <td>${fechaStr}</td>
                 <td class="text-center" style="font-weight: 700;">${articulos}</td>
@@ -337,6 +339,7 @@
 
         document.getElementById('pdf-ticket-num').innerText = ticket.numero;
         document.getElementById('pdf-ticket-fecha').innerText = ticket.fecha_str;
+        document.getElementById('pdf-ticket-obra').innerText = ticket.obra || 'SIN OBRA';
         document.getElementById('pdf-ticket-arts').innerText = ticket.total_articulos;
         document.getElementById('pdf-ticket-trabajador').innerText = ticket.trabajador || 'NO REGISTRADO';
         
