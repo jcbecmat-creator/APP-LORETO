@@ -81,7 +81,6 @@
         .footer-divider { border-top: 1px solid #e2e8f0; margin-bottom: 4px; width: 100%; }
         .blue-footer { background-color: var(--loreto-blue); color: white; text-align: center; padding: 5px 10px; font-size: 8px; width: 100%; box-sizing: border-box; white-space: nowrap; font-weight: 600; letter-spacing: 0.5px; }
 
-        /* Loader */
         #pdf-gen-loader { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 50000; justify-content: center; align-items: center; flex-direction: column; gap: 20px; }
         #pdf-gen-loader.show { display: flex; }
         .loader-ring { width: 56px; height: 56px; border: 6px solid rgba(255,255,255,0.2); border-top: 6px solid white; border-radius: 50%; animation: spin 0.7s linear infinite; }
@@ -118,7 +117,7 @@
                         </ul>
                     </div>
                     <div class="header-right">
-                        <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Loreto Logo" class="logo-img" crossorigin="anonymous">
+                        <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Loreto Logo" class="logo-img">
                     </div>
                 </div>
 
@@ -127,7 +126,6 @@
                 <div class="main-titles-container">
                     <div class="title-blue-centered">REPORTE SEMANAL</div>
                     <div class="title-blue-centered">LORETO INGENIERÍA</div>
-                    
                     <div class="ticket-left">FOLIO: <span id="pdf-folio"></span></div>
                     <div class="ticket-right">FECHA: <span id="pdf-fecha"></span></div>
                 </div>
@@ -202,7 +200,6 @@
         </div>
     </div>
 
-    <!-- LOADER PARA GENERACIÓN -->
     <div id="pdf-gen-loader">
         <div class="loader-ring"></div>
         <p>Generando PDF...</p>
@@ -210,6 +207,9 @@
     </div>
 
     <script>
+        // ==========================================
+        // CARGA INICIAL - SIN crossorigin (para que se vean)
+        // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
             const dataStr = sessionStorage.getItem('DatosReportePDF');
             
@@ -228,88 +228,68 @@
                 document.getElementById('pdf-cel-res').innerText = data.residente_celular || '';
                 document.getElementById('pdf-comentario').innerText = data.comentario || '';
 
-                // Inyectar imágenes con crossorigin="anonymous"
+                // Inyectar imágenes SIN crossorigin para que se muestren
                 if(data.fotos_antes) {
                     data.fotos_antes.forEach((foto, index) => {
-                        if(foto) document.getElementById(`pdf-antes-${index}`).innerHTML = `<img src="${foto}" crossorigin="anonymous">`;
+                        if(foto) document.getElementById(`pdf-antes-${index}`).innerHTML = `<img src="${foto}">`;
                     });
                 }
                 data.fotos_avance.forEach((foto, index) => {
-                    if(foto) document.getElementById(`pdf-avance-${index}`).innerHTML = `<img src="${foto}" crossorigin="anonymous">`;
+                    if(foto) document.getElementById(`pdf-avance-${index}`).innerHTML = `<img src="${foto}">`;
                 });
                 data.fotos_observaciones.forEach((foto, index) => {
-                    if(foto) document.getElementById(`pdf-obs-${index}`).innerHTML = `<img src="${foto}" crossorigin="anonymous">`;
+                    if(foto) document.getElementById(`pdf-obs-${index}`).innerHTML = `<img src="${foto}">`;
                 });
-                if(data.firma) document.getElementById('pdf-firma').innerHTML = `<img src="${data.firma}" crossorigin="anonymous">`;
-                if(data.selfie) document.getElementById('pdf-selfie').innerHTML = `<img src="${data.selfie}" crossorigin="anonymous">`;
+                if(data.firma) document.getElementById('pdf-firma').innerHTML = `<img src="${data.firma}">`;
+                if(data.selfie) document.getElementById('pdf-selfie').innerHTML = `<img src="${data.selfie}">`;
 
-            } else { alert("No se encontraron datos del reporte."); }
+            } else { 
+                alert("No se encontraron datos del reporte."); 
+            }
         });
 
         // ==========================================
-        // CONVERTIR IMÁGENES A BASE64
+        // CONVERTIR URL A BASE64 USANDO FETCH
         // ==========================================
-        function imagenABase64(url) {
+        function urlABase64(url) {
             return new Promise((resolve) => {
                 // Si ya es base64, devolver tal cual
-                if(url.startsWith('data:')) { resolve(url); return; }
-                
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                
-                img.onload = function() {
-                    try {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = img.naturalWidth;
-                        canvas.height = img.naturalHeight;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0);
-                        resolve(canvas.toDataURL('image/jpeg', 0.92));
-                    } catch(e) {
-                        // Si falla por CORS, intentar con fetch como respaldo
-                        fetchComoBase64(url).then(resolve).catch(() => resolve(url));
-                    }
-                };
-                
-                img.onerror = function() {
-                    // Último recurso: intentar con fetch
-                    fetchComoBase64(url).then(resolve).catch(() => resolve(url));
-                };
-                
-                img.src = url;
-            });
-        }
-
-        async function fetchComoBase64(url) {
-            try {
-                const response = await fetch(url);
-                const blob = await response.blob();
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.readAsDataURL(blob);
-                });
-            } catch(e) {
-                return url;
-            }
-        }
-
-        async function convertirTodasLasImagenes() {
-            const imagenes = document.querySelectorAll('#contenido-pdf img[src]');
-            let convertidas = 0;
-            const total = imagenes.length;
-            const subtext = document.getElementById('loader-subtext');
-            
-            for(let i = 0; i < imagenes.length; i++) {
-                const img = imagenes[i];
-                if(img.src && !img.src.startsWith('data:')) {
-                    if(subtext) subtext.innerText = `Convirtiendo imagen ${convertidas + 1} de ${total}...`;
-                    img.src = await imagenABase64(img.src);
-                    convertidas++;
+                if(!url || url.startsWith('data:')) { 
+                    resolve(url); 
+                    return; 
                 }
-            }
-            
-            if(subtext) subtext.innerText = 'Generando documento...';
+                
+                // Usar fetch para obtener la imagen como blob
+                fetch(url)
+                    .then(response => {
+                        if(!response.ok) throw new Error('Fetch falló');
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(blob);
+                    })
+                    .catch(() => {
+                        // Si fetch falla, intentar con Image + canvas
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = function() {
+                            try {
+                                const c = document.createElement('canvas');
+                                c.width = img.naturalWidth;
+                                c.height = img.naturalHeight;
+                                c.getContext('2d').drawImage(img, 0, 0);
+                                resolve(c.toDataURL('image/jpeg', 0.92));
+                            } catch(e) {
+                                // Último recurso: devolver la URL original
+                                resolve(url);
+                            }
+                        };
+                        img.onerror = () => resolve(url);
+                        img.src = url;
+                    });
+            });
         }
 
         // ==========================================
@@ -319,6 +299,7 @@
             const btn = document.getElementById('btn-descargar');
             const btnR = document.getElementById('btn-regresar');
             const loader = document.getElementById('pdf-gen-loader');
+            const subtext = document.getElementById('loader-subtext');
 
             btn.disabled = true;
             btn.innerText = 'Procesando...';
@@ -326,13 +307,32 @@
             loader.classList.add('show');
 
             try {
-                // PASO 1: Convertir todas las imágenes a base64
-                await convertirTodasLasImagenes();
+                // PASO 1: Obtener todas las imágenes del contenido
+                const todasLasImg = document.querySelectorAll('#contenido-pdf .photo-box img, #contenido-pdf .eval-left-box img, #contenido-pdf #pdf-firma img');
+                const totalImg = todasLasImg.length;
+                let convertidas = 0;
 
-                // Pequeño delay para que el navegador repinte
-                await new Promise(r => setTimeout(r, 300));
+                // PASO 2: Convertir cada imagen a base64
+                for(let i = 0; i < todasLasImg.length; i++) {
+                    const img = todasLasImg[i];
+                    const urlOriginal = img.src;
+                    
+                    if(urlOriginal && !urlOriginal.startsWith('data:')) {
+                        convertidas++;
+                        subtext.innerText = `Descargando imagen ${convertidas} de ${totalImg}...`;
+                        
+                        const base64 = await urlABase64(urlOriginal);
+                        img.src = base64;
+                        
+                        // Esperar un poco para que el navegador repinte
+                        await new Promise(r => setTimeout(r, 100));
+                    }
+                }
 
-                // PASO 2: Preparar página para captura
+                subtext.innerText = 'Generando documento PDF...';
+                await new Promise(r => setTimeout(r, 200));
+
+                // PASO 3: Preparar para captura
                 document.body.classList.add('pdf-generating');
                 btn.style.display = 'none';
                 window.scrollTo(0, 0);
@@ -351,6 +351,7 @@
                 const proyectoRaw = document.getElementById('pdf-proyecto').innerText;
                 const proyecto = proyectoRaw.replace(/\s+/g, '_'); 
                 
+                // PASO 4: Generar PDF
                 const opciones = {
                     margin: 0,
                     filename: `REPORTE_SEMANAL_${proyecto}.pdf`,
@@ -358,7 +359,7 @@
                     html2canvas: { 
                         scale: 2, 
                         useCORS: true, 
-                        allowTaint: false,
+                        allowTaint: true,
                         scrollY: 0,
                         logging: false
                     }, 
@@ -367,7 +368,7 @@
 
                 await html2pdf().set(opciones).from(elemento).save();
 
-                // PASO 3: Restaurar todo
+                // PASO 5: Restaurar
                 pages.forEach((p, index) => {
                     p.style.margin = originalStyles[index].margin;
                     p.style.boxShadow = originalStyles[index].boxShadow;
