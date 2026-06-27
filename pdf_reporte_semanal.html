@@ -13,6 +13,7 @@
         
         .btn-descargar { position: fixed; top: 15px; right: 15px; background-color: var(--loreto-blue); color: white; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000; }
         .btn-descargar:hover { background-color: #1a2a6e; }
+        .btn-descargar:disabled { background-color: #94a3b8; cursor: not-allowed; }
         
         .btn-regresar { position: fixed; top: 15px; left: 15px; background-color: #64748b; color: white; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000; }
         .btn-regresar:hover { background-color: #475569; }
@@ -55,15 +56,11 @@
         .bullet-white::after { content: ''; width: 3px; height: 3px; background-color: white; border-radius: 50%; }
 
         .photo-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; margin-bottom: 4px; }
-        
-        /* FOTOS 10% MÁS ALTAS (135px) */
         .photo-box { border: 1px solid var(--tm-border); height: 135px; background-color: var(--loreto-light); display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 4px; }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* CUADROS DE TEXTO 10% MÁS ALTOS (50px) */
         .text-input-box { border: 1px solid var(--tm-border); padding: 4px 8px; min-height: 50px; margin-top: 2px; margin-bottom: 6px; background-color: white; font-weight: 500; border-radius: 2px; } 
 
-        /* SECCIÓN INFERIOR 10% MÁS ALTA (160px) */
         .eval-container { display: flex; gap: 8px; margin-top: 4px; margin-bottom: 4px; align-items: stretch; height: 160px; }
         
         .eval-left-box { width: 33%; border: 1px solid var(--tm-border); background-color: var(--loreto-light); display: flex; align-items: center; justify-content: center; overflow: hidden; color: #94a3b8; font-size: 10px; box-sizing: border-box; border-radius: 4px; }
@@ -84,11 +81,19 @@
         .footer-divider { border-top: 1px solid #e2e8f0; margin-bottom: 4px; width: 100%; }
         .blue-footer { background-color: var(--loreto-blue); color: white; text-align: center; padding: 5px 10px; font-size: 8px; width: 100%; box-sizing: border-box; white-space: nowrap; font-weight: 600; letter-spacing: 0.5px; }
 
+        /* Loader */
+        #pdf-gen-loader { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 50000; justify-content: center; align-items: center; flex-direction: column; gap: 20px; }
+        #pdf-gen-loader.show { display: flex; }
+        .loader-ring { width: 56px; height: 56px; border: 6px solid rgba(255,255,255,0.2); border-top: 6px solid white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #pdf-gen-loader p { color: white; font-size: 16px; font-weight: 600; }
+        #pdf-gen-loader .sub { color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 400; }
+
         @media print {
             body { background-color: white; padding: 0; margin: 0; }
             #contenido-pdf { transform: none; width: 210mm; margin: 0; }
             .page { box-shadow: none; margin: 0; padding: 10mm 15mm; border: none; height: 297mm; overflow: hidden; }
-            .btn-descargar, .btn-regresar { display: none; }
+            .btn-descargar, .btn-regresar, #pdf-gen-loader { display: none; }
         }
     </style>
 </head>
@@ -150,7 +155,6 @@
                     <div class="photo-box" id="pdf-avance-1"></div>
                     <div class="photo-box" id="pdf-avance-2"></div>
                 </div>
-                <!-- Barra azul ajustada al ancho de la primera foto -->
                 <div class="blue-bar-full" style="width: calc(33.33% - 7px);"><span class="bullet-white"></span> DESCRIPCIÓN DEL AVANCE</div>
                 <div class="text-input-box" id="pdf-desc-avance"></div>
 
@@ -164,7 +168,6 @@
                     <div class="photo-box" id="pdf-obs-1"></div>
                     <div class="photo-box" id="pdf-obs-2"></div>
                 </div>
-                <!-- Barra azul ajustada al ancho de la primera foto -->
                 <div class="blue-bar-full" style="width: calc(33.33% - 7px);"><span class="bullet-white"></span> OBSERVACIONES / MATERIALES</div>
                 <div class="text-input-box" id="pdf-desc-obs"></div>
 
@@ -199,6 +202,13 @@
         </div>
     </div>
 
+    <!-- LOADER PARA GENERACIÓN -->
+    <div id="pdf-gen-loader">
+        <div class="loader-ring"></div>
+        <p>Generando PDF...</p>
+        <p class="sub" id="loader-subtext">Preparando imágenes...</p>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dataStr = sessionStorage.getItem('DatosReportePDF');
@@ -210,7 +220,6 @@
                 document.getElementById('pdf-folio-header').innerText = data.folio || '';
                 document.getElementById('pdf-incidencia').innerText = data.incidencia || '';
                 document.getElementById('pdf-residente-header').innerText = data.residente_nombre || '';
-                
                 document.getElementById('pdf-folio').innerText = data.folio || '';
                 document.getElementById('pdf-fecha').innerText = data.fecha || '';
                 document.getElementById('pdf-desc-avance').innerText = data.desc_avance || '';
@@ -219,64 +228,164 @@
                 document.getElementById('pdf-cel-res').innerText = data.residente_celular || '';
                 document.getElementById('pdf-comentario').innerText = data.comentario || '';
 
-                // INYECCIÓN DE IMÁGENES
+                // Inyectar imágenes con crossorigin="anonymous"
                 if(data.fotos_antes) {
                     data.fotos_antes.forEach((foto, index) => {
-                        if(foto) document.getElementById(`pdf-antes-${index}`).innerHTML = `<img src="${foto}">`;
+                        if(foto) document.getElementById(`pdf-antes-${index}`).innerHTML = `<img src="${foto}" crossorigin="anonymous">`;
                     });
                 }
-
                 data.fotos_avance.forEach((foto, index) => {
-                    if(foto) document.getElementById(`pdf-avance-${index}`).innerHTML = `<img src="${foto}">`;
+                    if(foto) document.getElementById(`pdf-avance-${index}`).innerHTML = `<img src="${foto}" crossorigin="anonymous">`;
                 });
-
                 data.fotos_observaciones.forEach((foto, index) => {
-                    if(foto) document.getElementById(`pdf-obs-${index}`).innerHTML = `<img src="${foto}">`;
+                    if(foto) document.getElementById(`pdf-obs-${index}`).innerHTML = `<img src="${foto}" crossorigin="anonymous">`;
                 });
-
-                if(data.firma) document.getElementById('pdf-firma').innerHTML = `<img src="${data.firma}">`;
-                if(data.selfie) document.getElementById('pdf-selfie').innerHTML = `<img src="${data.selfie}">`;
+                if(data.firma) document.getElementById('pdf-firma').innerHTML = `<img src="${data.firma}" crossorigin="anonymous">`;
+                if(data.selfie) document.getElementById('pdf-selfie').innerHTML = `<img src="${data.selfie}" crossorigin="anonymous">`;
 
             } else { alert("No se encontraron datos del reporte."); }
         });
 
-        function generarPDF() {
-            document.body.classList.add('pdf-generating');
+        // ==========================================
+        // CONVERTIR IMÁGENES A BASE64
+        // ==========================================
+        function imagenABase64(url) {
+            return new Promise((resolve) => {
+                // Si ya es base64, devolver tal cual
+                if(url.startsWith('data:')) { resolve(url); return; }
+                
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                img.onload = function() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.naturalWidth;
+                        canvas.height = img.naturalHeight;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        resolve(canvas.toDataURL('image/jpeg', 0.92));
+                    } catch(e) {
+                        // Si falla por CORS, intentar con fetch como respaldo
+                        fetchComoBase64(url).then(resolve).catch(() => resolve(url));
+                    }
+                };
+                
+                img.onerror = function() {
+                    // Último recurso: intentar con fetch
+                    fetchComoBase64(url).then(resolve).catch(() => resolve(url));
+                };
+                
+                img.src = url;
+            });
+        }
+
+        async function fetchComoBase64(url) {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            } catch(e) {
+                return url;
+            }
+        }
+
+        async function convertirTodasLasImagenes() {
+            const imagenes = document.querySelectorAll('#contenido-pdf img[src]');
+            let convertidas = 0;
+            const total = imagenes.length;
+            const subtext = document.getElementById('loader-subtext');
+            
+            for(let i = 0; i < imagenes.length; i++) {
+                const img = imagenes[i];
+                if(img.src && !img.src.startsWith('data:')) {
+                    if(subtext) subtext.innerText = `Convirtiendo imagen ${convertidas + 1} de ${total}...`;
+                    img.src = await imagenABase64(img.src);
+                    convertidas++;
+                }
+            }
+            
+            if(subtext) subtext.innerText = 'Generando documento...';
+        }
+
+        // ==========================================
+        // GENERAR PDF
+        // ==========================================
+        async function generarPDF() {
             const btn = document.getElementById('btn-descargar');
             const btnR = document.getElementById('btn-regresar');
-            btn.style.display = 'none';
+            const loader = document.getElementById('pdf-gen-loader');
+
+            btn.disabled = true;
+            btn.innerText = 'Procesando...';
             btnR.style.display = 'none';
-            window.scrollTo(0, 0);
+            loader.classList.add('show');
 
-            const elemento = document.getElementById('contenido-pdf');
-            const pages = document.querySelectorAll('.page');
-            const originalStyles = [];
-            
-            pages.forEach((p) => {
-                originalStyles.push({ margin: p.style.margin, boxShadow: p.style.boxShadow, height: p.style.height });
-                p.style.margin = '0'; p.style.boxShadow = 'none'; p.style.height = '296.5mm'; 
-            });
+            try {
+                // PASO 1: Convertir todas las imágenes a base64
+                await convertirTodasLasImagenes();
 
-            const proyectoRaw = document.getElementById('pdf-proyecto').innerText;
-            const proyecto = proyectoRaw.replace(/\s+/g, '_'); 
-            
-            const opciones = {
-                margin: 0,
-                filename: `REPORTE_SEMANAL_${proyecto}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, allowTaint: true, scrollY: 0 }, 
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
+                // Pequeño delay para que el navegador repinte
+                await new Promise(r => setTimeout(r, 300));
 
-            html2pdf().set(opciones).from(elemento).save().then(() => {
-                btn.style.display = 'block'; btnR.style.display = 'block';
+                // PASO 2: Preparar página para captura
+                document.body.classList.add('pdf-generating');
+                btn.style.display = 'none';
+                window.scrollTo(0, 0);
+
+                const elemento = document.getElementById('contenido-pdf');
+                const pages = document.querySelectorAll('.page');
+                const originalStyles = [];
+                
+                pages.forEach((p) => {
+                    originalStyles.push({ margin: p.style.margin, boxShadow: p.style.boxShadow, height: p.style.height });
+                    p.style.margin = '0'; 
+                    p.style.boxShadow = 'none'; 
+                    p.style.height = '296.5mm'; 
+                });
+
+                const proyectoRaw = document.getElementById('pdf-proyecto').innerText;
+                const proyecto = proyectoRaw.replace(/\s+/g, '_'); 
+                
+                const opciones = {
+                    margin: 0,
+                    filename: `REPORTE_SEMANAL_${proyecto}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { 
+                        scale: 2, 
+                        useCORS: true, 
+                        allowTaint: false,
+                        scrollY: 0,
+                        logging: false
+                    }, 
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                await html2pdf().set(opciones).from(elemento).save();
+
+                // PASO 3: Restaurar todo
                 pages.forEach((p, index) => {
                     p.style.margin = originalStyles[index].margin;
                     p.style.boxShadow = originalStyles[index].boxShadow;
                     p.style.height = originalStyles[index].height;
                 });
                 document.body.classList.remove('pdf-generating');
-            });
+
+            } catch(er) {
+                console.error('Error generando PDF:', er);
+                document.body.classList.remove('pdf-generating');
+                alert('Error al generar el PDF: ' + er.message);
+            } finally {
+                btn.style.display = 'block';
+                btn.disabled = false;
+                btn.innerText = 'Descargar PDF';
+                btnR.style.display = 'block';
+                loader.classList.remove('show');
+            }
         }
     </script>
 </body>
