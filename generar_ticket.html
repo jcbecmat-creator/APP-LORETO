@@ -22,7 +22,6 @@
 
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* --- HEADER Y LAYOUT --- */
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: white; border-bottom: 1px solid var(--border-color); z-index: 50; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .menu-btn { background: none; border: none; cursor: pointer; color: var(--text-main); }
@@ -46,7 +45,6 @@
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .container { max-width: 98%; margin: 0 auto; padding-bottom: 50px; }
 
-        /* --- ESTILOS DEL TICKET (VISTA EN PANTALLA) --- */
         .page-header { margin-bottom: 25px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end;}
         .page-header h1 { font-size: 24px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; }
         .page-header p { color: var(--text-muted); margin: 0; font-size: 14px; }
@@ -65,7 +63,6 @@
         input:focus { background: white; outline: none; border-color: var(--primary-blue); }
         input:read-only { color: var(--text-muted); background: #f1f5f9; }
 
-        /* --- COLORES Y FUENTES DE INPUTS (SIN NEGRITAS) --- */
         #input-clave, #input-articulo, #input-precio {
             color: var(--primary-blue) !important;
             font-weight: 400 !important;
@@ -103,7 +100,6 @@
         .btn-pdf:disabled { background-color: #9ca3af; cursor: not-allowed; }
         .btn-danger { background-color: var(--danger); color: white; padding: 6px 10px; height: auto; border-radius: 6px;}
 
-        /* --- ESTRUCTURA ROW 2 (ALINEACIÓN EXACTA CON BOTONES SUPERIORES) --- */
         .row2-wrapper {
             display: grid;
             grid-template-columns: 1fr;
@@ -116,7 +112,6 @@
             gap: 12px;
         }
 
-        /* --- AJUSTE TAMAÑO DE BOTONES Y ALINEACIÓN EN LAPTOP --- */
         @media (min-width: 769px) {
             #btn-buscar, #btn-toggle-qr, #btn-agregar {
                 width: 170px !important;
@@ -125,10 +120,9 @@
             }
             .row2-wrapper {
                 grid-template-columns: 1fr 170px;
-                gap: 8px; /* Mismo gap que el .button-group superior para alinear perfectamente */
+                gap: 8px;
             }
             .inputs-row2 {
-                /* Clave(1fr) y Artículo Seleccionado(2.5fr) más anchos */
                 grid-template-columns: 1fr 2.5fr 1fr 1fr 1fr; 
             }
         }
@@ -136,7 +130,6 @@
         #qr-reader-container { margin-top: 15px; display: none; border: 2px dashed var(--border-color); border-radius: 8px; padding: 10px; text-align: center; background: #fafafa; }
         #qr-reader { width: 100%; max-width: 500px; margin: 0 auto; }
 
-        /* --- TABLA VISIBLE EN PANTALLA --- */
         .ticket-container { border: 1px solid var(--border-color); border-radius: 12px; overflow-x: auto; background: white; }
         .ticket-header-info { display: flex; flex-direction: row; justify-content: space-between; padding: 12px 20px; background-color: var(--light-blue); border-bottom: 1px solid var(--border-color); font-weight: bold; color: var(--primary-blue); font-size: 14px;}
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
@@ -145,7 +138,6 @@
         .text-right { text-align: right; }
         .ticket-totals { padding: 16px 20px; background-color: #f8fafc; display: flex; justify-content: flex-end; gap: 24px; font-size: 16px; font-weight: bold; border-top: 2px solid var(--border-color);}
 
-        /* Modales */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal-small { background: white; border-radius: 16px; padding: 30px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transform: translateY(-20px); transition: all 0.3s; }
@@ -156,6 +148,7 @@
         @media (max-width: 768px) {
             .search-grid { grid-template-columns: 1fr; }
             .button-group { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+            .trabajador-obra-row { flex-direction: column !important; }
         }
         #conexion-loader { font-size: 12px; color: var(--success); font-weight: bold; display: flex; align-items: center; gap: 5px; }
     </style>
@@ -189,10 +182,15 @@
                 </div>
 
                 <div class="card">
-                    <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed var(--border-color);">
-                        <div class="input-group">
+                    <!-- ====== FILA: TRABAJADOR (IZQ) + OBRA (DER) ====== -->
+                    <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed var(--border-color); display: flex; gap: 20px;" class="trabajador-obra-row">
+                        <div class="input-group" style="flex: 1;">
                             <label>Nombre del Trabajador que genera el ticket</label>
                             <input type="text" id="input-trabajador" readonly style="background-color: #f1f5f9; color: var(--primary-blue); font-weight: 400; border: 1px solid var(--border-color);">
+                        </div>
+                        <div class="input-group" style="flex: 1;">
+                            <label>Obra</label>
+                            <input type="text" id="input-obra" placeholder="NOMBRE DE LA OBRA..." style="background-color: #f1f5f9; color: var(--primary-blue); font-weight: 400; border: 1px solid var(--border-color);">
                         </div>
                     </div>
 
@@ -302,8 +300,10 @@
                 <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" style="height: 50px;" crossorigin="anonymous">
             </div>
             
+            <!-- INFO TICKET + OBRA EN PDF -->
             <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; background: #eef2ff; padding: 10px; border-radius: 8px;">
                 <div><strong>Número de Ticket:</strong> <span id="pdf-ticket-num" style="color: #263fa4;"></span></div>
+                <div><strong>Obra:</strong> <span id="pdf-ticket-obra" style="color: #263fa4;"></span></div>
                 <div><strong>Fecha:</strong> <span id="pdf-ticket-fecha"></span></div>
             </div>
 
@@ -370,7 +370,6 @@
         establecerNumeroTicket();
         document.getElementById('ticket-fecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-MX')} ${new Date().toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'})}`;
         
-        // ASIGNACIÓN AUTOMÁTICA DEL TRABAJADOR
         const trabajadorLogueado = localStorage.getItem('usuarioActivo') || localStorage.getItem('nombreTrabajador') || 'JOVANI MARTINEZ';
         document.getElementById('input-trabajador').value = trabajadorLogueado;
         document.getElementById('user-initial').innerText = trabajadorLogueado.charAt(0);
@@ -573,7 +572,9 @@
 
     async function generarPDFyDescontar() {
         const nombreTrabajador = document.getElementById('input-trabajador').value.trim().toUpperCase();
+        const nombreObra = document.getElementById('input-obra').value.trim().toUpperCase();
         if (ticketActual.length === 0) { mostrarAlerta("El ticket está vacío."); return; }
+        if (!nombreObra) { mostrarAlerta("Por favor ingresa el nombre de la Obra.", "error"); return; }
 
         var btnGenerar = document.getElementById('btn-generar-pdf');
         btnGenerar.disabled = true;
@@ -596,6 +597,7 @@
                 fecha_creacion: firebase.firestore.FieldValue.serverTimestamp(),
                 fecha_str: document.getElementById('ticket-fecha').innerText.replace('Fecha: ', ''),
                 trabajador: nombreTrabajador,
+                obra: nombreObra,
                 total_articulos: ticketActual.length,
                 total_importe: totalImporteGuardar,
                 detalle: ticketActual
@@ -621,6 +623,7 @@
 
         document.getElementById('pdf-ticket-num').innerText = document.getElementById('ticket-numero').innerText;
         document.getElementById('pdf-ticket-fecha').innerText = document.getElementById('ticket-fecha').innerText;
+        document.getElementById('pdf-ticket-obra').innerText = nombreObra;
         document.getElementById('pdf-ticket-arts').innerText = ticketActual.length;
         document.getElementById('pdf-ticket-trabajador').innerText = nombreTrabajador;
         
@@ -664,6 +667,7 @@
             establecerNumeroTicket();
             ticketActual = [];
             actualizarTabla();
+            document.getElementById('input-obra').value = '';
             mostrarAlerta('¡Ticket generado y sincronizado con Firebase exitosamente!');
             
             btnGenerar.disabled = false;
