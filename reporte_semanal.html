@@ -119,7 +119,6 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         #pdf-loader p { font-size: 15px; font-weight: 600; color: var(--text-main); }
 
-        /* Barra de progreso de subida */
         #upload-progress-bar { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 4px; z-index: 30000; background: transparent; }
         #upload-progress-bar.show { display: block; }
         #upload-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary-blue), #4f6ef7); border-radius: 0 2px 2px 0; transition: width 0.3s ease; }
@@ -171,6 +170,7 @@
 
                 <form id="ordenMttoForm" style="display: block;">
                     
+                    <!-- SECCIÓN 1: REPORTE / ACTIVIDAD -->
                     <div class="form-card" style="border-left: 4px solid var(--primary-blue);">
                         <h3 class="section-title-form"><i data-lucide="hash"></i> Reporte / Actividad</h3>
                         <div class="form-group">
@@ -183,6 +183,7 @@
                         </div>
                     </div>
 
+                    <!-- SECCIÓN 2: UBICACIÓN -->
                     <div class="form-card">
                         <h3 class="section-title-form"><i data-lucide="map-pin"></i> Ubicación de Obra / Proyecto</h3>
                         <div class="form-group">
@@ -196,6 +197,22 @@
                         </div>
                     </div>
 
+                    <!-- SECCIÓN 3: EVIDENCIA ANTES -->
+                    <div class="form-card" style="border-left: 4px solid var(--primary-blue);">
+                        <h3 class="section-title-form"><i data-lucide="image-off"></i> Evidencia Fotográfica - ANTES</h3>
+                        <label class="form-label">Fotos del estado anterior (Máx 3)</label>
+                        <div class="photo-controls">
+                            <button type="button" class="btn-photo" onclick="triggerCamera('antes')"><i data-lucide="camera"></i> Toma Foto</button>
+                            <button type="button" class="btn-photo-secondary" onclick="triggerFile('antes')"><i data-lucide="upload"></i> Subir Archivo</button>
+                        </div>
+                        <div id="photoGridAntes" class="photo-grid-slots">
+                            <div class="photo-slot" id="slot-antes-0"><i data-lucide="image" style="color:#ccc; width:30px; height:30px;"></i></div>
+                            <div class="photo-slot" id="slot-antes-1"><i data-lucide="image" style="color:#ccc; width:30px; height:30px;"></i></div>
+                            <div class="photo-slot" id="slot-antes-2"><i data-lucide="image" style="color:#ccc; width:30px; height:30px;"></i></div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 4: AVANCE DE OBRA -->
                     <div class="form-card">
                         <h3 class="section-title-form"><i data-lucide="hard-hat"></i> Avance de Obra</h3>
                         <div class="form-group" style="margin-bottom: 15px;">
@@ -213,6 +230,7 @@
                         </div>
                     </div>
 
+                    <!-- SECCIÓN 5: OBSERVACIONES / MATERIALES -->
                     <div class="form-card">
                         <h3 class="section-title-form"><i data-lucide="clipboard-check"></i> Observaciones / Materiales</h3>
                         <div class="form-group" style="margin-bottom: 15px;">
@@ -230,6 +248,7 @@
                         </div>
                     </div>
 
+                    <!-- SECCIÓN 6: RESIDENTE -->
                     <div class="form-card">
                         <h3 class="section-title-form"><i data-lucide="user"></i> Residente Asignado</h3>
                         <div class="form-group" style="margin-bottom: 15px;">
@@ -246,6 +265,7 @@
                         </div>
                     </div>
 
+                    <!-- SECCIÓN 7: SELFIE -->
                     <div class="form-card">
                         <h3 class="section-title-form"><i data-lucide="user-check"></i> Selfie en Sitio</h3>
                         <label class="form-label">Evidencia Fotográfica (Selfie - Máx 1)</label>
@@ -258,6 +278,7 @@
                         </div>
                     </div>
 
+                    <!-- SECCIÓN 8: FIRMA -->
                     <div class="form-card">
                         <h3 class="section-title-form"><i data-lucide="pen-tool"></i> Firma Táctil</h3>
                         <div class="form-group">
@@ -294,7 +315,6 @@
     </div>
     <div id="photoModal" class="modal-enlarger" onclick="closePhotoModal()"><img class="modal-content-img" id="imgFull"></div>
     <div id="custom-alert"><div class="modal-card-alert"><div id="alert-icon-container"></div><h3 id="alert-title"></h3><p id="alert-msg"></p><button id="alert-btn" onclick="closeCustomAlert()">Aceptar</button></div></div>
-
     <div id="pdf-loader"><div class="loader-spinner"></div><p>Preparando PDF del reporte...</p></div>
     <div id="upload-progress-bar"><div id="upload-progress-fill"></div></div>
 
@@ -368,8 +388,7 @@
         function cargarIncidenciasPendientes() {
             db.collection("actividades_pendientes_loreto").where("residente","==",appDataLoreto.nombre).get().then(q => {
                 incidenciasPendientes = [];
-                const l = document.getElementById('incidencias-list');
-                l.innerHTML = '';
+                const l = document.getElementById('incidencias-list'); l.innerHTML = '';
                 q.forEach(d => {
                     const i = d.data(); i.id_documento = d.id;
                     incidenciasPendientes.push(i);
@@ -463,7 +482,13 @@
         // ==========================================
         // FOTOS
         // ==========================================
-        let fotos = { falla: [null,null,null], solucion: [null,null,null], soporte: [null], selfie: [null] };
+        let fotos = { 
+            antes: [null, null, null], 
+            falla: [null, null, null], 
+            solucion: [null, null, null], 
+            soporte: [null], 
+            selfie: [null] 
+        };
 
         function mostrarFormularioNuevaOrden() {
             document.getElementById('ordenMttoForm').reset();
@@ -471,8 +496,8 @@
             document.getElementById('folio_rs').value = '';
             document.getElementById('incidencia_doc_id').value = '';
             document.getElementById('sucursal-details').style.display = 'none';
-            fotos = { falla: [null,null,null], solucion: [null,null,null], soporte: [null], selfie: [null] };
-            renderSlots('falla'); renderSlots('solucion'); renderSlots('soporte'); renderSlots('selfie');
+            fotos = { antes: [null, null, null], falla: [null, null, null], solucion: [null, null, null], soporte: [null], selfie: [null] };
+            renderSlots('antes'); renderSlots('falla'); renderSlots('solucion'); renderSlots('soporte'); renderSlots('selfie');
             limpiarFirma('firma_tecnico');
             document.getElementById('nombre_tecnico').value = appDataLoreto.nombre || '';
         }
@@ -492,13 +517,15 @@
             document.getElementById('nombre_tecnico').value = o.residente_nombre || '';
             document.getElementById('celular_tecnico').value = o.residente_celular || '';
             document.getElementById('comentario_salida').value = o.comentario || '';
-            fotos.falla = o.urls_avance && o.urls_avance.length ? [...o.urls_avance] : [null,null,null];
-            fotos.solucion = o.urls_observaciones && o.urls_observaciones.length ? [...o.urls_observaciones] : [null,null,null];
+            fotos.antes = o.urls_antes && o.urls_antes.length ? [...o.urls_antes] : [null, null, null];
+            while(fotos.antes.length < 3) fotos.antes.push(null);
+            fotos.falla = o.urls_avance && o.urls_avance.length ? [...o.urls_avance] : [null, null, null];
+            while(fotos.falla.length < 3) fotos.falla.push(null);
+            fotos.solucion = o.urls_observaciones && o.urls_observaciones.length ? [...o.urls_observaciones] : [null, null, null];
+            while(fotos.solucion.length < 3) fotos.solucion.push(null);
             fotos.soporte = o.url_soporte ? [o.url_soporte] : [null];
             fotos.selfie = o.url_selfie ? [o.url_selfie] : [null];
-            while(fotos.falla.length < 3) fotos.falla.push(null);
-            while(fotos.solucion.length < 3) fotos.solucion.push(null);
-            renderSlots('falla'); renderSlots('solucion'); renderSlots('soporte'); renderSlots('selfie');
+            renderSlots('antes'); renderSlots('falla'); renderSlots('solucion'); renderSlots('soporte'); renderSlots('selfie');
             if(o.url_firma) {
                 document.getElementById('firma_tecnico_data').value = o.url_firma;
                 const img = new Image(); img.crossOrigin = 'anonymous';
@@ -508,22 +535,20 @@
         }
 
         // ==========================================
-        // BARRA DE PROGRESO DE SUBIDA
+        // BARRA DE PROGRESO
         // ==========================================
         function mostrarBarraProgreso() {
             document.getElementById('upload-progress-bar').classList.add('show');
             document.getElementById('upload-progress-fill').style.width = '0%';
         }
-        function actualizarProgreso(porcentaje) {
-            document.getElementById('upload-progress-fill').style.width = porcentaje + '%';
-        }
+        function actualizarProgreso(p) { document.getElementById('upload-progress-fill').style.width = p + '%'; }
         function ocultarBarraProgreso() {
             document.getElementById('upload-progress-fill').style.width = '100%';
             setTimeout(() => { document.getElementById('upload-progress-bar').classList.remove('show'); }, 500);
         }
 
         // ==========================================
-        // GUARDAR / ENVIAR CON DETECCIÓN DE ERRORES
+        // GUARDAR / ENVIAR
         // ==========================================
         async function procesarOrden(est) {
             const g = document.getElementById('btn-guardar-borrador'), e = document.getElementById('btn-enviar-orden');
@@ -541,25 +566,19 @@
             mostrarBarraProgreso();
 
             try {
-                // ---- PASO 1: Obtener folio ----
                 actualizarProgreso(5);
                 if(!fol) {
-                    try {
-                        fol = await obtenerFolioGlobal();
-                        document.getElementById('folio_rs').value = fol;
-                    } catch(errFolio) {
-                        throw new Error("FIRESTORE: No se pudo generar el folio. Verifica las reglas de la colección 'metadata'.\nDetalle: " + errFolio.message);
-                    }
+                    try { fol = await obtenerFolioGlobal(); document.getElementById('folio_rs').value = fol; }
+                    catch(errFolio) { throw new Error("FIRESTORE: No se pudo generar el folio. Verifica las reglas de 'metadata'.\n" + errFolio.message); }
                 }
                 actualizarProgreso(10);
 
-                // ---- PASO 2: Subir fotos a Storage ----
-                let ua = [], uo = [], us = null, usl = null, uf = null;
+                let uantes = [], ua = [], uo = [], us = null, usl = null, uf = null;
                 let totalFotos = 0, fotosSubidas = 0;
 
-                // Contar fotos pendientes
-                fotos.falla.forEach(f => { if(f && f.startsWith('data:image')) totalFotos++; });
-                fotos.solucion.forEach(f => { if(f && f.startsWith('data:image')) totalFotos++; });
+                ['antes', 'falla', 'solucion'].forEach(key => {
+                    fotos[key].forEach(f => { if(f && f.startsWith('data:image')) totalFotos++; });
+                });
                 if(fotos.soporte[0] && fotos.soporte[0].startsWith('data:image')) totalFotos++;
                 if(fotos.selfie[0] && fotos.selfie[0].startsWith('data:image')) totalFotos++;
                 const firmaData = document.getElementById('firma_tecnico_data').value;
@@ -572,25 +591,30 @@
                             await ref.put(dataURItoBlob(d));
                             const url = await ref.getDownloadURL();
                             fotosSubidas++;
-                            const progreso = 10 + Math.round((fotosSubidas / totalFotos) * 70);
-                            actualizarProgreso(progreso);
+                            actualizarProgreso(10 + Math.round((fotosSubidas / Math.max(totalFotos, 1)) * 70));
                             return url;
                         } catch(errStorage) {
-                            throw new Error("STORAGE: Error al subir " + label + ".\nVerifica las reglas de Firebase Storage para la ruta: " + p + "\nDetalle: " + errStorage.message);
+                            throw new Error("STORAGE: Error al subir " + label + ".\nRuta: " + p + "\n" + errStorage.message);
                         }
                     }
                     return d;
                 };
 
-                for(let i = 0; i < fotos.falla.length; i++) { if(fotos.falla[i]) ua.push(await up(fotos.falla[i], `reportes_loreto/${fol}/avance_${i}_${Date.now()}.jpg`, "foto de avance " + (i+1))); }
-                for(let i = 0; i < fotos.solucion.length; i++) { if(fotos.solucion[i]) uo.push(await up(fotos.solucion[i], `reportes_loreto/${fol}/obs_${i}_${Date.now()}.jpg`, "foto de materiales " + (i+1))); }
+                for(let i = 0; i < fotos.antes.length; i++) {
+                    if(fotos.antes[i]) uantes.push(await up(fotos.antes[i], `reportes_loreto/${fol}/antes_${i}_${Date.now()}.jpg`, "foto ANTES " + (i+1)));
+                }
+                for(let i = 0; i < fotos.falla.length; i++) {
+                    if(fotos.falla[i]) ua.push(await up(fotos.falla[i], `reportes_loreto/${fol}/avance_${i}_${Date.now()}.jpg`, "foto de avance " + (i+1)));
+                }
+                for(let i = 0; i < fotos.solucion.length; i++) {
+                    if(fotos.solucion[i]) uo.push(await up(fotos.solucion[i], `reportes_loreto/${fol}/obs_${i}_${Date.now()}.jpg`, "foto de materiales " + (i+1)));
+                }
                 us = await up(fotos.soporte[0], `reportes_loreto/${fol}/soporte_${Date.now()}.jpg`, "foto de soporte");
                 usl = await up(fotos.selfie[0], `reportes_loreto/${fol}/selfie_${Date.now()}.jpg`, "selfie");
                 uf = await up(firmaData, `reportes_loreto/${fol}/firma_${Date.now()}.png`, "firma");
 
                 actualizarProgreso(85);
 
-                // ---- PASO 3: Guardar documento en Firestore ----
                 const did = document.getElementById('doc_id_actual').value || fol;
                 const od = {
                     id_ticket: fol,
@@ -606,15 +630,16 @@
                     fecha_creacion: new Date().toISOString().split('T')[0],
                     fecha_hora_completa: new Date().toISOString(),
                     estado: est,
-                    urls_avance: ua, urls_observaciones: uo,
-                    url_soporte: us, url_selfie: usl, url_firma: uf
+                    urls_antes: uantes,
+                    urls_avance: ua,
+                    urls_observaciones: uo,
+                    url_soporte: us,
+                    url_selfie: usl,
+                    url_firma: uf
                 };
 
-                try {
-                    await db.collection("reportes_semanales").doc(did).set(od, { merge: true });
-                } catch(errFirestore) {
-                    throw new Error("FIRESTORE: Error al guardar el reporte.\nVerifica las reglas de la colección 'reportes_semanales'.\nDetalle: " + errFirestore.message);
-                }
+                try { await db.collection("reportes_semanales").doc(did).set(od, { merge: true }); }
+                catch(errFirestore) { throw new Error("FIRESTORE: Error al guardar.\nVerifica reglas de 'reportes_semanales'.\n" + errFirestore.message); }
 
                 actualizarProgreso(100);
                 ocultarBarraProgreso();
@@ -625,11 +650,9 @@
             } catch(er) {
                 ocultarBarraProgreso();
                 console.error(er);
-
-                // Mensaje inteligente según el tipo de error
                 let mensaje = er.message;
                 if(mensaje.includes("403") || mensaje.includes("PERMISSION_DENIED")) {
-                    mensaje += "\n\n⚠️ SOLUCIÓN: Ve a Firebase Console → Firestore Database → Reglas, y cambia a 'allow read, write: if true;' para las colecciones usadas. Haz lo mismo en Storage → Reglas.";
+                    mensaje += "\n\n⚠️ SOLUCIÓN: Ve a Firebase Console → Firestore/Storage → Reglas y permite read/write.";
                 }
                 showCustomAlert("Error", mensaje, false);
             } finally {
@@ -658,7 +681,7 @@
                     residente_nombre: orden.residente_nombre || '', fecha: orden.fecha_creacion || '',
                     desc_avance: orden.desc_avance || '', desc_observaciones: orden.desc_observaciones || '',
                     residente_celular: orden.residente_celular || '', comentario: orden.comentario || '',
-                    fotos_antes: [null, null, null],
+                    fotos_antes: (orden.urls_antes || []).concat([null, null, null]).slice(0, 3),
                     fotos_avance: (orden.urls_avance || []).concat([null, null, null]).slice(0, 3),
                     fotos_observaciones: (orden.urls_observaciones || []).concat([null, null, null]).slice(0, 3),
                     selfie: orden.url_selfie || null, firma: orden.url_firma || null
