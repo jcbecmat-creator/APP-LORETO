@@ -46,7 +46,6 @@
         .ticket-left { position: absolute; bottom: 0; left: 0; text-align: left; font-size: 11px; font-weight: 700; } 
         .ticket-right { position: absolute; bottom: 0; right: 0; text-align: right; font-size: 11px; font-weight: 700; } 
 
-        .area-container { margin-top: 4px; margin-bottom: 4px; padding-left: 0px; }
         .area-line { display: flex; align-items: center; margin-bottom: 4px; font-size: 11px; font-weight: 600 !important; } 
 
         .blue-bar-full { background-color: var(--loreto-blue); color: white; display: flex; align-items: center; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 2px; } 
@@ -62,19 +61,14 @@
         .text-input-box { border: 1px solid var(--tm-border); padding: 4px 8px; min-height: 50px; margin-top: 2px; margin-bottom: 6px; background-color: white; font-weight: 500; border-radius: 2px; } 
 
         .eval-container { display: flex; gap: 8px; margin-top: 4px; margin-bottom: 4px; align-items: stretch; height: 160px; }
-        
         .eval-left-box { width: 33%; border: 1px solid var(--tm-border); background-color: var(--loreto-light); display: flex; align-items: center; justify-content: center; overflow: hidden; color: #94a3b8; font-size: 10px; box-sizing: border-box; border-radius: 4px; }
         .eval-left-box img { width: 100%; height: 100%; object-fit: cover; }
-        
         .eval-right-grid { width: 67%; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; gap: 6px; height: 100%; }
         .eval-card { border: 1px solid var(--tm-border); display: flex; flex-direction: column; overflow: hidden; border-radius: 4px; }
         .empleado-card { grid-column: span 2; }
-        
         .eval-card-header { background-color: var(--loreto-blue); color: white; padding: 3px 8px; font-size: 10px; display: flex; align-items: center; font-weight: 700; }
-        
         .eval-card-body { padding: 4px 8px; flex-grow: 1; background-color: white; font-weight: 500; display: flex; flex-direction: column; justify-content: flex-start; overflow: hidden; } 
         .eval-card-body .area-line { margin-bottom: 2px; font-size: 10px; font-weight: 600 !important; } 
-        
         #pdf-firma { padding: 2px; align-items: center; justify-content: center; width: 100%; height: 100%; box-sizing: border-box; }
         #pdf-firma img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
@@ -194,19 +188,13 @@
     </div>
 
     <script>
-        // ══════════════════════════════════════════════════════════════
-        // FUNCIÓN CLAVE del código que funciona:
-        // Espera a que TODAS las imágenes terminen de cargar
-        // antes de permitir que html2pdf capture la página
-        // ══════════════════════════════════════════════════════════════
+        // Espera a que las imágenes terminen de cargar (igual que index2.html)
         function esperarImagenes() {
             return new Promise((resolve) => {
                 const imagenes = document.querySelectorAll('#contenido-pdf img');
                 let cargadas = 0;
                 const total = imagenes.length;
-                
                 if (total === 0) { resolve(); return; }
-
                 imagenes.forEach((img) => {
                     if (img.complete && img.naturalHeight !== 0) {
                         cargadas++;
@@ -221,8 +209,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const dataStr = sessionStorage.getItem('DatosReportePDF');
-            
-            if(dataStr) {
+            if (dataStr) {
                 const data = JSON.parse(dataStr);
                 
                 document.getElementById('pdf-proyecto').innerText = data.proyecto || '';
@@ -237,45 +224,36 @@
                 document.getElementById('pdf-cel-res').innerText = data.residente_celular || '';
                 document.getElementById('pdf-comentario').innerText = data.comentario || '';
 
-                // Inyectar imágenes SIN crossorigin (igual que index2.html)
-                if(data.fotos_antes) {
+                // Inyectar imágenes (ya llegan como base64 desde el formulario)
+                if (data.fotos_antes) {
                     data.fotos_antes.forEach((foto, index) => {
-                        if(foto) document.getElementById(`pdf-antes-${index}`).innerHTML = '<img src="' + foto + '">';
+                        if (foto) document.getElementById(`pdf-antes-${index}`).innerHTML = '<img src="' + foto + '">';
                     });
                 }
                 data.fotos_avance.forEach((foto, index) => {
-                    if(foto) document.getElementById(`pdf-avance-${index}`).innerHTML = '<img src="' + foto + '">';
+                    if (foto) document.getElementById(`pdf-avance-${index}`).innerHTML = '<img src="' + foto + '">';
                 });
                 data.fotos_observaciones.forEach((foto, index) => {
-                    if(foto) document.getElementById(`pdf-obs-${index}`).innerHTML = '<img src="' + foto + '">';
+                    if (foto) document.getElementById(`pdf-obs-${index}`).innerHTML = '<img src="' + foto + '">';
                 });
-                if(data.firma) document.getElementById('pdf-firma').innerHTML = '<img src="' + data.firma + '">';
-                if(data.selfie) document.getElementById('pdf-selfie').innerHTML = '<img src="' + data.selfie + '">';
+                if (data.firma) document.getElementById('pdf-firma').innerHTML = '<img src="' + data.firma + '">';
+                if (data.selfie) document.getElementById('pdf-selfie').innerHTML = '<img src="' + data.selfie + '">';
 
-            } else { 
-                alert("No se encontraron datos del reporte."); 
+            } else {
+                alert("No se encontraron datos del reporte.");
             }
         });
 
-        // ══════════════════════════════════════════════════════════════
-        // generarPDF - Exactamente el mismo patrón que index2.html
-        // 1. Esperar imágenes
-        // 2. useCORS: true (SIN allowTaint)
-        // 3. Sin conversiones base64
-        // ══════════════════════════════════════════════════════════════
         async function generarPDF() {
             document.body.classList.add('pdf-generating');
-
             const btn = document.getElementById('btn-descargar');
             const btnR = document.getElementById('btn-regresar');
             
             btn.innerText = 'Cargando fotos...';
             btn.disabled = true;
             btnR.style.display = 'none';
-
             window.scrollTo(0, 0);
 
-            // PASO CLAVE: Esperar a que todas las imágenes carguen
             await esperarImagenes();
 
             btn.innerText = 'Generando PDF...';
@@ -295,15 +273,11 @@
             const proyectoLimpio = proyectoRaw.replace(/[\s\/:,]/g, '_');
             
             const opciones = {
-                margin:       0,
-                filename:     'REPORTE_SEMANAL_' + proyectoLimpio + '.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true,
-                    scrollY: 0 
-                }, 
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin: 0,
+                filename: 'REPORTE_SEMANAL_' + proyectoLimpio + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             html2pdf().set(opciones).from(elemento).save().then(() => {
@@ -311,13 +285,11 @@
                 btnR.style.display = 'block';
                 btn.innerText = 'Descargar PDF';
                 btn.disabled = false;
-                
                 pages.forEach((p, index) => {
                     p.style.margin = originalStyles[index].margin;
                     p.style.boxShadow = originalStyles[index].boxShadow;
                     p.style.height = originalStyles[index].height;
                 });
-                
                 document.body.classList.remove('pdf-generating');
             });
         }
