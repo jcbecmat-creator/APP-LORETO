@@ -112,13 +112,6 @@
         tbody tr { border-bottom: 1px solid #f1f5f9; }
         .btn-edit { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; }
         .btn-pdf { background: var(--primary-blue); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; }
-
-        #pdf-loader { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255,255,255,0.92); z-index: 20000; justify-content: center; align-items: center; flex-direction: column; gap: 15px; }
-        #pdf-loader.show { display: flex; }
-        .loader-spinner { width: 48px; height: 48px; border: 5px solid #e2e8f0; border-top: 5px solid var(--primary-blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        #pdf-loader p { font-size: 15px; font-weight: 600; color: var(--text-main); }
-        #pdf-loader .sub { font-size: 12px; color: var(--text-muted); font-weight: 400; margin-top: -8px; }
     </style>
 </head>
 <body>
@@ -144,6 +137,7 @@
 
         <main class="content">
             <div class="container">
+                
                 <div class="page-header">
                     <h1 id="welcome-username-display">Residente</h1>
                     <p>Registrar y gestionar reportes de obra</p>
@@ -165,6 +159,7 @@
                 </div>
 
                 <form id="ordenMttoForm" style="display: block;">
+                    
                     <div class="form-card" style="border-left: 4px solid var(--primary-blue);">
                         <h3 class="section-title-form"><i data-lucide="hash"></i> Reporte / Actividad</h3>
                         <div class="form-group">
@@ -302,7 +297,6 @@
     </div>
     <div id="photoModal" class="modal-enlarger" onclick="closePhotoModal()"><img class="modal-content-img" id="imgFull"></div>
     <div id="custom-alert"><div class="modal-card-alert"><div id="alert-icon-container"></div><h3 id="alert-title"></h3><p id="alert-msg"></p><button id="alert-btn" onclick="closeCustomAlert()">Aceptar</button></div></div>
-    <div id="pdf-loader"><div class="loader-spinner"></div><p>Preparando PDF...</p><p class="sub" id="pdf-loader-sub">Cargando imágenes...</p></div>
 
     <script>
         const firebaseConfig = {
@@ -315,7 +309,6 @@
         };
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
-        const storage = firebase.storage();
 
         let incidenciasPendientes = [], misOrdenes = [], tabActual = 'Nuevo reporte', appDataLoreto = { nombre: 'Residente', usuario: 'demo' };
 
@@ -333,13 +326,7 @@
                 const linkInicio = document.getElementById('link-inicio'); if(linkInicio) linkInicio.classList.remove('active');
                 const linkReporte = document.getElementById('link-reporte-semanal'); if(linkReporte) linkReporte.classList.add('active');
             }).catch(() => {
-                document.getElementById('sidebar').innerHTML = `
-                    <nav class="sidebar-nav">
-                        <div class="sidebar-section">
-                            <span class="section-title">Navegación</span>
-                            <a href="#" class="nav-item active" id="link-reporte-semanal"><i data-lucide="file-text" style="width:18px;height:18px;"></i> Reporte Semanal</a>
-                        </div>
-                    </nav>`;
+                document.getElementById('sidebar').innerHTML = `<nav class="sidebar-nav"><div class="sidebar-section"><span class="section-title">Navegación</span><a href="#" class="nav-item active" id="link-reporte-semanal"><i data-lucide="file-text" style="width:18px;height:18px;"></i> Reporte Semanal</a></div></nav>`;
                 lucide.createIcons();
             });
 
@@ -363,30 +350,19 @@
             db.collection("actividades_pendientes_loreto").where("residente","==",appDataLoreto.nombre).get().then(q => {
                 incidenciasPendientes = [];
                 const l = document.getElementById('incidencias-list'); l.innerHTML = '';
-                q.forEach(d => {
-                    const i = d.data(); i.id_documento = d.id;
-                    incidenciasPendientes.push(i);
-                    let o = document.createElement('option'); o.value = i.titulo || d.id; l.appendChild(o);
-                });
-            }).catch(e => console.log("Incidencias:", e.message));
+                q.forEach(d => { const i = d.data(); i.id_documento = d.id; incidenciasPendientes.push(i); let o = document.createElement('option'); o.value = i.titulo || d.id; l.appendChild(o); });
+            }).catch(e => console.log(e.message));
         }
 
         document.getElementById('incidencia-input').addEventListener('input', function(e) {
             const v = e.target.value.trim();
-            let i = incidenciasPendientes.find(x => x.titulo === v);
-            if(!i) i = incidenciasPendientes.find(x => (x.titulo||'').toLowerCase() === v.toLowerCase());
-            if(i) {
-                document.getElementById('incidencia_doc_id').value = i.id_documento;
-                document.getElementById('desc_falla').value = i.observaciones || '';
-                document.getElementById('sucursal-input').value = i.proyecto || '';
-                document.getElementById('sucursal-input').dispatchEvent(new Event('input'));
-            }
+            let i = incidenciasPendientes.find(x => x.titulo === v) || incidenciasPendientes.find(x => (x.titulo||'').toLowerCase() === v.toLowerCase());
+            if(i) { document.getElementById('incidencia_doc_id').value = i.id_documento; document.getElementById('desc_falla').value = i.observaciones || ''; document.getElementById('sucursal-input').value = i.proyecto || ''; document.getElementById('sucursal-input').dispatchEvent(new Event('input')); }
         });
 
         document.getElementById('sucursal-input').addEventListener('input', function(e) {
             const v = e.target.value, c = document.getElementById('sucursal-details');
-            if(v.length > 2) { document.getElementById('suc-dir').innerText = 'Dirección'; document.getElementById('suc-city').innerText = 'Ciudad'; c.style.display = 'grid'; }
-            else { c.style.display = 'none'; }
+            if(v.length > 2) { document.getElementById('suc-dir').innerText = 'Dirección'; document.getElementById('suc-city').innerText = 'Ciudad'; c.style.display = 'grid'; } else { c.style.display = 'none'; }
         });
 
         function cargarMisOrdenes() {
@@ -396,7 +372,7 @@
                 misOrdenes.sort((a,b) => (b.fecha_hora_completa||"").localeCompare(a.fecha_hora_completa||""));
                 actualizarBadges();
                 if(tabActual !== 'Nuevo reporte') renderTablaMisOrdenes();
-            }).catch(e => console.error("Cargar órdenes:", e.message));
+            }).catch(e => console.error(e.message));
         }
 
         function actualizarBadges() {
@@ -410,29 +386,16 @@
             tabActual = e;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             const a = document.getElementById(`tab-${e}`); if(a) a.classList.add('active');
-            if(e === 'Nuevo reporte') {
-                document.getElementById('dashboard-ordenes').style.display = 'none';
-                document.getElementById('ordenMttoForm').style.display = 'block';
-                if(!isEdit) mostrarFormularioNuevaOrden();
-            } else {
-                document.getElementById('ordenMttoForm').style.display = 'none';
-                document.getElementById('dashboard-ordenes').style.display = 'block';
-                renderTablaMisOrdenes();
-            }
+            if(e === 'Nuevo reporte') { document.getElementById('dashboard-ordenes').style.display = 'none'; document.getElementById('ordenMttoForm').style.display = 'block'; if(!isEdit) mostrarFormularioNuevaOrden(); }
+            else { document.getElementById('ordenMttoForm').style.display = 'none'; document.getElementById('dashboard-ordenes').style.display = 'block'; renderTablaMisOrdenes(); }
         }
 
         function renderTablaMisOrdenes() {
             const t = document.getElementById('tabla-mis-ordenes'); t.innerHTML = '';
-            let f = misOrdenes.filter(o => {
-                if(tabActual === 'Guardados' && o.estado !== 'Borrador') return false;
-                if(tabActual === 'Realizados' && o.estado !== 'En proceso') return false;
-                return true;
-            });
+            let f = misOrdenes.filter(o => { if(tabActual === 'Guardados' && o.estado !== 'Borrador') return false; if(tabActual === 'Realizados' && o.estado !== 'En proceso') return false; return true; });
             if(f.length === 0) { t.innerHTML = `<tr><td colspan="4" style="padding:30px;color:var(--text-muted)">Sin reportes en esta sección</td></tr>`; return; }
             f.forEach(o => {
-                let a = o.estado === 'Borrador'
-                    ? `<button type="button" onclick="cargarBorrador('${o.id_doc}')" class="btn-edit"><i data-lucide="edit-2" style="width:14px"></i> Editar</button>`
-                    : `<button type="button" onclick="verPDFOrden('${o.id_doc}')" class="btn-pdf"><i data-lucide="file-text" style="width:14px"></i> PDF</button>`;
+                let a = o.estado === 'Borrador' ? `<button type="button" onclick="cargarBorrador('${o.id_doc}')" class="btn-edit"><i data-lucide="edit-2" style="width:14px"></i> Editar</button>` : `<button type="button" onclick="verPDFOrden('${o.id_doc}')" class="btn-pdf"><i data-lucide="file-text" style="width:14px"></i> PDF</button>`;
                 const r = document.createElement('tr');
                 r.innerHTML = `<td style="font-weight:bold">${o.id_ticket||''}</td><td>${o.proyecto||''}</td><td>${o.fecha_creacion||''}</td><td>${a}</td>`;
                 t.appendChild(r);
@@ -442,21 +405,10 @@
 
         async function obtenerFolioGlobal() {
             const r = db.collection('metadata').doc('contadores_loreto');
-            return await db.runTransaction(async t => {
-                const d = await t.get(r);
-                let n = (d.exists && d.data().rs_folio) ? d.data().rs_folio + 1 : 1;
-                t.set(r, { rs_folio: n }, { merge: true });
-                return `RS-${n.toString().padStart(4, '0')}`;
-            });
+            return await db.runTransaction(async t => { const d = await t.get(r); let n = (d.exists && d.data().rs_folio) ? d.data().rs_folio + 1 : 1; t.set(r, { rs_folio: n }, { merge: true }); return `RS-${n.toString().padStart(4, '0')}`; });
         }
 
-        let fotos = { 
-            antes: [null, null, null], 
-            falla: [null, null, null], 
-            solucion: [null, null, null], 
-            soporte: [null], 
-            selfie: [null] 
-        };
+        let fotos = { antes: [null,null,null], falla: [null,null,null], solucion: [null,null,null], selfie: [null] };
 
         function mostrarFormularioNuevaOrden() {
             document.getElementById('ordenMttoForm').reset();
@@ -464,8 +416,8 @@
             document.getElementById('folio_rs').value = '';
             document.getElementById('incidencia_doc_id').value = '';
             document.getElementById('sucursal-details').style.display = 'none';
-            fotos = { antes: [null, null, null], falla: [null, null, null], solucion: [null, null, null], soporte: [null], selfie: [null] };
-            renderSlots('antes'); renderSlots('falla'); renderSlots('solucion'); renderSlots('soporte'); renderSlots('selfie');
+            fotos = { antes: [null,null,null], falla: [null,null,null], solucion: [null,null,null], selfie: [null] };
+            renderSlots('antes'); renderSlots('falla'); renderSlots('solucion'); renderSlots('selfie');
             limpiarFirma('firma_tecnico');
             document.getElementById('nombre_tecnico').value = appDataLoreto.nombre || '';
         }
@@ -485,26 +437,27 @@
             document.getElementById('nombre_tecnico').value = o.residente_nombre || '';
             document.getElementById('celular_tecnico').value = o.residente_celular || '';
             document.getElementById('comentario_salida').value = o.comentario || '';
-            fotos.antes = o.urls_antes && o.urls_antes.length ? [...o.urls_antes] : [null, null, null];
+            fotos.antes = o.urls_antes && o.urls_antes.length ? [...o.urls_antes] : [null,null,null];
             while(fotos.antes.length < 3) fotos.antes.push(null);
-            fotos.falla = o.urls_avance && o.urls_avance.length ? [...o.urls_avance] : [null, null, null];
+            fotos.falla = o.urls_avance && o.urls_avance.length ? [...o.urls_avance] : [null,null,null];
             while(fotos.falla.length < 3) fotos.falla.push(null);
-            fotos.solucion = o.urls_observaciones && o.urls_observaciones.length ? [...o.urls_observaciones] : [null, null, null];
+            fotos.solucion = o.urls_observaciones && o.urls_observaciones.length ? [...o.urls_observaciones] : [null,null,null];
             while(fotos.solucion.length < 3) fotos.solucion.push(null);
-            fotos.soporte = o.url_soporte ? [o.url_soporte] : [null];
             fotos.selfie = o.url_selfie ? [o.url_selfie] : [null];
-            renderSlots('antes'); renderSlots('falla'); renderSlots('solucion'); renderSlots('soporte'); renderSlots('selfie');
+            renderSlots('antes'); renderSlots('falla'); renderSlots('solucion'); renderSlots('selfie');
             if(o.url_firma) {
                 document.getElementById('firma_tecnico_data').value = o.url_firma;
-                const img = new Image(); img.crossOrigin = 'anonymous';
+                const img = new Image();
                 img.onload = () => { if(ctxFirma) ctxFirma.drawImage(img, 0, 0); };
                 img.src = o.url_firma;
             } else { limpiarFirma('firma_tecnico'); }
         }
 
-        // ==========================================
-        // GUARDAR / ENVIAR (Sube imágenes en paralelo)
-        // ==========================================
+        // ══════════════════════════════════════════════════════════
+        // GUARDAR BASE64 DIRECTO A FIRESTORE (IGUAL QUE FRANVE)
+        // Ya NO sube a Storage. Guarda el base64 tal cual.
+        // Por eso el PDF se genera INSTANTÁNEO sin conversión.
+        // ══════════════════════════════════════════════════════════
         async function procesarOrden(est) {
             const g = document.getElementById('btn-guardar-borrador'), e = document.getElementById('btn-enviar-orden');
             let fol = document.getElementById('folio_rs').value;
@@ -517,46 +470,12 @@
                 if(cf.toDataURL() === fv.toDataURL() && !document.getElementById('firma_tecnico_data').value) { showCustomAlert("Atención", "Firma obligatoria para enviar.", false); return; }
             }
             if(cf.toDataURL() !== fv.toDataURL()) document.getElementById('firma_tecnico_data').value = cf.toDataURL();
-            g.disabled = true; e.disabled = true; g.innerText = 'Procesando...'; e.innerText = 'Procesando...';
+            g.disabled = true; e.disabled = true; g.innerText = 'Guardando...'; e.innerText = 'Guardando...';
 
             try {
-                if(!fol) {
-                    try { fol = await obtenerFolioGlobal(); document.getElementById('folio_rs').value = fol; }
-                    catch(errFolio) { throw new Error("No se pudo generar el folio.\n" + errFolio.message); }
-                }
+                if(!fol) { fol = await obtenerFolioGlobal(); document.getElementById('folio_rs').value = fol; }
 
-                const firmaData = document.getElementById('firma_tecnico_data').value;
-
-                // Igual que en Franve: si ya es URL (ya subida), no la vuelve a subir
-                const up = async(d, p) => {
-                    if(d && d.startsWith('data:image')) {
-                        const ref = storage.ref(p);
-                        await ref.put(dataURItoBlob(d));
-                        return await ref.getDownloadURL();
-                    }
-                    return d; 
-                };
-
-                // Subir todas en paralelo
-                const uploadPromises = [
-                    ...fotos.antes.map((f, i) => f ? up(f, `reportes_loreto/${fol}/antes_${i}_${Date.now()}.jpg`) : Promise.resolve(null)),
-                    ...fotos.falla.map((f, i) => f ? up(f, `reportes_loreto/${fol}/avance_${i}_${Date.now()}.jpg`) : Promise.resolve(null)),
-                    ...fotos.solucion.map((f, i) => f ? up(f, `reportes_loreto/${fol}/obs_${i}_${Date.now()}.jpg`) : Promise.resolve(null)),
-                    fotos.soporte[0] ? up(fotos.soporte[0], `reportes_loreto/${fol}/soporte_${Date.now()}.jpg`) : Promise.resolve(null),
-                    fotos.selfie[0] ? up(fotos.selfie[0], `reportes_loreto/${fol}/selfie_${Date.now()}.jpg`) : Promise.resolve(null),
-                    firmaData ? up(firmaData, `reportes_loreto/${fol}/firma_${Date.now()}.png`) : Promise.resolve(null)
-                ];
-
-                const results = await Promise.all(uploadPromises);
-
-                const uantes = results.slice(0, 3).filter(Boolean);
-                const ua = results.slice(3, 6).filter(Boolean);
-                const uo = results.slice(6, 9).filter(Boolean);
-                const us = results[9];
-                const usl = results[10];
-                const uf = results[11];
-
-                const did = document.getElementById('doc_id_actual').value || fol;
+                // Guardar base64 directamente, SIN subir a Storage
                 const od = {
                     id_ticket: fol,
                     id_incidencia: document.getElementById('incidencia-input').value || '',
@@ -571,23 +490,28 @@
                     fecha_creacion: new Date().toISOString().split('T')[0],
                     fecha_hora_completa: new Date().toISOString(),
                     estado: est,
-                    urls_antes: uantes,
-                    urls_avance: ua,
-                    urls_observaciones: uo,
-                    url_soporte: us,
-                    url_selfie: usl,
-                    url_firma: uf
+                    // BASE64 DIRECTO (igual que FRANVE)
+                    urls_antes: fotos.antes.filter(f => f !== null),
+                    urls_avance: fotos.falla.filter(f => f !== null),
+                    urls_observaciones: fotos.solucion.filter(f => f !== null),
+                    url_selfie: fotos.selfie[0] || null,
+                    url_firma: document.getElementById('firma_tecnico_data').value || null
                 };
 
+                const did = document.getElementById('doc_id_actual').value || fol;
                 await db.collection("reportes_semanales").doc(did).set(od, { merge: true });
 
-                showCustomAlert("Éxito", est === 'Borrador' ? "Reporte guardado como borrador." : "Reporte enviado correctamente.", true);
+                showCustomAlert("Éxito", est === 'Borrador' ? "Reporte guardado." : "Reporte enviado.", true);
                 cargarMisOrdenes();
                 cambiarTab(est === 'Borrador' ? 'Guardados' : 'Realizados');
 
             } catch(er) {
                 console.error(er);
-                showCustomAlert("Error", er.message, false);
+                let mensaje = er.message;
+                if(mensaje.includes("403") || mensaje.includes("PERMISSION_DENIED")) {
+                    mensaje += "\n\n⚠️ Ve a Firebase Console → Firestore → Reglas y permite read/write.";
+                }
+                showCustomAlert("Error", mensaje, false);
             } finally {
                 g.disabled = false; e.disabled = false;
                 g.innerHTML = '<i data-lucide="save"></i> Guardar Reporte';
@@ -596,62 +520,42 @@
             }
         }
 
-        // ==========================================
-        // PDF - PASA LAS URLS DIRECTAS DE FIREBASE (IGUAL QUE FRANVE)
-        // ==========================================
+        // ══════════════════════════════════════════════════════════
+        // PDF INSTANTÁNEO (IGUAL QUE FRANVE)
+        // Los datos ya son base64, sin conversión, sin contador.
+        // ══════════════════════════════════════════════════════════
         function verPDFOrden(id) {
-            const loader = document.getElementById('pdf-loader');
-            loader.classList.add('show');
+            const orden = misOrdenes.find(x => x.id_doc === id);
+            if(!orden) { showCustomAlert("Error", "Reporte no encontrado.", false); return; }
 
-            try {
-                let orden = misOrdenes.find(x => x.id_doc === id);
-                if (!orden) {
-                    showCustomAlert("Error", "Reporte no encontrado.", false);
-                    loader.classList.remove('show');
-                    return;
-                }
+            // Pasar base64 directamente (igual que FRANVE)
+            const datosPDF = {
+                proyecto: orden.proyecto || '',
+                folio: orden.id_ticket || '',
+                incidencia: orden.id_incidencia || '',
+                residente_nombre: orden.residente_nombre || '',
+                fecha: orden.fecha_creacion || '',
+                desc_avance: orden.desc_avance || '',
+                desc_observaciones: orden.desc_observaciones || '',
+                residente_celular: orden.residente_celular || '',
+                comentario: orden.comentario || '',
+                fotos_antes: (orden.urls_antes || []).concat([null, null, null]).slice(0, 3),
+                fotos_avance: (orden.urls_avance || []).concat([null, null, null]).slice(0, 3),
+                fotos_observaciones: (orden.urls_observaciones || []).concat([null, null, null]).slice(0, 3),
+                selfie: orden.url_selfie || null,
+                firma: orden.url_firma || null
+            };
 
-                const datosPDF = {
-                    proyecto: orden.proyecto || '',
-                    folio: orden.id_ticket || '',
-                    incidencia: orden.id_incidencia || '',
-                    residente_nombre: orden.residente_nombre || '',
-                    fecha: orden.fecha_creacion || '',
-                    desc_avance: orden.desc_avance || '',
-                    desc_observaciones: orden.desc_observaciones || '',
-                    residente_celular: orden.residente_celular || '',
-                    comentario: orden.comentario || '',
-                    fotos_antes: orden.urls_antes || [null, null, null],
-                    fotos_avance: orden.urls_avance || [null, null, null],
-                    fotos_observaciones: orden.urls_observaciones || [null, null, null],
-                    selfie: orden.url_selfie || null,
-                    firma: orden.url_firma || null
-                };
-
-                // Se envían directas las URLs de Firebase al PDF
-                sessionStorage.setItem('DatosReportePDF', JSON.stringify(datosPDF));
-                setTimeout(() => {
-                    window.open('pdf_reporte_semanal.html', '_blank');
-                    loader.classList.remove('show');
-                }, 400);
-
-            } catch (er) {
-                console.error("PDF Error:", er);
-                showCustomAlert("Error", "No se pudo preparar el PDF: " + er.message, false);
-                loader.classList.remove('show');
-            }
+            sessionStorage.setItem('DatosReportePDF', JSON.stringify(datosPDF));
+            window.open('pdf_reporte_semanal.html', '_blank');
         }
 
-        // ==========================================
+        // ══════════════════════════════════════════════════════════
         // CÁMARA Y ARCHIVOS
-        // ==========================================
+        // ══════════════════════════════════════════════════════════
         let activeTarget = 'falla', currentFacingMode = 'environment';
 
-        function triggerFile(t) {
-            activeTarget = t;
-            if(fotos[t].filter(f => f !== null).length < fotos[t].length) document.getElementById('fileInputGlobal').click();
-            else window.alert("Límite de fotos alcanzado.");
-        }
+        function triggerFile(t) { activeTarget = t; if(fotos[t].filter(f => f !== null).length < fotos[t].length) document.getElementById('fileInputGlobal').click(); else window.alert("Límite de fotos."); }
 
         function processFile(i) {
             if(!i.files || i.files.length === 0) return;
@@ -675,19 +579,11 @@
         }
 
         let currentStream;
-        async function triggerCamera(t) {
-            activeTarget = t;
-            if(fotos[t].filter(f => f !== null).length >= fotos[t].length) { window.alert("Límite de fotos alcanzado."); return; }
-            currentFacingMode = (t === 'selfie') ? 'user' : 'environment';
-            await startCamera();
-        }
+        async function triggerCamera(t) { activeTarget = t; if(fotos[t].filter(f => f !== null).length >= fotos[t].length) { window.alert("Límite."); return; } currentFacingMode = (t === 'selfie') ? 'user' : 'environment'; await startCamera(); }
         async function startCamera() {
             if(currentStream) { currentStream.getTracks().forEach(t => t.stop()); }
-            try {
-                currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
-                document.getElementById('camera-video').srcObject = currentStream;
-                document.getElementById('camera-overlay').classList.add('show');
-            } catch(e) { window.alert("Cámara no disponible: " + e.message); }
+            try { currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } }); document.getElementById('camera-video').srcObject = currentStream; document.getElementById('camera-overlay').classList.add('show'); }
+            catch(e) { window.alert("Cámara no disponible."); }
         }
         function switchCamera() { currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment'; startCamera(); }
         function closeCamera() { if(currentStream) { currentStream.getTracks().forEach(t => t.stop()); } document.getElementById('camera-overlay').classList.remove('show'); }
@@ -721,6 +617,9 @@
             lucide.createIcons();
         }
 
+        // ══════════════════════════════════════════════════════════
+        // FIRMA TÁCTIL
+        // ══════════════════════════════════════════════════════════
         let canvasFirma, ctxFirma;
         function inicializarFirma() {
             canvasFirma = document.getElementById('firma_tecnico'); if(!canvasFirma) return;
@@ -742,13 +641,6 @@
             window.addEventListener('touchend', () => { if(d) { d = false; document.getElementById('firma_tecnico_data').value = canvasFirma.toDataURL(); } });
         }
         function limpiarFirma(id) { if(ctxFirma) ctxFirma.clearRect(0, 0, canvasFirma.width, canvasFirma.height); document.getElementById(id + '_data').value = ''; }
-
-        function dataURItoBlob(u) {
-            if(!u) return null;
-            const b = atob(u.split(',')[1]), m = u.split(',')[0].split(':')[1].split(';')[0], a = new ArrayBuffer(b.length), i = new Uint8Array(a);
-            for(let x = 0; x < b.length; x++) i[x] = b.charCodeAt(x);
-            return new Blob([a], { type: m });
-        }
 
         document.getElementById('celular_tecnico').addEventListener('input', function(e) {
             e.target.value = e.target.value.replace(/[^0-9]/g, '');
