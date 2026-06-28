@@ -10,7 +10,6 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <style>
         :root {
@@ -21,7 +20,6 @@
 
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* --- HEADER Y LAYOUT --- */
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: white; border-bottom: 1px solid var(--border-color); z-index: 50; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .menu-btn { background: none; border: none; cursor: pointer; color: var(--text-main); }
@@ -38,7 +36,6 @@
         .sidebar { width: 260px; background: white; border-right: 1px solid var(--border-color); overflow-y: auto; transition: transform 0.3s ease; display: flex; flex-direction: column; }
         @media (max-width: 768px) { .sidebar { position: fixed; height: calc(100vh - 60px); transform: translateX(-100%); z-index: 40; } .sidebar.open { transform: translateX(0); } .header-title { display: none; } }
 
-        /* --- ESTILOS DEL MENÚ --- */
         .sidebar-nav { padding: 15px 10px; }
         .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .sidebar-section:last-child { border-bottom: none; }
@@ -51,7 +48,6 @@
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .container { max-width: 900px; margin: 0 auto; padding-bottom: 50px; }
         
-        /* --- COMPONENTES DEL FORMULARIO --- */
         .page-header { margin-bottom: 25px; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; text-align: center; }
         .page-header h1 { font-size: 22px; color: var(--primary-blue); margin: 0 0 5px 0; font-weight: 800; text-transform: uppercase; }
         .page-header p { color: var(--text-muted); margin: 0; font-size: 14px; }
@@ -103,7 +99,6 @@
         .btn-guardar { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 20px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; background: var(--success); color: white; border: none; width: 100%; }
         .btn-enviar { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 20px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; background: var(--primary-blue); color: white; border: none; width: 100%; }
 
-        /* MODALES */
         .modal-enlarger { display: none; position: fixed !important; z-index: 999999 !important; left: 0 !important; top: 0 !important; width: 100vw !important; height: 100vh !important; background-color: rgba(0,0,0,0.95) !important; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
         .modal-enlarger.show { display: flex !important; }
         .modal-content-img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; cursor: zoom-out; }
@@ -154,7 +149,6 @@
                     <button class="tab-btn" onclick="cambiarTab('Realizados')" id="tab-Realizados">Realizados <span class="tab-badge" id="badge-Realizado">0</span></button>
                 </div>
 
-                <!-- TABLA DE GUARDADOS / REALIZADOS -->
                 <div id="dashboard-solicitudes" style="display: none;">
                     <div class="data-table-container">
                         <table>
@@ -164,7 +158,6 @@
                     </div>
                 </div>
 
-                <!-- FORMULARIO -->
                 <form id="formAdicionales" style="display: block;">
                     <input type="hidden" id="doc_id_actual" value="">
                     
@@ -337,7 +330,6 @@
         };
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
-        const storage = firebase.storage();
 
         let appData = { nombre: 'Residente', usuario: 'demo' };
         let misSolicitudes = [], tabActual = 'Nueva solicitud';
@@ -353,6 +345,9 @@
             fetch('menu.html?v=2').then(res => res.text()).then(html => {
                 document.getElementById('sidebar').innerHTML = html; lucide.createIcons();
                 const link = document.getElementById('link-adicionales'); if(link) link.classList.add('active');
+            }).catch(() => {
+                document.getElementById('sidebar').innerHTML = `<nav class="sidebar-nav"><div class="sidebar-section"><span class="section-title">Navegación</span><a href="#" class="nav-item active" id="link-adicionales"><i data-lucide="file-text" style="width:18px;height:18px;"></i> Adicionales</a></div></nav>`;
+                lucide.createIcons();
             });
             document.getElementById('toggle-menu').addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('open'); });
             window.addEventListener('click', (e) => { if (!e.target.matches('#user-initial-header')) { const dd = document.getElementById('user-dropdown'); if(dd.classList.contains('show')) dd.classList.remove('show'); } });
@@ -362,7 +357,6 @@
             lucide.createIcons();
         });
 
-        // --- LÓGICA DE TABS Y TABLA ---
         function cargarMisSolicitudes() {
             db.collection("solicitudes_adicionales").where("residente_id","==",appData.usuario).get().then(q => {
                 misSolicitudes = [];
@@ -456,11 +450,12 @@
 
             if(o.url_firma) {
                 document.getElementById('firma_residente_data').value = o.url_firma;
-                const img = new Image(); img.onload = () => { if(ctxFirma) ctxFirma.drawImage(img,0,0) }; img.src = o.url_firma;
+                const img = new Image();
+                img.onload = () => { if(ctxFirma) ctxFirma.drawImage(img,0,0) };
+                img.src = o.url_firma;
             } else { limpiarFirma('firma_residente'); }
         }
 
-        // --- LÓGICA DE CÁLCULO ---
         function calcularResultado() {
             const l = parseFloat(document.getElementById('largo').value) || 0;
             const a = parseFloat(document.getElementById('ancho').value) || 0;
@@ -480,7 +475,10 @@
             document.getElementById('total_val').innerText = '$' + tot.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
 
-        // --- LÓGICA DE GUARDAR / ENVIAR ---
+        // ══════════════════════════════════════════════════════════
+        // GUARDAR BASE64 DIRECTO A FIRESTORE (IGUAL QUE FRANVE)
+        // Ya NO sube a Storage. Instantáneo.
+        // ══════════════════════════════════════════════════════════
         async function procesarSolicitud(est) {
             const g = document.getElementById('btn-guardar-borrador'), e = document.getElementById('btn-enviar-orden');
             const cf = document.getElementById('firma_residente'), fv = document.createElement('canvas');
@@ -493,14 +491,10 @@
             }
             if(cf.toDataURL()!==fv.toDataURL()) document.getElementById('firma_residente_data').value=cf.toDataURL();
 
-            g.disabled=true; e.disabled=true; g.innerText='Procesando...'; e.innerText='Procesando...';
+            g.disabled=true; e.disabled=true; g.innerText='Guardando...'; e.innerText='Guardando...';
 
             try {
-                let urlsFotos = [];
-                const up = async(d, p) => { if(d && d.startsWith('data:image')){ const r=storage.ref(p); await r.put(dataURItoBlob(d)); return await r.getDownloadURL(); } return d; };
-                for(let i=0; i<fotos.evidencia.length; i++){ if(fotos.evidencia[i]) urlsFotos.push(await up(fotos.evidencia[i], `adicionales_loreto/${Date.now()}/evidencia_${i}.jpg`)); }
-                
-                const did = document.getElementById('doc_id_actual').value || `ADIC-${Date.now()}`;
+                // Guardar base64 directo, SIN subir a Storage
                 const data = {
                     tipo_solicitud: document.getElementById('tipo_solicitud').value,
                     proyecto: document.getElementById('proyecto').value,
@@ -518,16 +512,18 @@
                     pzas: parseFloat(document.getElementById('pzas').value) || 0,
                     resultado: parseFloat(document.getElementById('resultado_val').innerText) || 0,
                     parcial: parseFloat(document.getElementById('parcial').value) || 0,
-                    total: parseFloat(document.getElementById('total_val').innerText.replace('$','').replace(',','')) || 0,
+                    total: parseFloat(document.getElementById('total_val').innerText.replace('$','').replace(/,/g,'')) || 0,
                     observaciones: document.getElementById('observaciones').value,
-                    urls_evidencia: urlsFotos,
-                    url_firma: await up(document.getElementById('firma_residente_data').value, `adicionales_loreto/${did}/firma.png`),
+                    // BASE64 DIRECTO (igual que FRANVE)
+                    urls_evidencia: fotos.evidencia.filter(f => f !== null),
+                    url_firma: document.getElementById('firma_residente_data').value || null,
                     residente_id: appData.usuario,
                     residente_nombre: appData.nombre,
                     estado: est,
                     fecha_creacion: new Date().toISOString()
                 };
 
+                const did = document.getElementById('doc_id_actual').value || `ADIC-${Date.now()}`;
                 await db.collection("solicitudes_adicionales").doc(did).set(data, {merge: true});
                 showCustomAlert("Éxito", est==='Borrador'?"Guardado correctamente.":"Enviado correctamente.", true);
                 cargarMisSolicitudes();
@@ -543,7 +539,46 @@
             }
         }
 
-        // --- FUNCIONES DE FOTOS Y FIRMA ---
+        // ══════════════════════════════════════════════════════════
+        // PDF INSTANTÁNEO (IGUAL QUE FRANVE)
+        // Los datos ya son base64, sin conversión, sin contador.
+        // ══════════════════════════════════════════════════════════
+        function verPDFSolicitud(id) {
+            const o = misSolicitudes.find(x => x.id_doc === id); 
+            if(!o) { showCustomAlert("Error", "Solicitud no encontrada.", false); return; }
+
+            // Pasar base64 directamente (igual que FRANVE)
+            const data = {
+                folio: o.id_doc || '',
+                fecha: o.fecha || '',
+                tipo_solicitud: o.tipo_solicitud || '',
+                proyecto: o.proyecto || '',
+                partida: o.partida || '',
+                justificacion: o.justificacion || '',
+                clave: o.clave || '',
+                concepto: o.concepto || '',
+                localizacion_proyecto: o.localizacion_proyecto || '',
+                unidad: o.unidad || '',
+                largo: o.largo || '0',
+                ancho: o.ancho || '0',
+                alto: o.alto || '0',
+                pzas: o.pzas || '0',
+                resultado: o.resultado || '0.00',
+                parcial: o.parcial ? '$' + o.parcial.toFixed(2) : '$0.00',
+                total: o.total ? '$' + o.total.toFixed(2) : '$0.00',
+                observaciones: o.observaciones || '',
+                residente_nombre: o.residente_nombre || '',
+                fotos_evidencia: (o.urls_evidencia || []).concat([null, null, null, null]).slice(0, 4),
+                firma: o.url_firma || null
+            };
+
+            sessionStorage.setItem('DatosAdicionalPDF', JSON.stringify(data));
+            window.open('pdf_reporte_adicionales.html', '_blank');
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // FOTOS, FIRMA Y UTILIDADES
+        // ══════════════════════════════════════════════════════════
         function showCustomAlert(t, m, s=true) { const a = document.getElementById('custom-alert'); document.getElementById('alert-title').innerText=t; document.getElementById('alert-msg').innerText=m; const i = document.getElementById('alert-icon-container'), b = document.getElementById('alert-btn'); if(s){i.innerHTML='<i data-lucide="check-circle" style="width:48px;height:48px;color:var(--success)"></i>';b.style.background='var(--success)';}else{i.innerHTML='<i data-lucide="alert-triangle" style="width:48px;height:48px;color:var(--danger)"></i>';b.style.background='var(--danger)';} a.style.display='flex'; lucide.createIcons(); }
         function closeCustomAlert() { document.getElementById('custom-alert').style.display = 'none'; }
 
@@ -562,67 +597,8 @@
         function renderSlots(t){for(let i=0;i<fotos[t].length;i++){const s=document.getElementById(`slot-${t}-${i}`);if(!s)continue;if(fotos[t][i]){s.innerHTML=`<img src="${fotos[t][i]}" onclick="enlargePhoto(this.src)" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in;border-radius:8px"><span class="remove-photo" onclick="removeFoto('${t}',${i})">&times;</span>`;s.style.border="1px solid var(--border-color)"}else{s.innerHTML=`<i data-lucide="image" style="color:#ccc;width:30px;height:30px"></i>`;s.style.border="2px dashed #d1d5db"}}lucide.createIcons()}
 
         let canvasFirma,ctxFirma;
-        function inicializarFirma(){canvasFirma=document.getElementById('firma_residente');if(!canvasFirma)return;ctxFirma=canvasFirma.getContext('2d');canvasFirma.width=600;canvasFirma.height=200;ctxFirma.lineWidth=3;ctxFirma.lineCap='round';ctxFirma.strokeStyle='var(--primary-blue)';let d=false;function g(e){const r=canvasFirma.getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;return{x:(cx-r.left)*(canvasFirma.width/r.width),y:(cy-r.top)*(canvasFirma.height/r.height)}}canvasFirma.addEventListener('mousedown',e=>{d=true;const p=g(e);ctxFirma.beginPath();ctxFirma.moveTo(p.x,p.y)});canvasFirma.addEventListener('mousemove',e=>{if(d){const p=g(e);ctxFirma.lineTo(p.x,p.y);ctxFirma.stroke()}});window.addEventListener('mouseup',()=>{if(d){d=false;document.getElementById('firma_residente_data').value=canvasFirma.toDataURL()}});canvasFirma.addEventListener('touchstart',e=>{e.preventDefault();d=true;const p=g(e);ctxFirma.beginPath();ctxFirma.moveTo(p.x,p.y)},{passive:false});canvasFirma.addEventListener('touchmove',e=>{e.preventDefault();if(d){const p=g(e);ctxFirma.lineTo(p.x,p.y);ctxFirma.stroke()}},{passive:false});window.addEventListener('touchend',()=>{if(d){d=false;document.getElementById('firma_residente_data').value=canvasFirma.toDataURL()}})}
+        function inicializarFirma(){canvasFirma=document.getElementById('firma_residente');if(!canvasFirma)return;ctxFirma=canvasFirma.getContext('2d');canvasFirma.width=600;canvasFirma.height=200;ctxFirma.lineWidth=3;ctxFirma.lineCap='round';ctxFirma.strokeStyle='#263fa4';let d=false;function g(e){const r=canvasFirma.getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;return{x:(cx-r.left)*(canvasFirma.width/r.width),y:(cy-r.top)*(canvasFirma.height/r.height)}}canvasFirma.addEventListener('mousedown',e=>{d=true;const p=g(e);ctxFirma.beginPath();ctxFirma.moveTo(p.x,p.y)});canvasFirma.addEventListener('mousemove',e=>{if(d){const p=g(e);ctxFirma.lineTo(p.x,p.y);ctxFirma.stroke()}});window.addEventListener('mouseup',()=>{if(d){d=false;document.getElementById('firma_residente_data').value=canvasFirma.toDataURL()}});canvasFirma.addEventListener('touchstart',e=>{e.preventDefault();d=true;const p=g(e);ctxFirma.beginPath();ctxFirma.moveTo(p.x,p.y)},{passive:false});canvasFirma.addEventListener('touchmove',e=>{e.preventDefault();if(d){const p=g(e);ctxFirma.lineTo(p.x,p.y);ctxFirma.stroke()}},{passive:false});window.addEventListener('touchend',()=>{if(d){d=false;document.getElementById('firma_residente_data').value=canvasFirma.toDataURL()}})}
         function limpiarFirma(id){if(ctxFirma)ctxFirma.clearRect(0,0,canvasFirma.width,canvasFirma.height);document.getElementById(id+'_data').value=''}
-        function dataURItoBlob(u){if(!u)return null;const b=atob(u.split(',')[1]),m=u.split(',')[0].split(':')[1].split(';')[0],a=new ArrayBuffer(b.length),i=new Uint8Array(a);for(let x=0;x<b.length;x++)i[x]=b.charCodeAt(x);return new Blob([a],{type:m})}
-
-        // ==========================================
-        // FUNCIONES PARA GENERAR EL PDF
-        // ==========================================
-        async function fetchImageAsBase64(url) {
-            if(!url || url.startsWith('data:image')) return url;
-            try {
-                const response = await fetch(url);
-                const blob = await response.blob();
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.readAsDataURL(blob);
-                });
-            } catch (e) { return null; }
-        }
-
-        async function verPDFSolicitud(id){
-            const o = misSolicitudes.find(x => x.id_doc === id); 
-            if(!o) return;
-            
-            // Convertir imágenes a Base64 (4 espacios en el PDF)
-            let fotosEvidencia = [];
-            for(let i=0; i < 4; i++) {
-                const url = o.urls_evidencia && o.urls_evidencia[i] ? o.urls_evidencia[i] : null;
-                fotosEvidencia.push(await fetchImageAsBase64(url));
-            }
-            
-            const firma = await fetchImageAsBase64(o.url_firma);
-
-            const data = {
-                folio: o.id_doc || '',
-                fecha: o.fecha || '',
-                tipo_solicitud: o.tipo_solicitud || '',
-                proyecto: o.proyecto || '',
-                partida: o.partida || '',
-                ubicacion: o.ubicacion || '',
-                justificacion: o.justificacion || '',
-                clave: o.clave || '',
-                concepto: o.concepto || '',
-                localizacion_proyecto: o.localizacion_proyecto || '',
-                unidad: o.unidad || '',
-                largo: o.largo || '0',
-                ancho: o.ancho || '0',
-                alto: o.alto || '0',
-                pzas: o.pzas || '0',
-                resultado: o.resultado || '0.00',
-                parcial: o.parcial ? '$' + o.parcial.toFixed(2) : '$0.00',
-                total: o.total ? '$' + o.total.toFixed(2) : '$0.00',
-                observaciones: o.observaciones || '',
-                residente_nombre: o.residente_nombre || '',
-                fotos_evidencia: fotosEvidencia,
-                firma: firma
-            };
-
-            sessionStorage.setItem('DatosAdicionalPDF', JSON.stringify(data));
-            window.open('pdf_reporte_adicionales.html', '_blank');
-        }
     </script>
 </body>
 </html>
