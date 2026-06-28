@@ -188,22 +188,7 @@
     </div>
 
     <script>
-        // Función para convertir el logo a base64 y evitar bloqueos CORS en html2canvas
-        async function urlABase64(url) {
-            return new Promise((resolve) => {
-                if (!url || url.startsWith('data:')) { resolve(url); return; }
-                fetch(url)
-                    .then(response => response.blob())
-                    .then(blob => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.readAsDataURL(blob);
-                    })
-                    .catch(() => resolve(url));
-            });
-        }
-
-        // Espera a que las imágenes terminen de cargar
+        // Espera a que TODAS las imágenes (URLs de Firebase) terminen de descargar
         function esperarImagenes() {
             return new Promise((resolve) => {
                 const imagenes = document.querySelectorAll('#contenido-pdf img');
@@ -222,13 +207,7 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            // 1. Convertir el logo externo a Base64 para evitar que html2canvas bloquee las imágenes
-            const logoImg = document.querySelector('.logo-img');
-            if (logoImg && !logoImg.src.startsWith('data:')) {
-                logoImg.src = await urlABase64(logoImg.src);
-            }
-
+        document.addEventListener('DOMContentLoaded', () => {
             const dataStr = sessionStorage.getItem('DatosReportePDF');
             if (dataStr) {
                 const data = JSON.parse(dataStr);
@@ -245,20 +224,24 @@
                 document.getElementById('pdf-cel-res').innerText = data.residente_celular || '';
                 document.getElementById('pdf-comentario').innerText = data.comentario || '';
 
-                // Inyectar imágenes (ya llegan como base64 desde el formulario)
+                // Inyectar URLs de Firebase directamente, html2canvas las descargará
                 if (data.fotos_antes) {
                     data.fotos_antes.forEach((foto, index) => {
-                        if (foto) document.getElementById(`pdf-antes-${index}`).innerHTML = '<img src="' + foto + '">';
+                        if (foto) document.getElementById(`pdf-antes-${index}`).innerHTML = '<img src="' + foto + '" crossorigin="anonymous">';
                     });
                 }
-                data.fotos_avance.forEach((foto, index) => {
-                    if (foto) document.getElementById(`pdf-avance-${index}`).innerHTML = '<img src="' + foto + '">';
-                });
-                data.fotos_observaciones.forEach((foto, index) => {
-                    if (foto) document.getElementById(`pdf-obs-${index}`).innerHTML = '<img src="' + foto + '">';
-                });
-                if (data.firma) document.getElementById('pdf-firma').innerHTML = '<img src="' + data.firma + '">';
-                if (data.selfie) document.getElementById('pdf-selfie').innerHTML = '<img src="' + data.selfie + '">';
+                if (data.fotos_avance) {
+                    data.fotos_avance.forEach((foto, index) => {
+                        if (foto) document.getElementById(`pdf-avance-${index}`).innerHTML = '<img src="' + foto + '" crossorigin="anonymous">';
+                    });
+                }
+                if (data.fotos_observaciones) {
+                    data.fotos_observaciones.forEach((foto, index) => {
+                        if (foto) document.getElementById(`pdf-obs-${index}`).innerHTML = '<img src="' + foto + '" crossorigin="anonymous">';
+                    });
+                }
+                if (data.firma) document.getElementById('pdf-firma').innerHTML = '<img src="' + data.firma + '" crossorigin="anonymous">';
+                if (data.selfie) document.getElementById('pdf-selfie').innerHTML = '<img src="' + data.selfie + '" crossorigin="anonymous">';
 
             } else {
                 alert("No se encontraron datos del reporte.");
@@ -276,8 +259,7 @@
             window.scrollTo(0, 0);
 
             await esperarImagenes();
-            // Pausa estratégica de 500ms para asegurar que el DOM pinte los base64
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 500)); // Pequeña pausa para asegurar renderizado
 
             btn.innerText = 'Generando PDF...';
 
@@ -295,11 +277,12 @@
             const proyectoRaw = document.getElementById('pdf-proyecto').innerText || 'SIN_PROYECTO';
             const proyectoLimpio = proyectoRaw.replace(/[\s\/:,]/g, '_');
             
+            // AQUÍ ESTÁ LA MAGIA: useCORS:true y allowTaint:false permite a html2canvas descargar las URLs de Firebase sin bloquearse
             const opciones = {
                 margin: 0,
                 filename: 'REPORTE_SEMANAL_' + proyectoLimpio + '.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: false, allowTaint: false, scrollY: 0, logging: false },
+                html2canvas: { scale: 2, useCORS: true, allowTaint: false, scrollY: 0, logging: false },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
