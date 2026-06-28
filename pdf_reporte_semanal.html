@@ -188,7 +188,22 @@
     </div>
 
     <script>
-        // Espera a que las imágenes terminen de cargar (igual que index2.html)
+        // Función para convertir el logo a base64 y evitar bloqueos CORS en html2canvas
+        async function urlABase64(url) {
+            return new Promise((resolve) => {
+                if (!url || url.startsWith('data:')) { resolve(url); return; }
+                fetch(url)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(blob);
+                    })
+                    .catch(() => resolve(url));
+            });
+        }
+
+        // Espera a que las imágenes terminen de cargar
         function esperarImagenes() {
             return new Promise((resolve) => {
                 const imagenes = document.querySelectorAll('#contenido-pdf img');
@@ -207,7 +222,13 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Convertir el logo externo a Base64 para evitar que html2canvas bloquee las imágenes
+            const logoImg = document.querySelector('.logo-img');
+            if (logoImg && !logoImg.src.startsWith('data:')) {
+                logoImg.src = await urlABase64(logoImg.src);
+            }
+
             const dataStr = sessionStorage.getItem('DatosReportePDF');
             if (dataStr) {
                 const data = JSON.parse(dataStr);
@@ -255,6 +276,8 @@
             window.scrollTo(0, 0);
 
             await esperarImagenes();
+            // Pausa estratégica de 500ms para asegurar que el DOM pinte los base64
+            await new Promise(r => setTimeout(r, 500));
 
             btn.innerText = 'Generando PDF...';
 
@@ -276,7 +299,7 @@
                 margin: 0,
                 filename: 'REPORTE_SEMANAL_' + proyectoLimpio + '.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+                html2canvas: { scale: 2, useCORS: false, allowTaint: false, scrollY: 0, logging: false },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
