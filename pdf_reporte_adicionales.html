@@ -16,7 +16,6 @@
         .btn-regresar { position: fixed; top: 15px; left: 15px; background-color: #64748b; color: white; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000; }
         .btn-regresar:hover { background-color: #475569; }
 
-        /* HOJA CARTA HORIZONTAL */
         .page { width: 279.4mm; height: 215.9mm; background: white; margin: 0 auto 20px auto; padding: 8mm 12mm; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.5); position: relative; display: flex; flex-direction: column; overflow: hidden; }
         .content-wrapper { flex-grow: 1; display: flex; flex-direction: column; }
 
@@ -36,13 +35,9 @@
         .main-table th { background-color: var(--loreto-blue); color: white; padding: 4px 6px; text-align: center; font-weight: 700; border: 1px solid var(--loreto-blue); }
         .main-table td { border: 1px solid var(--tm-border); padding: 4px 6px; text-align: center; font-weight: 500; }
         .main-table .label-cell { background-color: #f8fafc; font-weight: 700; text-align: left; }
-        
-        /* RENGLÓN DE DATOS MÁS ALTO */
         .main-table .data-row td { padding: 10px 6px; font-size: 10px; }
 
         .photos-title { font-size: 9px; font-weight: 800; color: var(--loreto-blue); margin-bottom: 5px; text-transform: uppercase; }
-        
-        /* GRID 2 ARRIBA, 2 ABAJO LLENANDO EL ESPACIO */
         .photos-grid-2x2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; flex-grow: 1; margin-top: auto; }
         .photo-box { border: 1px solid var(--tm-border); background-color: var(--loreto-light); display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 4px; width: 100%; height: 100%; }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; }
@@ -66,7 +61,7 @@
             <div class="content-wrapper">
                 
                 <div class="header-container">
-                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Loreto Logo" class="logo-img" crossorigin="anonymous">
+                    <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Loreto Logo" class="logo-img">
                     <div class="header-titles">
                         <h1 class="title-blue">FORMATO PARA SOLICITUD DE ADICIONALES / EXTRAORDINARIOS / DEDUCTIVAS</h1>
                         <h2 class="title-blue" style="font-size: 11px; margin-top: 2px;">LORETO - INGENIERÍA, CONSTRUCCIÓN, EDIFICACIÓN Y REMODELACIÓN</h2>
@@ -83,7 +78,6 @@
                     <div class="info-item"><label>Partida</label><span id="pdf-partida"></span></div>
                 </div>
 
-                <!-- JUSTIFICACIÓN SEPARADA (COMO OBSERVACIONES) -->
                 <div class="obs-box">
                     <div class="obs-title">Justificación de la Solicitud</div>
                     <div id="pdf-justificacion" style="font-size: 9px;"></div>
@@ -106,7 +100,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- RENGLÓN MÁS ALTO -->
                         <tr class="data-row">
                             <td id="pdf-clave"></td>
                             <td id="pdf-concepto" style="text-align: left;"></td>
@@ -128,13 +121,11 @@
                     </tbody>
                 </table>
 
-                <!-- OBSERVACIONES -->
                 <div class="obs-box">
                     <div class="obs-title">Observaciones / Ubicación</div>
                     <div id="pdf-observaciones" style="font-size: 9px;"></div>
                 </div>
 
-                <!-- 4 FOTOGRAFÍAS (2 ARRIBA, 2 ABAJO) LLENANDO EL ESPACIO -->
                 <div class="photos-title">Evidencia Fotográfica</div>
                 <div class="photos-grid-2x2">
                     <div class="photo-box" id="pdf-foto-0"></div>
@@ -151,10 +142,30 @@
     </div>
 
     <script>
+        // ══════════════════════════════════════════════════════════
+        // ESPERAR IMÁGENES (IGUAL QUE FRANVE index2.html)
+        // ══════════════════════════════════════════════════════════
+        function esperarImagenes() {
+            return new Promise((resolve) => {
+                const imagenes = document.querySelectorAll('#contenido-pdf img');
+                let cargadas = 0;
+                const total = imagenes.length;
+                if (total === 0) { resolve(); return; }
+                imagenes.forEach((img) => {
+                    if (img.complete && img.naturalHeight !== 0) {
+                        cargadas++;
+                        if (cargadas === total) resolve();
+                    } else {
+                        img.onload = () => { cargadas++; if (cargadas === total) resolve(); };
+                        img.onerror = () => { cargadas++; if (cargadas === total) resolve(); };
+                    }
+                });
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const dataStr = sessionStorage.getItem('DatosAdicionalPDF');
-            
-            if(dataStr) {
+            if (dataStr) {
                 const data = JSON.parse(dataStr);
                 
                 document.getElementById('pdf-folio').innerText = data.folio || '';
@@ -163,7 +174,6 @@
                 document.getElementById('pdf-proyecto').innerText = data.proyecto || '';
                 document.getElementById('pdf-partida').innerText = data.partida || '';
                 document.getElementById('pdf-justificacion').innerText = data.justificacion || '';
-                
                 document.getElementById('pdf-clave').innerText = data.clave || '';
                 document.getElementById('pdf-concepto').innerText = data.concepto || '';
                 document.getElementById('pdf-localizacion').innerText = data.localizacion_proyecto || '';
@@ -176,38 +186,68 @@
                 document.getElementById('pdf-parcial').innerText = data.parcial || '$0.00';
                 document.getElementById('pdf-total').innerText = data.total || '$0.00';
                 document.getElementById('pdf-total-general').innerText = data.total || '$0.00';
-                
                 document.getElementById('pdf-observaciones').innerText = data.observaciones || '';
 
-                // Fotos (4 en grid 2x2)
+                // Inyectar imágenes (ya llegan como base64 desde el formulario)
                 data.fotos_evidencia.forEach((foto, index) => {
-                    if(foto) document.getElementById(`pdf-foto-${index}`).innerHTML = `<img src="${foto}">`;
+                    if (foto) document.getElementById(`pdf-foto-${index}`).innerHTML = '<img src="' + foto + '">';
                 });
-
-            } else { alert("No se encontraron datos de la solicitud."); }
+            } else {
+                alert("No se encontraron datos de la solicitud.");
+            }
         });
 
-        function generarPDF() {
+        // ══════════════════════════════════════════════════════════
+        // GENERAR PDF (IGUAL QUE FRANVE index2.html)
+        // useCORS: true SIN allowTaint
+        // ══════════════════════════════════════════════════════════
+        async function generarPDF() {
+            document.body.classList.add('pdf-generating');
             const btn = document.getElementById('btn-descargar');
             const btnR = document.querySelector('.btn-regresar');
-            btn.style.display = 'none'; btnR.style.display = 'none';
+            
+            btn.innerText = 'Cargando fotos...';
+            btn.disabled = true;
+            btnR.style.display = 'none';
             window.scrollTo(0, 0);
 
+            await esperarImagenes();
+
+            btn.innerText = 'Generando PDF...';
+
             const elemento = document.getElementById('contenido-pdf');
+            const pages = document.querySelectorAll('.page');
+            const originalStyles = [];
             
-            const proyectoRaw = document.getElementById('pdf-proyecto').innerText;
-            const proyecto = proyectoRaw.replace(/\s+/g, '_'); 
+            pages.forEach((p) => {
+                originalStyles.push({ margin: p.style.margin, boxShadow: p.style.boxShadow, height: p.style.height });
+                p.style.margin = '0';
+                p.style.boxShadow = 'none';
+                p.style.height = '211.9mm'; 
+            });
+
+            const proyectoRaw = document.getElementById('pdf-proyecto').innerText || 'SIN_PROYECTO';
+            const proyecto = proyectoRaw.replace(/[\s\/:,]/g, '_');
             
             const opciones = {
                 margin: 0,
                 filename: `SOLICITUD_ADICIONAL_${proyecto}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, allowTaint: true, scrollY: 0 }, 
-                jsPDF: { unit: 'mm', format: 'letter', orientation: 'landscape' } // CARTA HORIZONTAL
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF: { unit: 'mm', format: 'letter', orientation: 'landscape' }
             };
 
             html2pdf().set(opciones).from(elemento).save().then(() => {
-                btn.style.display = 'block'; btnR.style.display = 'block';
+                btn.style.display = 'block';
+                btnR.style.display = 'block';
+                btn.innerText = 'Descargar PDF';
+                btn.disabled = false;
+                pages.forEach((p, index) => {
+                    p.style.margin = originalStyles[index].margin;
+                    p.style.boxShadow = originalStyles[index].boxShadow;
+                    p.style.height = originalStyles[index].height;
+                });
+                document.body.classList.remove('pdf-generating');
             });
         }
     </script>
