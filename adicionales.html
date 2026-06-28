@@ -88,7 +88,9 @@
         .btn-photo { background: var(--primary-blue); color: white; border: none; }
         .btn-photo:hover { background: #1a2a6e; }
         .btn-photo-secondary { background: white; color: #374151; border: 1px solid #d1d5db; }
-        .photo-grid-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
+        
+        /* Grid de 2 columnas para 4 fotos */
+        .photo-grid-2x2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
         .photo-slot { aspect-ratio: 1; border: 2px dashed #d1d5db; border-radius: 8px; background: #f9fafb; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
         .photo-slot img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
         .remove-photo { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; width: 24px; height: 24px; text-align: center; line-height: 22px; cursor: pointer; font-size: 16px; font-weight: bold; z-index: 10; }
@@ -263,6 +265,7 @@
                             </div>
                         </div>
                     </div>
+                </div>
 
                     <div class="form-card">
                         <h3 class="section-title-form"><i data-lucide="message-square"></i> Observaciones</h3>
@@ -272,15 +275,17 @@
                     </div>
 
                     <div class="form-card">
-                        <h3 class="section-title-form"><i data-lucide="camera"></i> Evidencia fotográfica (Máx 3)</h3>
+                        <h3 class="section-title-form"><i data-lucide="camera"></i> Evidencia fotográfica (Máx 4)</h3>
                         <div class="photo-controls">
                             <button type="button" class="btn-photo" onclick="triggerCamera('evidencia')"><i data-lucide="camera"></i> Toma Foto</button>
                             <button type="button" class="btn-photo-secondary" onclick="triggerFile('evidencia')"><i data-lucide="upload"></i> Subir Archivo</button>
                         </div>
-                        <div id="photoGridEvidencia" class="photo-grid-slots">
+                        <!-- CAMBIADO: Grid de 2x2 para 4 fotos -->
+                        <div id="photoGridEvidencia" class="photo-grid-2x2">
                             <div class="photo-slot" id="slot-evidencia-0"><i data-lucide="image" style="color:#ccc; width:30px; height:30px;"></i></div>
                             <div class="photo-slot" id="slot-evidencia-1"><i data-lucide="image" style="color:#ccc; width:30px; height:30px;"></i></div>
                             <div class="photo-slot" id="slot-evidencia-2"><i data-lucide="image" style="color:#ccc; width:30px; height:30px;"></i></div>
+                            <div class="photo-slot" id="slot-evidencia-3"><i data-lucide="image" style="color:#ccc; width:30px; height:30px;"></i></div>
                         </div>
                     </div>
 
@@ -317,7 +322,7 @@
         </div>
     </div>
     <div id="photoModal" class="modal-enlarger" onclick="closePhotoModal()"><img class="modal-content-img" id="imgFull"></div>
-    <div id="custom-alert"><div class="modal-card-alert"><div id="alert-icon-container"></div><h3 id="alert-title"></h3><p id="alert-msg"></p><button id="alert-btn" onclick="closeCustomAlert()">Aceptar</button></div></div>
+    <div id="custom-alert"><div class="modal-card-alert"><div id="alert-icon-container"></div><h3 id="alert-title"></h3><p id="alert-msg"></p><button id="alert-btn" onclick="closeCustomAlert()">Aceptar</button></div></div></div>
 
     <script>
         const firebaseConfig = {
@@ -333,7 +338,7 @@
 
         let appData = { nombre: 'Residente', usuario: 'demo' };
         let misSolicitudes = [], tabActual = 'Nueva solicitud';
-        let fotos = { evidencia: [null, null, null] };
+        let fotos = { evidencia: [null, null, null, null] };
 
         document.addEventListener('DOMContentLoaded', () => {
             const usuario = localStorage.getItem('usuario'), nombre = localStorage.getItem('nombre');
@@ -346,7 +351,7 @@
                 document.getElementById('sidebar').innerHTML = html; lucide.createIcons();
                 const link = document.getElementById('link-adicionales'); if(link) link.classList.add('active');
             }).catch(() => {
-                document.getElementById('sidebar').innerHTML = `<nav class="sidebar-nav"><div class="sidebar-section"><span class="section-title">Navegación</span><a href="#" class="nav-item active" id="link-adicionales"><i data-lucide="file-text" style="width:18px;height:18px;"></i> Adicionales</a></div></nav>`;
+                document.getElementById('sidebar').innerHTML = `<nav class="sidebar-nav"><div class="sidebar-section"><span class="section-title">Navegación</span><a href="#" class="nav-item active" id="link-adicionales"><i data-lucide="file-text" style="width:18px;height:18px;"></i> Adicionales</a></div></div></nav>`;
                 lucide.createIcons();
             });
             document.getElementById('toggle-menu').addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('open'); });
@@ -416,7 +421,7 @@
             document.getElementById('doc_id_actual').value = '';
             document.getElementById('resultado_val').innerText = '0.00';
             document.getElementById('total_val').innerText = '$0.00';
-            fotos = { evidencia: [null, null, null] };
+            fotos = { evidencia: [null, null, null, null] };
             renderSlots('evidencia');
             limpiarFirma('firma_residente');
         }
@@ -444,8 +449,8 @@
             document.getElementById('total_val').innerText = o.total ? '$' + o.total.toFixed(2) : '$0.00';
             document.getElementById('observaciones').value = o.observaciones || '';
             
-            fotos.evidencia = o.urls_evidencia && o.urls_evidencia.length ? [...o.urls_evidencia] : [null, null, null];
-            while(fotos.evidencia.length < 3) fotos.evidencia.push(null);
+            fotos.evidencia = o.urls_evidencia && o.urls_evidencia.length ? [...o.urls_evidencia] : [null, null, null, null];
+            while(fotos.evidencia.length < 4) fotos.evidencia.push(null);
             renderSlots('evidencia');
 
             if(o.url_firma) {
@@ -475,10 +480,9 @@
             document.getElementById('total_val').innerText = '$' + tot.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
 
-        // ══════════════════════════════════════════════════════════
+        // ════════════════════════════════════════════════════════════════
         // GUARDAR BASE64 DIRECTO A FIRESTORE (IGUAL QUE FRANVE)
-        // Ya NO sube a Storage. Instantáneo.
-        // ══════════════════════════════════════════════════════════
+        // ════════════════════════════════════════════════════════════
         async function procesarSolicitud(est) {
             const g = document.getElementById('btn-guardar-borrador'), e = document.getElementById('btn-enviar-orden');
             const cf = document.getElementById('firma_residente'), fv = document.createElement('canvas');
@@ -494,7 +498,6 @@
             g.disabled=true; e.disabled=true; g.innerText='Guardando...'; e.innerText='Guardando...';
 
             try {
-                // Guardar base64 directo, SIN subir a Storage
                 const data = {
                     tipo_solicitud: document.getElementById('tipo_solicitud').value,
                     proyecto: document.getElementById('proyecto').value,
@@ -539,15 +542,13 @@
             }
         }
 
-        // ══════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
         // PDF INSTANTÁNEO (IGUAL QUE FRANVE)
-        // Los datos ya son base64, sin conversión, sin contador.
         // ══════════════════════════════════════════════════════════
         function verPDFSolicitud(id) {
             const o = misSolicitudes.find(x => x.id_doc === id); 
             if(!o) { showCustomAlert("Error", "Solicitud no encontrada.", false); return; }
 
-            // Pasar base64 directamente (igual que FRANVE)
             const data = {
                 folio: o.id_doc || '',
                 fecha: o.fecha || '',
@@ -568,6 +569,7 @@
                 total: o.total ? '$' + o.total.toFixed(2) : '$0.00',
                 observaciones: o.observaciones || '',
                 residente_nombre: o.residente_nombre || '',
+                // 4 fotos (igual que espera el PDF)
                 fotos_evidencia: (o.urls_evidencia || []).concat([null, null, null, null]).slice(0, 4),
                 firma: o.url_firma || null
             };
@@ -578,7 +580,7 @@
 
         // ══════════════════════════════════════════════════════════
         // FOTOS, FIRMA Y UTILIDADES
-        // ══════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════
         function showCustomAlert(t, m, s=true) { const a = document.getElementById('custom-alert'); document.getElementById('alert-title').innerText=t; document.getElementById('alert-msg').innerText=m; const i = document.getElementById('alert-icon-container'), b = document.getElementById('alert-btn'); if(s){i.innerHTML='<i data-lucide="check-circle" style="width:48px;height:48px;color:var(--success)"></i>';b.style.background='var(--success)';}else{i.innerHTML='<i data-lucide="alert-triangle" style="width:48px;height:48px;color:var(--danger)"></i>';b.style.background='var(--danger)';} a.style.display='flex'; lucide.createIcons(); }
         function closeCustomAlert() { document.getElementById('custom-alert').style.display = 'none'; }
 
@@ -586,7 +588,7 @@
         function triggerFile(t){activeTarget=t;if(fotos[t].filter(f=>f!==null).length<fotos[t].length)document.getElementById('fileInputGlobal').click();else window.alert("Límite alcanzado.");}
         function processFile(i){if(!i.files||i.files.length===0)return;const r=new FileReader();r.onload=function(e){const img=new Image();img.onload=function(){const c=document.createElement('canvas');let w=img.width,h=img.height;const m=800;if(w>m||h>m){if(w>h){h=(h/w)*m;w=m}else{w=(w/h)*m;h=m}}c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(img,0,0,w,h);const f=c.toDataURL('image/jpeg',0.7);const s=fotos[activeTarget].findIndex(f=>f===null);if(s>-1){fotos[activeTarget][s]=f;renderSlots(activeTarget)}i.value=''};img.src=e.target.result};r.readAsDataURL(i.files[0])}
         let currentStream;
-        async function triggerCamera(t){activeTarget=t;if(fotos[t].filter(f=>f!==null).length>=fotos[t].length){window.alert("Límite alcanzado.");return}currentFacingMode='environment';await startCamera()}
+        async function triggerCamera(t){activeTarget=t;if(fotos[t].filter(f=>f!==null).length>=fotos[t].length){window.alert("Límite alcanzado.");return}currentFacingMode=(t==='selfie')?'user':'environment';await startCamera()}
         async function startCamera(){if(currentStream){currentStream.getTracks().forEach(t=>t.stop())}try{currentStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:currentFacingMode}});document.getElementById('camera-video').srcObject=currentStream;document.getElementById('camera-overlay').classList.add('show')}catch(e){window.alert("Cámara no disponible.")}}
         function switchCamera(){currentFacingMode=currentFacingMode==='environment'?'user':'environment';startCamera()}
         function closeCamera(){if(currentStream){currentStream.getTracks().forEach(t=>t.stop())}document.getElementById('camera-overlay').classList.remove('show')}
@@ -594,7 +596,20 @@
         function removeFoto(t,i){fotos[t][i]=null;renderSlots(t)}
         function enlargePhoto(s){document.getElementById('imgFull').src=s;document.getElementById('photoModal').classList.add('show')}
         function closePhotoModal(){document.getElementById('photoModal').classList.remove('show')}
-        function renderSlots(t){for(let i=0;i<fotos[t].length;i++){const s=document.getElementById(`slot-${t}-${i}`);if(!s)continue;if(fotos[t][i]){s.innerHTML=`<img src="${fotos[t][i]}" onclick="enlargePhoto(this.src)" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in;border-radius:8px"><span class="remove-photo" onclick="removeFoto('${t}',${i})">&times;</span>`;s.style.border="1px solid var(--border-color)"}else{s.innerHTML=`<i data-lucide="image" style="color:#ccc;width:30px;height:30px"></i>`;s.style.border="2px dashed #d1d5db"}}lucide.createIcons()}
+
+        function renderSlots(t) {
+            for(let i = 0; i < fotos[t].length; i++) {
+                const s = document.getElementById(`slot-${t}-${i}`); if(!s) continue;
+                if(fotos[t][i]) {
+                    s.innerHTML = `<img src="${fotos[t][i]}" onclick="enlargePhoto(this.src)" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in;border-radius:8px"><span class="remove-photo" onclick="removeFoto('${t}',${i})">&times;</span>`;
+                    s.style.border = "1px solid var(--border-color)";
+                } else {
+                    s.innerHTML = `<i data-lucide="image" style="color:#ccc;width:30px;height:30px"></i>`;
+                    s.style.border = "2px dashed #d1d5db";
+                }
+            }
+            lucide.createIcons();
+        }
 
         let canvasFirma,ctxFirma;
         function inicializarFirma(){canvasFirma=document.getElementById('firma_residente');if(!canvasFirma)return;ctxFirma=canvasFirma.getContext('2d');canvasFirma.width=600;canvasFirma.height=200;ctxFirma.lineWidth=3;ctxFirma.lineCap='round';ctxFirma.strokeStyle='#263fa4';let d=false;function g(e){const r=canvasFirma.getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;return{x:(cx-r.left)*(canvasFirma.width/r.width),y:(cy-r.top)*(canvasFirma.height/r.height)}}canvasFirma.addEventListener('mousedown',e=>{d=true;const p=g(e);ctxFirma.beginPath();ctxFirma.moveTo(p.x,p.y)});canvasFirma.addEventListener('mousemove',e=>{if(d){const p=g(e);ctxFirma.lineTo(p.x,p.y);ctxFirma.stroke()}});window.addEventListener('mouseup',()=>{if(d){d=false;document.getElementById('firma_residente_data').value=canvasFirma.toDataURL()}});canvasFirma.addEventListener('touchstart',e=>{e.preventDefault();d=true;const p=g(e);ctxFirma.beginPath();ctxFirma.moveTo(p.x,p.y)},{passive:false});canvasFirma.addEventListener('touchmove',e=>{e.preventDefault();if(d){const p=g(e);ctxFirma.lineTo(p.x,p.y);ctxFirma.stroke()}},{passive:false});window.addEventListener('touchend',()=>{if(d){d=false;document.getElementById('firma_residente_data').value=canvasFirma.toDataURL()}})}
