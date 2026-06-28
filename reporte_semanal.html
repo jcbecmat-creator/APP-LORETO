@@ -541,7 +541,7 @@
         }
 
         // ==========================================
-        // GUARDAR / ENVIAR
+        // GUARDAR / ENVIAR (OPTIMIZADO CON PROMISE.ALL PARA SUBIDA EN PARALELO)
         // ==========================================
         async function procesarOrden(est) {
             const g = document.getElementById('btn-guardar-borrador'), e = document.getElementById('btn-enviar-orden');
@@ -566,45 +566,46 @@
                 }
                 actualizarProgreso(10);
 
-                let uantes = [], ua = [], uo = [], us = null, usl = null, uf = null;
-                let totalFotos = 0, fotosSubidas = 0;
-
-                ['antes', 'falla', 'solucion'].forEach(key => {
-                    fotos[key].forEach(f => { if(f && f.startsWith('data:image')) totalFotos++; });
-                });
-                if(fotos.soporte[0] && fotos.soporte[0].startsWith('data:image')) totalFotos++;
-                if(fotos.selfie[0] && fotos.selfie[0].startsWith('data:image')) totalFotos++;
                 const firmaData = document.getElementById('firma_tecnico_data').value;
-                if(firmaData && firmaData.startsWith('data:image')) totalFotos++;
 
+                // Función para subir archivo a Firebase
                 const up = async(d, p, label) => {
                     if(d && d.startsWith('data:image')) {
                         try {
                             const ref = storage.ref(p);
                             await ref.put(dataURItoBlob(d));
-                            const url = await ref.getDownloadURL();
-                            fotosSubidas++;
-                            actualizarProgreso(10 + Math.round((fotosSubidas / Math.max(totalFotos, 1)) * 70));
-                            return url;
+                            return await ref.getDownloadURL();
                         } catch(errStorage) {
                             throw new Error("STORAGE: Error al subir " + label + ".\nRuta: " + p + "\n" + errStorage.message);
                         }
                     }
-                    return d;
+                    return d; // Si ya es URL (segundo guardado), la regresa tal cual
                 };
 
-                for(let i = 0; i < fotos.antes.length; i++) {
-                    if(fotos.antes[i]) uantes.push(await up(fotos.antes[i], `reportes_loreto/${fol}/antes_${i}_${Date.now()}.jpg`, "foto ANTES " + (i+1)));
-                }
-                for(let i = 0; i < fotos.falla.length; i++) {
-                    if(fotos.falla[i]) ua.push(await up(fotos.falla[i], `reportes_loreto/${fol}/avance_${i}_${Date.now()}.jpg`, "foto de avance " + (i+1)));
-                }
-                for(let i = 0; i < fotos.solucion.length; i++) {
-                    if(fotos.solucion[i]) uo.push(await up(fotos.solucion[i], `reportes_loreto/${fol}/obs_${i}_${Date.now()}.jpg`, "foto de materiales " + (i+1)));
-                }
-                us = await up(fotos.soporte[0], `reportes_loreto/${fol}/soporte_${Date.now()}.jpg`, "foto de soporte");
-                usl = await up(fotos.selfie[0], `reportes_loreto/${fol}/selfie_${Date.now()}.jpg`, "selfie");
-                uf = await up(firmaData, `reportes_loreto/${fol}/firma_${Date.now()}.png`, "firma");
+                // Preparar todas las promesas de subida en paralelo
+                const uantesPromises = fotos.antes.map((f, i) => f ? up(f, `reportes_loreto/${fol}/antes_${i}_${Date.now()}.jpg`, "foto ANTES " + (i+1)) : Promise.resolve(null));
+                const uaPromises = fotos.falla.map((f, i) => f ? up(f, `reportes_loreto/${fol}/avance_${i}_${Date.now()}.jpg`, "foto de avance " + (i+1)) : Promise.resolve(null));
+                const uoPromises = fotos.solucion.map((f, i) => f ? up(f, `reportes_loreto/${fol}/obs_${i}_${Date.now()}.jpg`, "foto de materiales " + (i+1)) : Promise.resolve(null));
+                
+                const usPromise = fotos.soporte[0] ? up(fotos.soporte[0], `reportes_loreto/${fol}/soporte_${Date.now()}.jpg`, "foto de soporte") : Promise.resolve(null);
+                const uslPromise = fotos.selfie[0] ? up(fotos.selfie[0], `reportes_loreto/${fol}/selfie_${Date.now()}.jpg`, "selfie") : Promise.resolve(null);
+                const ufPromise = firmaData ? up(firmaData, `reportes_loreto/${fol}/firma_${Date.now()}.png`, "firma") : Promise.resolve(null);
+
+                // Ejecutar todas las subidas en paralelo (AHORA TARDA SEGUNDOS EN LUGAR DE 11s)
+                actualizarProgreso(30);
+                const [uantesRes, uaRes, uoRes, us, usl, uf] = await Promise.all([
+                    Promise.all(uantesPromises),
+                    Promise.all(uaPromises),
+                    Promise.all(uoPromises),
+                    usPromise,
+                    uslPromise,
+                    ufPromise
+                ]);
+
+                // Filtrar nulos para mantener el formato correcto en la BD
+                const uantes = uantesRes.filter(Boolean);
+                const ua = uaRes.filter(Boolean);
+                const uo = uoRes.filter(Boolean);
 
                 actualizarProgreso(85);
 
@@ -658,7 +659,6 @@
 
         // ==========================================
         // CONVERTIR URL A BASE64
-        // Se ejecuta AQUÍ (mismo origen) antes de abrir PDF
         // ==========================================
         function urlABase64(url) {
             return new Promise((resolve) => {
@@ -707,7 +707,6 @@
                     orden = { id_doc: doc.id, ...doc.data() };
                 }
 
-                // Contar total de imágenes a convertir
                 let totalImagenes = 0;
                 const contarArr = (arr) => { if(arr) arr.forEach(u => { if(u && !u.startsWith('data:')) totalImagenes++; }); };
                 contarArr(orden.urls_antes);
@@ -718,7 +717,6 @@
 
                 let convertidas = 0;
 
-                // Convertir array de URLs a base64
                 const convertirArray = async (arr) => {
                     if (!arr) return [null, null, null];
                     const resultado = [];
@@ -738,7 +736,6 @@
                     return resultado;
                 };
 
-                // Convertir una URL a base64
                 const convertirUna = async (url) => {
                     if (!url) return null;
                     if (url.startsWith('data:')) return url;
@@ -747,7 +744,6 @@
                     return await urlABase64(url);
                 };
 
-                // Construir datos con imágenes YA en base64
                 subtext.innerText = totalImagenes > 0 ? `Convirtiendo 0 de ${totalImagenes}...` : 'Preparando...';
 
                 const datosPDF = {
