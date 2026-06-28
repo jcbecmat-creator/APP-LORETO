@@ -188,7 +188,7 @@
     </div>
 
     <script>
-        // Espera a que TODAS las imágenes (URLs de Firebase) terminen de descargar
+        // Espera a que las imágenes terminen de cargar (igual que index2.html)
         function esperarImagenes() {
             return new Promise((resolve) => {
                 const imagenes = document.querySelectorAll('#contenido-pdf img');
@@ -224,24 +224,20 @@
                 document.getElementById('pdf-cel-res').innerText = data.residente_celular || '';
                 document.getElementById('pdf-comentario').innerText = data.comentario || '';
 
-                // Inyectar URLs de Firebase directamente, html2canvas las descargará
+                // Inyectar imágenes (ya llegan como base64 desde el formulario)
                 if (data.fotos_antes) {
                     data.fotos_antes.forEach((foto, index) => {
-                        if (foto) document.getElementById(`pdf-antes-${index}`).innerHTML = '<img src="' + foto + '" crossorigin="anonymous">';
+                        if (foto) document.getElementById(`pdf-antes-${index}`).innerHTML = '<img src="' + foto + '">';
                     });
                 }
-                if (data.fotos_avance) {
-                    data.fotos_avance.forEach((foto, index) => {
-                        if (foto) document.getElementById(`pdf-avance-${index}`).innerHTML = '<img src="' + foto + '" crossorigin="anonymous">';
-                    });
-                }
-                if (data.fotos_observaciones) {
-                    data.fotos_observaciones.forEach((foto, index) => {
-                        if (foto) document.getElementById(`pdf-obs-${index}`).innerHTML = '<img src="' + foto + '" crossorigin="anonymous">';
-                    });
-                }
-                if (data.firma) document.getElementById('pdf-firma').innerHTML = '<img src="' + data.firma + '" crossorigin="anonymous">';
-                if (data.selfie) document.getElementById('pdf-selfie').innerHTML = '<img src="' + data.selfie + '" crossorigin="anonymous">';
+                data.fotos_avance.forEach((foto, index) => {
+                    if (foto) document.getElementById(`pdf-avance-${index}`).innerHTML = '<img src="' + foto + '">';
+                });
+                data.fotos_observaciones.forEach((foto, index) => {
+                    if (foto) document.getElementById(`pdf-obs-${index}`).innerHTML = '<img src="' + foto + '">';
+                });
+                if (data.firma) document.getElementById('pdf-firma').innerHTML = '<img src="' + data.firma + '">';
+                if (data.selfie) document.getElementById('pdf-selfie').innerHTML = '<img src="' + data.selfie + '">';
 
             } else {
                 alert("No se encontraron datos del reporte.");
@@ -259,7 +255,6 @@
             window.scrollTo(0, 0);
 
             await esperarImagenes();
-            await new Promise(r => setTimeout(r, 500)); // Pequeña pausa para asegurar renderizado
 
             btn.innerText = 'Generando PDF...';
 
@@ -277,12 +272,11 @@
             const proyectoRaw = document.getElementById('pdf-proyecto').innerText || 'SIN_PROYECTO';
             const proyectoLimpio = proyectoRaw.replace(/[\s\/:,]/g, '_');
             
-            // AQUÍ ESTÁ LA MAGIA: useCORS:true y allowTaint:false permite a html2canvas descargar las URLs de Firebase sin bloquearse
             const opciones = {
                 margin: 0,
                 filename: 'REPORTE_SEMANAL_' + proyectoLimpio + '.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, allowTaint: false, scrollY: 0, logging: false },
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
