@@ -10,6 +10,8 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- CORREGIDO: falta esta librería que sí tiene reporte_semanal.html -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <style>
         :root {
@@ -113,7 +115,6 @@
         .btn-photo:hover { background: #1a2a6e; }
         .btn-photo-secondary { background: white; color: #374151; border: 1px solid #d1d5db; }
         
-        /* === FILA DE 4 FOTOS (166px = 144 + 15%) === */
         .photo-grid-row { display: flex; gap: 10px; margin-top: 12px; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .photo-grid-row::-webkit-scrollbar { display: none; }
 
@@ -130,12 +131,10 @@
         .remove-photo { position: absolute; top: 5px; right: 5px; background: rgba(220,38,38,0.85); color: white; border-radius: 50%; width: 26px; height: 26px; text-align: center; line-height: 24px; cursor: pointer; font-size: 16px; font-weight: bold; z-index: 10; border: none; }
         .photo-counter { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 6px; }
 
-        /* Tablet: fotos más grandes si hay espacio */
         @media (min-width: 769px) and (max-width: 1024px) {
             .photo-slot { min-width: 180px; width: 180px; height: 180px; max-width: 180px; }
             .photo-grid-row { gap: 14px; margin-top: 15px; }
         }
-        /* Desktop: fotos aún más grandes */
         @media (min-width: 1025px) {
             .photo-slot { min-width: 190px; width: 190px; height: 190px; max-width: 190px; }
             .photo-grid-row { gap: 16px; margin-top: 15px; }
@@ -158,13 +157,12 @@
         #camera-stream { width: 100%; max-width: 600px; aspect-ratio: 4/3; background: black; border-radius: 12px; overflow: hidden; position: relative; }
         #camera-video { width: 100%; height: 100%; object-fit: cover; }
         #custom-alert { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .modal-card-alert { background: white; border-radius: 12px; padding: 24px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .modal-card-alert { background: white; border-radius: 12px; padding: 24px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         #alert-icon-container { margin-bottom: 16px; display: flex; justify-content: center; }
         #alert-title { margin: 0 0 8px 0; font-size: 17px; color: var(--text-main); font-weight: 700; }
-        #alert-msg { margin: 0 0 20px 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+        #alert-msg { margin: 0 0 20px 0; font-size: 12px; color: var(--text-muted); line-height: 1.5; text-align: left; word-break: break-word; }
         #alert-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; color: white; background: var(--primary-blue); font-weight: 700; font-size: 14px; cursor: pointer; }
 
-        /* Overlay oscuro al abrir sidebar en móvil */
         .sidebar-overlay { display: none; position: fixed; top: 56px; left: 0; width: 100vw; height: calc(100dvh - 56px); background: rgba(0,0,0,0.4); z-index: 39; }
         .sidebar-overlay.show { display: block; }
     </style>
@@ -439,7 +437,7 @@
                 misSolicitudes.sort((a, b) => (b.fecha_creacion || "").localeCompare(a.fecha_creacion || ""));
                 actualizarBadges();
                 if(tabActual !== 'Nueva solicitud') renderTablaMisSolicitudes();
-            }).catch(e => console.error(e));
+            }).catch(e => console.error(e.message));
         }
 
         function actualizarBadges() {
@@ -550,6 +548,9 @@
             document.getElementById('total_val').innerText = '$' + tot.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
 
+        // ══════════════════════════════════════════════════════════
+        // GUARDAR BASE64 DIRECTO A FIRESTORE (IGUAL QUE REPORTE SEMANAL)
+        // ══════════════════════════════════════════════════════════
         async function procesarSolicitud(est) {
             const g = document.getElementById('btn-guardar-borrador'), e = document.getElementById('btn-enviar-orden');
             const cf = document.getElementById('firma_residente'), fv = document.createElement('canvas');
@@ -584,6 +585,7 @@
                     parcial: parseFloat(document.getElementById('parcial').value) || 0,
                     total: parseFloat(document.getElementById('total_val').innerText.replace('$','').replace(/,/g,'')) || 0,
                     observaciones: document.getElementById('observaciones').value,
+                    // BASE64 DIRECTO (igual que REPORTE SEMANAL)
                     urls_evidencia: fotos.evidencia.filter(f => f !== null),
                     url_firma: document.getElementById('firma_residente_data').value || null,
                     residente_id: appData.usuario,
@@ -597,9 +599,18 @@
                 showCustomAlert("Éxito", est==='Borrador'?"Guardado correctamente.":"Enviado correctamente.", true);
                 cargarMisSolicitudes();
                 cambiarTab(est==='Borrador'?'Guardados':'Realizados');
-            } catch(err) {
-                console.error(err);
-                showCustomAlert("Error", "Ocurrió un error al guardar.", false);
+
+            // CORREGIDO: ahora muestra el error REAL como en reporte_semanal.html
+            } catch(er) {
+                console.error(er);
+                let mensaje = er.message || "Error desconocido";
+                if(mensaje.includes("403") || mensaje.includes("PERMISSION_DENIED")) {
+                    mensaje += "\n\nVe a Firebase Console > Firestore > Reglas y permite read/write para solicitudes_adicionales.";
+                }
+                if(mensaje.includes("size") || mensaje.includes("exceeds")) {
+                    mensaje += "\n\nLas fotos son muy pesadas. Intenta con fotos más pequeñas o menos fotos.";
+                }
+                showCustomAlert("Error", mensaje, false);
             } finally {
                 g.disabled=false; e.disabled=false;
                 g.innerHTML='<i data-lucide="save"></i> Guardar solicitud';
@@ -632,13 +643,19 @@
 
         let activeTarget='evidencia',currentFacingMode='environment';
         function triggerFile(t){activeTarget=t;if(fotos[t].filter(f=>f!==null).length<fotos[t].length)document.getElementById('fileInputGlobal').click();else showCustomAlert("Límite","Alcanzaste el máximo de 4 fotos.",false);}
-        function processFile(i){if(!i.files||i.files.length===0)return;const r=new FileReader();r.onload=function(e){const img=new Image();img.onload=function(){const c=document.createElement('canvas');let w=img.width,h=img.height;const m=600;if(w>m||h>m){if(w>h){h=(h/w)*m;w=m}else{w=(w/h)*m;h=m}}c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(img,0,0,w,h);const f=c.toDataURL('image/jpeg',0.6);const s=fotos[activeTarget].findIndex(f=>f===null);if(s>-1){fotos[activeTarget][s]=f;renderSlots(activeTarget)}i.value=''};img.src=e.target.result};r.readAsDataURL(i.files[0])}
+
+        // CORREGIDO: misma lógica de compresión que reporte_semanal.html (800px, 0.7)
+        function processFile(i){if(!i.files||i.files.length===0)return;const r=new FileReader();r.onload=function(e){const img=new Image();img.onload=function(){const c=document.createElement('canvas');let w=img.width,h=img.height;const m=800;if(w>m||h>m){if(w>h){h=(h/w)*m;w=m}else{w=(w/h)*m;h=m}}c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(img,0,0,w,h);const f=c.toDataURL('image/jpeg',0.7);const s=fotos[activeTarget].findIndex(f=>f===null);if(s>-1){fotos[activeTarget][s]=f;renderSlots(activeTarget)}i.value=''};img.src=e.target.result};r.readAsDataURL(i.files[0])}
+        
         let currentStream;
         async function triggerCamera(t){activeTarget=t;if(fotos[t].filter(f=>f!==null).length>=fotos[t].length){showCustomAlert("Límite","Alcanzaste el máximo de 4 fotos.",false);return}currentFacingMode=(t==='selfie')?'user':'environment';await startCamera()}
         async function startCamera(){if(currentStream){currentStream.getTracks().forEach(t=>t.stop())}try{currentStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:currentFacingMode}});document.getElementById('camera-video').srcObject=currentStream;document.getElementById('camera-overlay').classList.add('show')}catch(e){showCustomAlert("Error","Cámara no disponible.",false)}}
         function switchCamera(){currentFacingMode=currentFacingMode==='environment'?'user':'environment';startCamera()}
         function closeCamera(){if(currentStream){currentStream.getTracks().forEach(t=>t.stop())}document.getElementById('camera-overlay').classList.remove('show')}
-        function captureFoto(){const c=document.getElementById('tempCanvas'),v=document.getElementById('camera-video');c.width=v.videoWidth;c.height=v.videoHeight;const x=c.getContext('2d');x.drawImage(v,0,0,c.width,c.height);const s=fotos[activeTarget].findIndex(f=>f===null);if(s>-1){fotos[activeTarget][s]=c.toDataURL('image/jpeg',0.7);renderSlots(activeTarget)}closeCamera()}
+        
+        // CORREGIDO: misma calidad que reporte_semanal.html (0.8)
+        function captureFoto(){const c=document.getElementById('tempCanvas'),v=document.getElementById('camera-video');c.width=v.videoWidth;c.height=v.videoHeight;const x=c.getContext('2d');x.drawImage(v,0,0,c.width,c.height);const s=fotos[activeTarget].findIndex(f=>f===null);if(s>-1){fotos[activeTarget][s]=c.toDataURL('image/jpeg',0.8);renderSlots(activeTarget)}closeCamera()}
+        
         function removeFoto(t,i){fotos[t][i]=null;renderSlots(t)}
         function enlargePhoto(s){document.getElementById('imgFull').src=s;document.getElementById('photoModal').classList.add('show')}
         function closePhotoModal(){document.getElementById('photoModal').classList.remove('show')}
