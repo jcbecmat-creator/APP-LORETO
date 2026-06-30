@@ -16,7 +16,6 @@
         .btn-regresar { position: fixed; top: 15px; left: 15px; background-color: #64748b; color: white; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000; }
         .btn-regresar:hover { background-color: #475569; }
 
-        /* TAMAÑO CARTA HORIZONTAL EXACTO: 279.4mm x 215.9mm */
         .page { 
             width: 279.4mm; 
             height: 215.9mm; 
@@ -30,7 +29,6 @@
             flex-direction: column; 
             overflow: hidden; 
         }
-        /* Contenedor que ocupa exactamente el área útil y no deja espacio sobrante */
         .content-wrapper { 
             flex: 1; 
             display: flex; 
@@ -59,7 +57,7 @@
 
         .photos-title { font-size: 7px; font-weight: 800; color: var(--loreto-blue); margin-bottom: 2mm; text-transform: uppercase; flex-shrink: 0; }
 
-        /* GRID DE FOTOS: ocupa todo el espacio restante sin dejar blanco abajo */
+        /* Fotos ocupan todo el espacio restante (ahora más grande sin el renglón eliminado) */
         .photos-grid-2x2 { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
@@ -151,11 +149,6 @@
                             <td id="pdf-parcial"></td>
                             <td style="font-weight:800; color: var(--loreto-blue);" id="pdf-total"></td>
                         </tr>
-                        <tr>
-                            <td class="label-cell" colspan="8" style="text-align: right;">TOTAL GENERAL:</td>
-                            <td class="label-cell" colspan="2"></td>
-                            <td style="font-weight:800; color: var(--loreto-blue); font-size: 11px;" id="pdf-total-general"></td>
-                        </tr>
                     </tbody>
                 </table>
 
@@ -220,7 +213,6 @@
                 document.getElementById('pdf-resultado').innerText = data.resultado || '0.00';
                 document.getElementById('pdf-parcial').innerText = data.parcial || '$0.00';
                 document.getElementById('pdf-total').innerText = data.total || '$0.00';
-                document.getElementById('pdf-total-general').innerText = data.total || '$0.00';
                 document.getElementById('pdf-observaciones').innerText = data.observaciones || '';
 
                 data.fotos_evidencia.forEach((foto, index) => {
