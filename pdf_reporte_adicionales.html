@@ -54,7 +54,7 @@
 <body>
 
     <button class="btn-regresar" onclick="window.close()">Cerrar PDF</button>
-    <button class="btn-descargar" onclick="generarPDF()">Descargar PDF</button>
+    <button class="btn-descargar" id="btn-descargar" onclick="generarPDF()">Descargar PDF</button>
 
     <div id="contenido-pdf">
         <div class="page">
@@ -142,9 +142,6 @@
     </div>
 
     <script>
-        // ══════════════════════════════════════════════════════════
-        // ESPERAR IMÁGENES (IGUAL QUE FRANVE index2.html)
-        // ══════════════════════════════════════════════════════════
         function esperarImagenes() {
             return new Promise((resolve) => {
                 const imagenes = document.querySelectorAll('#contenido-pdf img');
@@ -188,7 +185,6 @@
                 document.getElementById('pdf-total-general').innerText = data.total || '$0.00';
                 document.getElementById('pdf-observaciones').innerText = data.observaciones || '';
 
-                // Inyectar imágenes (ya llegan como base64 desde el formulario)
                 data.fotos_evidencia.forEach((foto, index) => {
                     if (foto) document.getElementById(`pdf-foto-${index}`).innerHTML = '<img src="' + foto + '">';
                 });
@@ -197,12 +193,7 @@
             }
         });
 
-        // ══════════════════════════════════════════════════════════
-        // GENERAR PDF (IGUAL QUE FRANVE index2.html)
-        // useCORS: true SIN allowTaint
-        // ══════════════════════════════════════════════════════════
         async function generarPDF() {
-            document.body.classList.add('pdf-generating');
             const btn = document.getElementById('btn-descargar');
             const btnR = document.querySelector('.btn-regresar');
             
@@ -247,7 +238,6 @@
                     p.style.boxShadow = originalStyles[index].boxShadow;
                     p.style.height = originalStyles[index].height;
                 });
-                document.body.classList.remove('pdf-generating');
             });
         }
     </script>
