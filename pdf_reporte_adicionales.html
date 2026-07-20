@@ -45,6 +45,7 @@
         .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 3mm; background: var(--loreto-light); padding: 3mm 5mm; border: 1px solid var(--tm-border); border-radius: 3px; flex-shrink: 0; }
         .info-item label { display: block; font-size: 7px; font-weight: 700; color: var(--loreto-blue); text-transform: uppercase; margin-bottom: 1px; }
         .info-item span { display: block; font-size: 10px; color: var(--tm-text); font-weight: 600; }
+        .info-item-full { grid-column: 1 / span 3; }
 
         .obs-box { border: 1px solid var(--tm-border); padding: 2mm 3mm; border-radius: 3px; background: white; margin-bottom: 3mm; flex-shrink: 0; }
         .obs-title { font-size: 7px; font-weight: 800; color: var(--loreto-blue); text-transform: uppercase; border-bottom: 1px solid var(--tm-border); margin-bottom: 2mm; padding-bottom: 1mm; }
@@ -53,11 +54,11 @@
         .main-table th { background-color: var(--loreto-blue); color: white; padding: 2mm 3mm; text-align: center; font-weight: 700; border: 1px solid var(--loreto-blue); font-size: 7px; }
         .main-table td { border: 1px solid var(--tm-border); padding: 2mm 3mm; text-align: center; font-weight: 500; }
         .main-table .label-cell { background-color: #f8fafc; font-weight: 700; text-align: left; }
-        .main-table .data-row td { padding: 2.5mm 3mm; font-size: 9px; }
+        /* Altura reducida a la mitad (12.5mm) y alineación hacia arriba */
+        .main-table .data-row td { padding: 2mm 3mm; font-size: 9px; height: 12.5mm; vertical-align: top; }
 
         .photos-title { font-size: 7px; font-weight: 800; color: var(--loreto-blue); margin-bottom: 2mm; text-transform: uppercase; flex-shrink: 0; }
 
-        /* Fotos ocupan todo el espacio restante (ahora más grande sin el renglón eliminado) */
         .photos-grid-2x2 { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
@@ -77,8 +78,6 @@
             min-height: 0;
         }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-        .blue-footer { background-color: var(--loreto-blue); color: white; text-align: center; padding: 2mm 8mm; font-size: 6px; width: 100%; box-sizing: border-box; white-space: nowrap; font-weight: 600; letter-spacing: 0.5px; margin-top: auto; flex-shrink: 0; }
 
         @media print {
             body { background-color: white; padding: 0; margin: 0; }
@@ -100,7 +99,7 @@
                     <img src="https://i.ibb.co/mC4fV6TG/LOGOTIPO-2.jpg" alt="Loreto Logo" class="logo-img">
                     <div class="header-titles">
                         <h1 class="title-blue">FORMATO PARA SOLICITUD DE ADICIONALES / EXTRAORDINARIOS / DEDUCTIVAS</h1>
-                        <h2 class="title-blue" style="font-size: 10px; margin-top: 1mm;">LORETO - INGENIERÍA, CONSTRUCCIÓN, EDIFICACIÓN Y REMODELACIÓN</h2>
+                        <h2 class="title-blue" style="font-size: 10px; margin-top: 1mm;">LORETO - INGENIERÍA CONSTRUCCIÓN EDIFICACIÓN</h2>
                     </div>
                     <div style="text-align: right; font-size: 9px; font-weight: 700; color: var(--loreto-blue);">
                         Folio: <span id="pdf-folio"></span><br>
@@ -111,7 +110,8 @@
                 <div class="info-grid">
                     <div class="info-item"><label>Tipo de Solicitud</label><span id="pdf-tipo"></span></div>
                     <div class="info-item"><label>Proyecto</label><span id="pdf-proyecto"></span></div>
-                    <div class="info-item"><label>Partida</label><span id="pdf-partida"></span></div>
+                    <div class="info-item"><label>Ubicación de la obra</label><span id="pdf-ubicacion-obra"></span></div>
+                    <div class="info-item info-item-full"><label>Partida</label><span id="pdf-partida"></span></div>
                 </div>
 
                 <div class="obs-box">
@@ -123,16 +123,15 @@
                     <thead>
                         <tr>
                             <th width="8%">CLAVE</th>
-                            <th width="24%">CONCEPTO</th>
+                            <th width="32%">CONCEPTO</th>
                             <th width="14%">LOCALIZACIÓN</th>
                             <th width="7%">UNIDAD</th>
                             <th width="6%">LARGO</th>
                             <th width="6%">ANCHO</th>
                             <th width="6%">ALTO</th>
+                            <th width="7%">SUBTOTAL</th>
                             <th width="6%">PZAS</th>
-                            <th width="7%">RESULTADO</th>
-                            <th width="7%">PARCIAL</th>
-                            <th width="9%">TOTAL</th>
+                            <th width="8%">TOTAL</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -144,16 +143,20 @@
                             <td id="pdf-largo"></td>
                             <td id="pdf-ancho"></td>
                             <td id="pdf-alto"></td>
+                            <td style="font-weight:800;" id="pdf-subtotal"></td>
                             <td id="pdf-pzas"></td>
-                            <td style="font-weight:800;" id="pdf-resultado"></td>
-                            <td id="pdf-parcial"></td>
                             <td style="font-weight:800; color: var(--loreto-blue);" id="pdf-total"></td>
                         </tr>
                     </tbody>
                 </table>
 
                 <div class="obs-box">
-                    <div class="obs-title">Observaciones / Ubicación</div>
+                    <div class="obs-title">Localización del concepto dentro del proyecto</div>
+                    <div id="pdf-localizacion-concepto" style="font-size: 8px;"></div>
+                </div>
+
+                <div class="obs-box">
+                    <div class="obs-title">Observaciones</div>
                     <div id="pdf-observaciones" style="font-size: 8px;"></div>
                 </div>
 
@@ -165,9 +168,6 @@
                     <div class="photo-box" id="pdf-foto-3"></div>
                 </div>
 
-            </div>
-            <div class="blue-footer">
-                LORETO - INGENIERÍA, CONSTRUCCIÓN, EDIFICACIÓN Y REMODELACIÓN &nbsp;&nbsp;|&nbsp;&nbsp; SOLICITUD DE ADICIONALES &nbsp;&nbsp;|&nbsp;&nbsp; TODOS LOS DERECHOS RESERVADOS &copy; 2024
             </div>
         </div>
     </div>
@@ -200,6 +200,7 @@
                 document.getElementById('pdf-fecha').innerText = data.fecha || '';
                 document.getElementById('pdf-tipo').innerText = data.tipo_solicitud || '';
                 document.getElementById('pdf-proyecto').innerText = data.proyecto || '';
+                document.getElementById('pdf-ubicacion-obra').innerText = data.ubicacion_obra || '';
                 document.getElementById('pdf-partida').innerText = data.partida || '';
                 document.getElementById('pdf-justificacion').innerText = data.justificacion || '';
                 document.getElementById('pdf-clave').innerText = data.clave || '';
@@ -209,10 +210,13 @@
                 document.getElementById('pdf-largo').innerText = data.largo || '0';
                 document.getElementById('pdf-ancho').innerText = data.ancho || '0';
                 document.getElementById('pdf-alto').innerText = data.alto || '0';
-                document.getElementById('pdf-pzas').innerText = data.pzas || '0';
-                document.getElementById('pdf-resultado').innerText = data.resultado || '0.00';
-                document.getElementById('pdf-parcial').innerText = data.parcial || '$0.00';
-                document.getElementById('pdf-total').innerText = data.total || '$0.00';
+                
+                // Adaptación para leer correctamente Subtotal y PZAS
+                document.getElementById('pdf-subtotal').innerText = data.subtotal || data.resultado || '0.00';
+                document.getElementById('pdf-pzas').innerText = data.pzas || data.parcial || '0';
+                document.getElementById('pdf-total').innerText = data.total || '0.00';
+                
+                document.getElementById('pdf-localizacion-concepto').innerText = data.localizacion_proyecto || '';
                 document.getElementById('pdf-observaciones').innerText = data.observaciones || '';
 
                 data.fotos_evidencia.forEach((foto, index) => {
