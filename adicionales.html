@@ -10,7 +10,6 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <!-- CORREGIDO: falta esta librería que sí tiene reporte_semanal.html -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <style>
@@ -100,7 +99,7 @@
         @media (min-width: 769px) { .grid-2, .grid-3, .grid-4 { gap: 15px; } }
         @media (max-width: 640px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
 
-        .math-result { background: var(--light-blue); padding: 12px; border-radius: 8px; border: 1px solid #c7d2fe; text-align: right; }
+        .math-result { background: var(--light-blue); padding: 12px; border-radius: 8px; border: 1px solid #c7d2fe; text-align: right; display: flex; flex-direction: column; justify-content: center; height: 100%; }
         @media (min-width: 769px) { .math-result { padding: 15px; } }
         .math-result label { display: block; font-size: 9px; font-weight: 700; color: var(--primary-blue); text-transform: uppercase; margin-bottom: 3px; }
         @media (min-width: 769px) { .math-result label { font-size: 10px; margin-bottom: 4px; } }
@@ -207,7 +206,7 @@
                 <div id="dashboard-solicitudes" style="display: none;">
                     <div class="data-table-container">
                         <table>
-                            <thead><tr><th>Proyecto</th><th>Concepto</th><th>Fecha</th><th>Acción</th></tr></thead>
+                            <thead><tr><th>Folio</th><th>Concepto</th><th>Fecha</th><th>Acción</th></tr></thead>
                             <tbody id="tabla-mis-solicitudes"><tr><td colspan="4" style="padding: 30px; color: var(--text-muted);">Cargando...</td></tr></tbody>
                         </table>
                     </div>
@@ -230,6 +229,16 @@
                             <div class="form-group">
                                 <label class="form-label">Proyecto</label>
                                 <input type="text" class="form-input" id="proyecto" placeholder="Nombre del proyecto...">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Folio</label>
+                                <input type="text" class="form-input" id="folio" placeholder="Ej. ADIC-001...">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Ubicación (Dirección de obra)</label>
+                                <input type="text" class="form-input" id="ubicacion_obra" placeholder="Ej. Av. Reforma 123...">
                             </div>
                         </div>
                     </div>
@@ -265,7 +274,7 @@
                             <input type="text" class="form-input" id="concepto" placeholder="Ej. Suministro y colocación de cubierta...">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Localización en proyecto</label>
+                            <label class="form-label">Localización del concepto dentro del proyecto</label>
                             <input type="text" class="form-input" id="localizacion_proyecto" placeholder="Ej. Nivel 1, Cuerpo B...">
                         </div>
                     </div>
@@ -275,46 +284,50 @@
                         <div class="form-group">
                             <label class="form-label">Unidad</label>
                             <select class="form-select" id="unidad">
+                                <option value="Pza">Pza</option>
+                                <option value="Kg">Kg</option>
+                                <option value="Lts">Lts</option>
+                                <option value="Ml">Ml</option>
                                 <option value="M2">M2</option>
                                 <option value="M3">M3</option>
-                                <option value="Pza">Pza</option>
-                                <option value="Lts">Lts</option>
-                                <option value="Kg">Kg</option>
-                                <option value="Ml">Ml</option>
-                                <option value="Global">Global</option>
+                                <option value="Mano de obra">Mano de obra</option>
+                                <option value="Paquete">Paquete</option>
+                                <option value="Servicio">Servicio</option>
+                                <option value="Boya">Boya</option>
+                                <option value="Lata">Lata</option>
                             </select>
                         </div>
-                        <div class="grid-4">
+                        <div class="grid-3">
                             <div class="form-group">
                                 <label class="form-label">Largo</label>
-                                <input type="number" step="0.01" class="form-input" id="largo" oninput="calcularResultado()" placeholder="0.00" inputmode="decimal">
+                                <input type="number" step="0.01" class="form-input" id="largo" oninput="calcularSubtotal()" placeholder="0.00" inputmode="decimal">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Ancho</label>
-                                <input type="number" step="0.01" class="form-input" id="ancho" oninput="calcularResultado()" placeholder="0.00" inputmode="decimal">
+                                <input type="number" step="0.01" class="form-input" id="ancho" oninput="calcularSubtotal()" placeholder="0.00" inputmode="decimal">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Alto</label>
-                                <input type="number" step="0.01" class="form-input" id="alto" oninput="calcularResultado()" placeholder="0.00" inputmode="decimal">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Pzas</label>
-                                <input type="number" step="1" class="form-input" id="pzas" oninput="calcularResultado()" placeholder="0" inputmode="numeric">
+                                <input type="number" step="0.01" class="form-input" id="alto" oninput="calcularSubtotal()" placeholder="0.00" inputmode="decimal">
                             </div>
                         </div>
                         
-                        <div class="grid-3" style="margin-top: 16px;">
-                            <div class="math-result">
-                                <label>Resultado</label>
-                                <span id="resultado_val">0.00</span>
+                        <div class="grid-3" style="margin-top: 16px; align-items: stretch;">
+                            <div class="form-group" style="margin:0; display:flex; flex-direction:column;">
+                                <label class="form-label">Subtotal</label>
+                                <div class="math-result" style="flex:1; display:flex; align-items:center; justify-content:flex-end; padding: 12px;">
+                                    <span id="subtotal_val">0.00</span>
+                                </div>
                             </div>
-                            <div class="form-group" style="margin:0; display:flex; flex-direction:column; justify-content:flex-end;">
-                                <label class="form-label">Parcial</label>
-                                <input type="number" step="0.01" class="form-input" id="parcial" oninput="calcularTotal()" placeholder="$0.00" inputmode="decimal">
+                            <div class="form-group" style="margin:0; display:flex; flex-direction:column;">
+                                <label class="form-label">Pzas</label>
+                                <input type="number" step="1" class="form-input" id="pzas" oninput="calcularTotal()" placeholder="0" inputmode="numeric" style="flex:1;">
                             </div>
-                            <div class="math-result" style="background: #f1f5f9; border-color: #cbd5e1;">
-                                <label>Total</label>
-                                <span id="total_val" style="color: var(--text-main);">$0.00</span>
+                            <div class="form-group" style="margin:0; display:flex; flex-direction:column;">
+                                <label class="form-label">Total</label>
+                                <div class="math-result" style="flex:1; display:flex; align-items:center; justify-content:flex-end; padding: 12px; background: var(--light-blue); border-color: #c7d2fe;">
+                                    <span id="total_val" style="color: var(--primary-blue);">0.00</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -473,7 +486,7 @@
             f.forEach(o => {
                 const r = document.createElement('tr');
                 r.innerHTML = `
-                    <td style="font-weight:bold">${o.proyecto||''}</td>
+                    <td style="font-weight:bold">${o.folio||''}</td>
                     <td>${o.concepto||''}</td>
                     <td>${o.fecha||''}</td>
                     <td>
@@ -487,8 +500,8 @@
         function mostrarFormularioNuevaSolicitud() {
             document.getElementById('formAdicionales').reset();
             document.getElementById('doc_id_actual').value = '';
-            document.getElementById('resultado_val').innerText = '0.00';
-            document.getElementById('total_val').innerText = '$0.00';
+            document.getElementById('subtotal_val').innerText = '0.00';
+            document.getElementById('total_val').innerText = '0.00';
             fotos = { evidencia: [null, null, null, null] };
             renderSlots('evidencia');
             limpiarFirma('firma_residente');
@@ -499,7 +512,9 @@
             cambiarTab('Nueva solicitud', true);
             document.getElementById('doc_id_actual').value = o.id_doc;
             document.getElementById('tipo_solicitud').value = o.tipo_solicitud || 'Adicionales';
+            document.getElementById('folio').value = o.folio || '';
             document.getElementById('proyecto').value = o.proyecto || '';
+            document.getElementById('ubicacion_obra').value = o.ubicacion_obra || '';
             document.getElementById('partida').value = o.partida || '';
             document.getElementById('fecha_solicitud').value = o.fecha || '';
             document.getElementById('justificacion').value = o.justificacion || '';
@@ -507,14 +522,13 @@
             document.getElementById('clave').value = o.clave || '';
             document.getElementById('concepto').value = o.concepto || '';
             document.getElementById('localizacion_proyecto').value = o.localizacion_proyecto || '';
-            document.getElementById('unidad').value = o.unidad || 'M2';
+            document.getElementById('unidad').value = o.unidad || 'Pza';
             document.getElementById('largo').value = o.largo || '';
             document.getElementById('ancho').value = o.ancho || '';
             document.getElementById('alto').value = o.alto || '';
+            document.getElementById('subtotal_val').innerText = o.subtotal || '0.00';
             document.getElementById('pzas').value = o.pzas || '';
-            document.getElementById('resultado_val').innerText = o.resultado || '0.00';
-            document.getElementById('parcial').value = o.parcial || '';
-            document.getElementById('total_val').innerText = o.total ? '$' + o.total.toFixed(2) : '$0.00';
+            document.getElementById('total_val').innerText = o.total ? o.total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : '0.00';
             document.getElementById('observaciones').value = o.observaciones || '';
             
             fotos.evidencia = o.urls_evidencia && o.urls_evidencia.length ? [...o.urls_evidencia] : [null, null, null, null];
@@ -529,36 +543,61 @@
             } else { limpiarFirma('firma_residente'); }
         }
 
-        function calcularResultado() {
-            const l = parseFloat(document.getElementById('largo').value) || 0;
-            const a = parseFloat(document.getElementById('ancho').value) || 0;
-            const al = parseFloat(document.getElementById('alto').value) || 0;
-            const p = parseFloat(document.getElementById('pzas').value) || 1;
-            let res = l * a;
-            if(al > 0) res *= al;
-            if(p > 0) res *= p;
-            document.getElementById('resultado_val').innerText = res.toFixed(2);
+        function calcularSubtotal() {
+            let l = parseFloat(document.getElementById('largo').value);
+            let a = parseFloat(document.getElementById('ancho').value);
+            let al = parseFloat(document.getElementById('alto').value);
+            
+            if (isNaN(l)) l = 0;
+            if (isNaN(a)) a = 0;
+            if (isNaN(al)) al = 0;
+            
+            let sub = 0;
+            let valores = [];
+            
+            if (l > 0) valores.push(l);
+            if (a > 0) valores.push(a);
+            if (al > 0) valores.push(al);
+            
+            if (valores.length > 0) {
+                sub = 1;
+                for (let i = 0; i < valores.length; i++) {
+                    sub *= valores[i];
+                }
+            }
+            
+            document.getElementById('subtotal_val').innerText = sub.toFixed(2);
             calcularTotal();
         }
 
         function calcularTotal() {
-            const res = parseFloat(document.getElementById('resultado_val').innerText) || 0;
-            const par = parseFloat(document.getElementById('parcial').value) || 0;
-            const tot = res * par;
-            document.getElementById('total_val').innerText = '$' + tot.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            let sub = parseFloat(document.getElementById('subtotal_val').innerText);
+            let p = parseFloat(document.getElementById('pzas').value);
+            
+            if (isNaN(sub)) sub = 0;
+            if (isNaN(p)) p = 0;
+            
+            let tot = 0;
+            
+            if (sub > 0 && p > 0) {
+                tot = sub * p;
+            } else if (sub > 0) {
+                tot = sub;
+            } else {
+                tot = p;
+            }
+            
+            document.getElementById('total_val').innerText = tot.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
 
-        // ══════════════════════════════════════════════════════════
-        // GUARDAR BASE64 DIRECTO A FIRESTORE (IGUAL QUE REPORTE SEMANAL)
-        // ══════════════════════════════════════════════════════════
         async function procesarSolicitud(est) {
             const g = document.getElementById('btn-guardar-borrador'), e = document.getElementById('btn-enviar-orden');
             const cf = document.getElementById('firma_residente'), fv = document.createElement('canvas');
             fv.width=cf.width; fv.height=cf.height;
             
             if(est === 'En proceso') {
-                const p = document.getElementById('proyecto').value, c = document.getElementById('concepto').value;
-                if(!p || !c) { showCustomAlert("Atención","Completa Proyecto y Concepto.",false); return; }
+                const p = document.getElementById('folio').value, c = document.getElementById('concepto').value;
+                if(!p || !c) { showCustomAlert("Atención","Completa Folio y Concepto.",false); return; }
                 if(cf.toDataURL()===fv.toDataURL() && !document.getElementById('firma_residente_data').value){ showCustomAlert("Atención","La firma es obligatoria.",false); return; }
             }
             if(cf.toDataURL()!==fv.toDataURL()) document.getElementById('firma_residente_data').value=cf.toDataURL();
@@ -568,7 +607,9 @@
             try {
                 const data = {
                     tipo_solicitud: document.getElementById('tipo_solicitud').value,
+                    folio: document.getElementById('folio').value,
                     proyecto: document.getElementById('proyecto').value,
+                    ubicacion_obra: document.getElementById('ubicacion_obra').value,
                     partida: document.getElementById('partida').value,
                     fecha: document.getElementById('fecha_solicitud').value,
                     justificacion: document.getElementById('justificacion').value,
@@ -580,12 +621,10 @@
                     largo: parseFloat(document.getElementById('largo').value) || 0,
                     ancho: parseFloat(document.getElementById('ancho').value) || 0,
                     alto: parseFloat(document.getElementById('alto').value) || 0,
+                    subtotal: parseFloat(document.getElementById('subtotal_val').innerText) || 0,
                     pzas: parseFloat(document.getElementById('pzas').value) || 0,
-                    resultado: parseFloat(document.getElementById('resultado_val').innerText) || 0,
-                    parcial: parseFloat(document.getElementById('parcial').value) || 0,
-                    total: parseFloat(document.getElementById('total_val').innerText.replace('$','').replace(/,/g,'')) || 0,
+                    total: parseFloat(document.getElementById('total_val').innerText.replace(/,/g,'')) || 0,
                     observaciones: document.getElementById('observaciones').value,
-                    // BASE64 DIRECTO (igual que REPORTE SEMANAL)
                     urls_evidencia: fotos.evidencia.filter(f => f !== null),
                     url_firma: document.getElementById('firma_residente_data').value || null,
                     residente_id: appData.usuario,
@@ -600,7 +639,6 @@
                 cargarMisSolicitudes();
                 cambiarTab(est==='Borrador'?'Guardados':'Realizados');
 
-            // CORREGIDO: ahora muestra el error REAL como en reporte_semanal.html
             } catch(er) {
                 console.error(er);
                 let mensaje = er.message || "Error desconocido";
@@ -623,14 +661,25 @@
             const o = misSolicitudes.find(x => x.id_doc === id); 
             if(!o) { showCustomAlert("Error", "Solicitud no encontrada.", false); return; }
             const data = {
-                folio: o.id_doc || '', fecha: o.fecha || '', tipo_solicitud: o.tipo_solicitud || '',
-                proyecto: o.proyecto || '', partida: o.partida || '', justificacion: o.justificacion || '',
-                clave: o.clave || '', concepto: o.concepto || '', localizacion_proyecto: o.localizacion_proyecto || '',
-                unidad: o.unidad || '', largo: o.largo || '0', ancho: o.ancho || '0',
-                alto: o.alto || '0', pzas: o.pzas || '0', resultado: o.resultado || '0.00',
-                parcial: o.parcial ? '$' + o.parcial.toFixed(2) : '$0.00',
-                total: o.total ? '$' + o.total.toFixed(2) : '$0.00',
-                observaciones: o.observaciones || '', residente_nombre: o.residente_nombre || '',
+                folio: o.folio || o.id_doc || '', 
+                fecha: o.fecha || '', 
+                tipo_solicitud: o.tipo_solicitud || '',
+                proyecto: o.proyecto || '', 
+                partida: o.partida || '', 
+                justificacion: o.justificacion || '',
+                clave: o.clave || '', 
+                concepto: o.concepto || '', 
+                localizacion_proyecto: o.localizacion_proyecto || '',
+                unidad: o.unidad || '', 
+                largo: o.largo || '0', 
+                ancho: o.ancho || '0',
+                alto: o.alto || '0', 
+                pzas: o.pzas || '0',
+                resultado: o.subtotal ? o.subtotal.toFixed(2) : '0.00', 
+                parcial: o.pzas ? o.pzas.toFixed(2) : '0.00', 
+                total: o.total ? o.total.toFixed(2) : '0.00',
+                observaciones: o.observaciones || '', 
+                residente_nombre: o.residente_nombre || '',
                 fotos_evidencia: (o.urls_evidencia || []).concat([null, null, null, null]).slice(0, 4),
                 firma: o.url_firma || null
             };
@@ -644,7 +693,6 @@
         let activeTarget='evidencia',currentFacingMode='environment';
         function triggerFile(t){activeTarget=t;if(fotos[t].filter(f=>f!==null).length<fotos[t].length)document.getElementById('fileInputGlobal').click();else showCustomAlert("Límite","Alcanzaste el máximo de 4 fotos.",false);}
 
-        // CORREGIDO: misma lógica de compresión que reporte_semanal.html (800px, 0.7)
         function processFile(i){if(!i.files||i.files.length===0)return;const r=new FileReader();r.onload=function(e){const img=new Image();img.onload=function(){const c=document.createElement('canvas');let w=img.width,h=img.height;const m=800;if(w>m||h>m){if(w>h){h=(h/w)*m;w=m}else{w=(w/h)*m;h=m}}c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(img,0,0,w,h);const f=c.toDataURL('image/jpeg',0.7);const s=fotos[activeTarget].findIndex(f=>f===null);if(s>-1){fotos[activeTarget][s]=f;renderSlots(activeTarget)}i.value=''};img.src=e.target.result};r.readAsDataURL(i.files[0])}
         
         let currentStream;
@@ -653,7 +701,6 @@
         function switchCamera(){currentFacingMode=currentFacingMode==='environment'?'user':'environment';startCamera()}
         function closeCamera(){if(currentStream){currentStream.getTracks().forEach(t=>t.stop())}document.getElementById('camera-overlay').classList.remove('show')}
         
-        // CORREGIDO: misma calidad que reporte_semanal.html (0.8)
         function captureFoto(){const c=document.getElementById('tempCanvas'),v=document.getElementById('camera-video');c.width=v.videoWidth;c.height=v.videoHeight;const x=c.getContext('2d');x.drawImage(v,0,0,c.width,c.height);const s=fotos[activeTarget].findIndex(f=>f===null);if(s>-1){fotos[activeTarget][s]=c.toDataURL('image/jpeg',0.8);renderSlots(activeTarget)}closeCamera()}
         
         function removeFoto(t,i){fotos[t][i]=null;renderSlots(t)}
