@@ -69,12 +69,6 @@
         .form-input:focus, .form-select:focus, textarea.form-input:focus { background-color: #FFFFFF; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(38, 63, 164, 0.1); }
         .form-input[readonly] { background-color: #f1f5f9; color: var(--text-muted); cursor: not-allowed; }
         
-        .info-grid { display: grid; grid-template-columns: 1fr; gap: 12px; background: var(--light-blue); padding: 16px; border-radius: 8px; border: 1px solid #c7d2fe; margin-top: 10px; }
-        @media (min-width: 768px) { .info-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1024px) { .info-grid { grid-template-columns: repeat(3, 1fr); } }
-        .info-item label { display: block; font-size: 10px; font-weight: 700; color: var(--primary-blue); text-transform: uppercase; margin-bottom: 2px; }
-        .info-item span { display: block; font-size: 13px; color: var(--text-main); font-weight: 500; }
-
         .photo-controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .btn-photo, .btn-photo-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.2s; }
         .btn-photo { background: var(--primary-blue); color: white; border: none; }
@@ -182,10 +176,6 @@
                         <div class="form-group">
                             <label class="form-label">Folio</label>
                             <input type="text" class="form-input" id="folio_rs" value="" readonly placeholder="Se generará automáticamente al guardar">
-                            <div id="sucursal-details" class="info-grid" style="display:none;">
-                                <div class="info-item"><label>Dirección</label><span id="suc-dir"></span></div>
-                                <div class="info-item"><label>Ciudad</label><span id="suc-city"></span></div>
-                            </div>
                             <input type="hidden" id="doc_id_actual">
                         </div>
                     </div>
@@ -351,11 +341,6 @@
         }
         function closeCustomAlert() { document.getElementById('custom-alert').style.display = 'none'; }
 
-        document.getElementById('sucursal-input').addEventListener('input', function(e) {
-            const v = e.target.value, c = document.getElementById('sucursal-details');
-            if(v.length > 2) { document.getElementById('suc-dir').innerText = 'Dirección'; document.getElementById('suc-city').innerText = 'Ciudad'; c.style.display = 'grid'; } else { c.style.display = 'none'; }
-        });
-
         function cargarMisOrdenes() {
             db.collection("reportes_semanales").where("residente_id","==",appDataLoreto.usuario).get().then(q => {
                 misOrdenes = [];
@@ -405,7 +390,6 @@
             document.getElementById('ordenMttoForm').reset();
             document.getElementById('doc_id_actual').value = '';
             document.getElementById('folio_rs').value = '';
-            document.getElementById('sucursal-details').style.display = 'none';
             fotos = { antes: [null,null,null], falla: [null,null,null], solucion: [null,null,null], selfie: [null] };
             renderSlots('antes'); renderSlots('falla'); renderSlots('solucion'); renderSlots('selfie');
             limpiarFirma('firma_tecnico');
@@ -420,7 +404,6 @@
             document.getElementById('folio_rs').value = o.id_ticket || '';
             document.getElementById('sucursal-input').value = o.proyecto || '';
             document.getElementById('ubicacion-input').value = o.ubicacion || ''; 
-            document.getElementById('sucursal-input').dispatchEvent(new Event('input'));
             document.getElementById('desc_falla').value = o.desc_avance || '';
             document.getElementById('desc_solucion').value = o.desc_observaciones || '';
             document.getElementById('nombre_tecnico').value = o.residente_nombre || '';
