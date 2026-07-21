@@ -98,8 +98,7 @@
                             <div id="pdf-proyecto" style="font-weight: bold;">-- PROYECTO --</div>
                         </div>
                         <ul class="info-list">
-                            <li><i class="custom-bullet"></i> Folio RS: <span id="pdf-folio-header" style="margin-left: 5px;"></span></li>
-                            <li><i class="custom-bullet"></i> Incidencia: <span id="pdf-incidencia" style="margin-left: 5px;"></span></li>
+                            <li><i class="custom-bullet"></i> Ubicación: <span id="pdf-ubicacion-header" style="margin-left: 5px;"></span></li>
                             <li><i class="custom-bullet"></i> Residente: <span id="pdf-residente-header" style="margin-left: 5px;"></span></li>
                         </ul>
                     </div>
@@ -112,7 +111,7 @@
 
                 <div class="main-titles-container">
                     <div class="title-blue-centered">REPORTE SEMANAL</div>
-                    <div class="title-blue-centered">LORETO INGENIERÍA</div>
+                    <div class="title-blue-centered">LORETO - INGENIERÍA CONSTRUCCIÓN EDIFICACIÓN</div>
                     <div class="ticket-left">FOLIO: <span id="pdf-folio"></span></div>
                     <div class="ticket-right">FECHA: <span id="pdf-fecha"></span></div>
                 </div>
@@ -188,7 +187,6 @@
     </div>
 
     <script>
-        // Espera a que las imágenes terminen de cargar (igual que index2.html)
         function esperarImagenes() {
             return new Promise((resolve) => {
                 const imagenes = document.querySelectorAll('#contenido-pdf img');
@@ -212,10 +210,12 @@
             if (dataStr) {
                 const data = JSON.parse(dataStr);
                 
+                // Encabezado superior
                 document.getElementById('pdf-proyecto').innerText = data.proyecto || '';
-                document.getElementById('pdf-folio-header').innerText = data.folio || '';
-                document.getElementById('pdf-incidencia').innerText = data.incidencia || '';
+                document.getElementById('pdf-ubicacion-header').innerText = data.ubicacion || '';
                 document.getElementById('pdf-residente-header').innerText = data.residente_nombre || '';
+                
+                // Datos inferiores y descripciones
                 document.getElementById('pdf-folio').innerText = data.folio || '';
                 document.getElementById('pdf-fecha').innerText = data.fecha || '';
                 document.getElementById('pdf-desc-avance').innerText = data.desc_avance || '';
@@ -224,18 +224,22 @@
                 document.getElementById('pdf-cel-res').innerText = data.residente_celular || '';
                 document.getElementById('pdf-comentario').innerText = data.comentario || '';
 
-                // Inyectar imágenes (ya llegan como base64 desde el formulario)
+                // Inyectar imágenes (llegan como base64)
                 if (data.fotos_antes) {
                     data.fotos_antes.forEach((foto, index) => {
                         if (foto) document.getElementById(`pdf-antes-${index}`).innerHTML = '<img src="' + foto + '">';
                     });
                 }
-                data.fotos_avance.forEach((foto, index) => {
-                    if (foto) document.getElementById(`pdf-avance-${index}`).innerHTML = '<img src="' + foto + '">';
-                });
-                data.fotos_observaciones.forEach((foto, index) => {
-                    if (foto) document.getElementById(`pdf-obs-${index}`).innerHTML = '<img src="' + foto + '">';
-                });
+                if(data.fotos_avance) {
+                    data.fotos_avance.forEach((foto, index) => {
+                        if (foto) document.getElementById(`pdf-avance-${index}`).innerHTML = '<img src="' + foto + '">';
+                    });
+                }
+                if(data.fotos_observaciones) {
+                    data.fotos_observaciones.forEach((foto, index) => {
+                        if (foto) document.getElementById(`pdf-obs-${index}`).innerHTML = '<img src="' + foto + '">';
+                    });
+                }
                 if (data.firma) document.getElementById('pdf-firma').innerHTML = '<img src="' + data.firma + '">';
                 if (data.selfie) document.getElementById('pdf-selfie').innerHTML = '<img src="' + data.selfie + '">';
 
