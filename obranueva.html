@@ -43,7 +43,6 @@
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 8px; margin-bottom: 2px; transition: all 0.2s; }
         .nav-item:hover { background-color: var(--bg-color); }
         .nav-item.active { background-color: var(--light-blue); color: var(--primary-blue); font-weight: 700; border-left: 4px solid var(--primary-blue); }
-        .nav-item.active i { color: var(--primary-blue); }
 
         .content { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .container { max-width: 900px; margin: 0 auto; padding-bottom: 50px; }
@@ -97,8 +96,8 @@
             <div class="container">
                 
                 <div class="page-header">
-                    <h1>Registro de Proyecto</h1>
-                    <p>Captura los datos generales para dar de alta una nueva obra</p>
+                    <h1 id="titulo-pagina">Registro de Proyecto</h1>
+                    <p id="subtitulo-pagina">Captura los datos generales para dar de alta una nueva obra</p>
                 </div>
 
                 <form id="formObraNueva">
@@ -192,6 +191,7 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
         let appDataLoreto = { nombre: 'Usuario', usuario: 'demo' };
+        let editId = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             const usuario = localStorage.getItem('usuario'), nombre = localStorage.getItem('nombre');
@@ -202,6 +202,7 @@
 
             fetch('menu.html?v=2').then(res => res.text()).then(html => {
                 document.getElementById('sidebar').innerHTML = html; lucide.createIcons();
+                const linkObra = document.getElementById('link-obra-nueva'); if(linkObra) linkObra.classList.add('active');
             }).catch(() => {
                 document.getElementById('sidebar').innerHTML = `<nav class="sidebar-nav"><div class="sidebar-section"><span class="section-title">Navegación</span><a href="index.html" class="nav-item"><i data-lucide="home" style="width:18px;height:18px;"></i> Inicio</a></div></nav>`;
                 lucide.createIcons();
@@ -209,6 +210,14 @@
 
             document.getElementById('toggle-menu').addEventListener('click', () => { document.getElementById('sidebar').classList.toggle('open'); });
             window.addEventListener('click', (e) => { if (!e.target.matches('#user-initial-header')) { const dd = document.getElementById('user-dropdown'); if(dd.classList.contains('show')) dd.classList.remove('show'); } });
+            
+            // Revisar si estamos en modo edición
+            const urlParams = new URLSearchParams(window.location.search);
+            editId = urlParams.get('id');
+            if(editId) {
+                cargarDatosEdicion(editId);
+            }
+            
             lucide.createIcons();
         });
 
@@ -222,6 +231,33 @@
             a.style.display = 'flex'; lucide.createIcons();
         }
         function closeCustomAlert() { document.getElementById('custom-alert').style.display = 'none'; }
+
+        async function cargarDatosEdicion(id) {
+            try {
+                const doc = await db.collection("obras_loreto").doc(id).get();
+                if(doc.exists) {
+                    const o = doc.data();
+                    document.getElementById('titulo-pagina').innerText = "Editar Proyecto";
+                    document.getElementById('subtitulo-pagina').innerText = `Modificando la obra: ${o.proyecto}`;
+                    document.getElementById('btn-guardar-obra').innerHTML = '<i data-lucide="save"></i> Guardar Cambios';
+                    
+                    document.getElementById('folio_obra').value = o.folio_obra || id;
+                    document.getElementById('proyecto-input').value = o.proyecto || '';
+                    document.getElementById('ubicacion-input').value = o.ubicacion || '';
+                    document.getElementById('cliente-input').value = o.cliente || '';
+                    document.getElementById('proveedor-input').value = o.proveedor || '';
+                    document.getElementById('fecha-inicio-input').value = o.fecha_inicio || '';
+                    document.getElementById('fecha-termino-input').value = o.fecha_termino || '';
+                    document.getElementById('responsable-input').value = o.responsable || '';
+                    document.getElementById('monto-input').value = o.monto || '';
+                    document.getElementById('estado-input').value = o.estado || 'Planificado';
+                    document.getElementById('notas-input').value = o.notas || '';
+                    lucide.createIcons();
+                }
+            } catch(e) {
+                showCustomAlert("Error", "No se pudieron cargar los datos: " + e.message, false);
+            }
+        }
 
         async function obtenerFolioObra() {
             const r = db.collection('metadata').doc('contadores_loreto');
@@ -246,11 +282,7 @@
             btn.disabled = true; btn.innerText = 'Guardando...';
 
             try {
-                const folio = await obtenerFolioObra();
-                document.getElementById('folio_obra').value = folio;
-
-                const nuevaObra = {
-                    folio_obra: folio,
+                const datosObra = {
                     proyecto: proyecto,
                     ubicacion: ubicacion,
                     cliente: document.getElementById('cliente-input').value || '',
@@ -261,21 +293,33 @@
                     monto: parseFloat(document.getElementById('monto-input').value) || 0,
                     estado: document.getElementById('estado-input').value || 'Planificado',
                     notas: document.getElementById('notas-input').value || '',
-                    registrado_por: appDataLoreto.usuario,
-                    fecha_creacion: new Date().toISOString()
                 };
 
-                await db.collection("obras_loreto").doc(folio).set(nuevaObra);
-
-                showCustomAlert("Éxito", `La obra ${proyecto} se ha registrado con el folio ${folio}.`, true);
-                document.getElementById('formObraNueva').reset();
-                document.getElementById('folio_obra').value = '';
+                if(editId) {
+                    // Modo Edición
+                    datosObra.modificado_por = appDataLoreto.usuario;
+                    datosObra.ultima_modificacion = new Date().toISOString();
+                    await db.collection("obras_loreto").doc(editId).update(datosObra);
+                    showCustomAlert("Éxito", "Los cambios se han guardado correctamente.", true);
+                    setTimeout(() => window.location.href = 'asignacionobra.html', 1500);
+                } else {
+                    // Modo Creación
+                    const folio = await obtenerFolioObra();
+                    datosObra.folio_obra = folio;
+                    datosObra.registrado_por = appDataLoreto.usuario;
+                    datosObra.fecha_creacion = new Date().toISOString();
+                    
+                    await db.collection("obras_loreto").doc(folio).set(datosObra);
+                    showCustomAlert("Éxito", `La obra ${proyecto} se ha registrado con el folio ${folio}.`, true);
+                    document.getElementById('formObraNueva').reset();
+                }
 
             } catch(er) {
                 console.error(er);
-                showCustomAlert("Error", "Ocurrió un error al guardar la obra: " + er.message, false);
+                showCustomAlert("Error", "Ocurrió un error: " + er.message, false);
             } finally {
-                btn.disabled = false; btn.innerHTML = '<i data-lucide="save"></i> Dar de Alta Obra';
+                btn.disabled = false; 
+                btn.innerHTML = editId ? '<i data-lucide="save"></i> Guardar Cambios' : '<i data-lucide="save"></i> Dar de Alta Obra';
                 lucide.createIcons();
             }
         }
