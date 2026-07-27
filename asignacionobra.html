@@ -166,7 +166,8 @@
         function closeCustomAlert() { document.getElementById('custom-alert').style.display = 'none'; }
 
         function cargarObras() {
-            db.collection("obras_loreto").orderBy("fecha_creacion", "desc").onSnapshot(snapshot => {
+            // Quitamos el orderBy temporalmente para ver si ese es el problema de índices
+            db.collection("obras_loreto").get().then(snapshot => {
                 const tbody = document.getElementById('tabla-obras');
                 tbody.innerHTML = '';
                 
@@ -175,11 +176,17 @@
                     return;
                 }
 
+                // Ordenar manualmente por fecha descendente
+                let obras = [];
                 snapshot.forEach(doc => {
-                    const obra = doc.data();
-                    const id = doc.id;
+                    obras.push({ id: doc.id, data: doc.data() });
+                });
+                obras.sort((a, b) => (b.data.fecha_creacion || "").localeCompare(a.data.fecha_creacion || ""));
+
+                obras.forEach(obraObj => {
+                    const obra = obraObj.data;
+                    const id = obraObj.id;
                     
-                    // Formatear fecha de alta
                     let fechaAlta = 'N/A';
                     if(obra.fecha_creacion) {
                         try { fechaAlta = new Date(obra.fecha_creacion).toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' }); } catch(e){}
@@ -203,9 +210,11 @@
                     tbody.appendChild(tr);
                 });
                 lucide.createIcons();
-            }, error => {
-                console.error("Error al cargar obras: ", error);
-                showCustomAlert("Error", "No se pudieron cargar las obras. Revisa las reglas de Firestore.", false);
+
+            }).catch(error => {
+                console.error("Error detallado de Firebase: ", error);
+                // Mostramos el error exacto de Firebase en la alerta
+                showCustomAlert("Error de Firebase", `Código: ${error.code}\nMensaje: ${error.message}`, false);
             });
         }
 
@@ -216,7 +225,7 @@
                     showCustomAlert("Eliminado", "La obra se ha eliminado correctamente.", true);
                 } catch(error) {
                     console.error("Error al eliminar: ", error);
-                    showCustomAlert("Error", "Ocurrió un error al eliminar: " + error.message, false);
+                    showCustomAlert("Error", `Código: ${error.code}\nMensaje: ${error.message}`, false);
                 }
             }
         }
