@@ -73,7 +73,7 @@
         tbody tr { border-bottom: 1px solid #f1f5f9; }
         tbody tr:last-child { border-bottom: none; }
         
-        .status-pill { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
+        .status-pill { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; white-space: nowrap; }
         .status-borrador { background: #fef3c7; color: #d97706; }
         .status-proceso { background: #dcfce7; color: #16a34a; }
 
@@ -143,9 +143,9 @@
                                 <th>Folio</th>
                                 <th>Proyecto</th>
                                 <th>Residente</th>
-                                <th>Fecha</th>
-                                <th>Estado</th>
-                                <th>Acción</th>
+                                <th style="white-space: nowrap;">Fecha</th>
+                                <th style="min-width: 120px; text-align: center;">Estado</th>
+                                <th style="text-align: center;">Acción</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-reportes">
@@ -277,8 +277,8 @@
                     <td>${o.proyecto||'N/A'}</td>
                     <td>${o.residente_nombre||'N/A'}</td>
                     <td style="white-space: nowrap;">${o.fecha_creacion||'N/A'}</td>
-                    <td><span class="status-pill ${estadoClass}">${o.estado}</span></td>
-                    <td>
+                    <td style="text-align: center;"><span class="status-pill ${estadoClass}">${o.estado}</span></td>
+                    <td style="text-align: center;">
                         <button type="button" onclick="verPDFOrden('${o.id_doc}')" class="btn-pdf">
                             <i data-lucide="file-text" style="width:14px"></i> Ver PDF
                         </button>
