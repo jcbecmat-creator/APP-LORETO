@@ -71,6 +71,14 @@
         .tab-badge { background: #d1d5db; color: #555; padding: 2px 7px; border-radius: 12px; font-size: 10px; font-weight: 700; }
         .tab-btn.active .tab-badge { background: #ffffff; color: var(--primary-blue); }
 
+        .search-bar-container { display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-end; flex-wrap: wrap; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .search-group { display: flex; flex-direction: column; gap: 5px; }
+        .search-group label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .search-input { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; outline: none; }
+        .search-text { flex-grow: 1; min-width: 200px; }
+        .btn-buscar { background: var(--primary-blue); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; height: 40px; display: flex; align-items: center; gap: 8px; }
+        .btn-limpiar { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; height: 40px; display: flex; align-items: center; gap: 8px; }
+
         .data-table-container { background: #FFFFFF; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid var(--border-color); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: center; }
         thead { background: var(--light-blue); border-bottom: 1px solid var(--border-color); }
@@ -204,6 +212,22 @@
                 </div>
 
                 <div id="dashboard-solicitudes" style="display: none;">
+                    <div class="search-bar-container">
+                        <div class="search-group">
+                            <label>Fecha Inicio</label>
+                            <input type="date" id="search-fecha-inicio" class="search-input">
+                        </div>
+                        <div class="search-group">
+                            <label>Fecha Fin</label>
+                            <input type="date" id="search-fecha-fin" class="search-input">
+                        </div>
+                        <div class="search-group" style="flex-grow: 1;">
+                            <label>Buscar</label>
+                            <input type="text" id="search-text" class="search-input search-text" placeholder="Folio o concepto...">
+                        </div>
+                        <button class="btn-buscar" onclick="renderTablaMisSolicitudes()"><i data-lucide="search" style="width:16px;"></i> Buscar</button>
+                        <button class="btn-limpiar" onclick="limpiarFiltros()"><i data-lucide="eraser" style="width:16px;"></i> Limpiar</button>
+                    </div>
                     <div class="data-table-container">
                         <table>
                             <thead>
@@ -476,14 +500,39 @@
             }
         }
 
+        function limpiarFiltros() {
+            document.getElementById('search-fecha-inicio').value = '';
+            document.getElementById('search-fecha-fin').value = '';
+            document.getElementById('search-text').value = '';
+            renderTablaMisSolicitudes();
+        }
+
         function renderTablaMisSolicitudes() {
             const t = document.getElementById('tabla-mis-solicitudes'); t.innerHTML = '';
+
+            const fInicio = document.getElementById('search-fecha-inicio').value;
+            const fFin = document.getElementById('search-fecha-fin').value;
+            const searchText = document.getElementById('search-text').value.toLowerCase().trim();
+
             let f = misSolicitudes.filter(o => {
                 if(tabActual==='Guardados' && o.estado!=='Borrador') return false;
                 if(tabActual==='Realizados' && o.estado!=='En proceso') return false;
+                
+                let docDate = o.fecha || ''; 
+                if (fInicio && docDate < fInicio) return false;
+                if (fFin && docDate > fFin) return false;
+                
+                if (searchText) {
+                    const folio = (o.folio || o.id_doc || '').toLowerCase();
+                    const concepto = (o.concepto || '').toLowerCase();
+                    if (!folio.includes(searchText) && !concepto.includes(searchText)) {
+                        return false;
+                    }
+                }
                 return true;
             });
-            if(f.length===0) { t.innerHTML=`<tr><td colspan="4" style="padding:30px;color:var(--text-muted)">Sin solicitudes</td></tr>`; return; }
+
+            if(f.length===0) { t.innerHTML=`<tr><td colspan="4" style="padding:30px;color:var(--text-muted)">Sin solicitudes que coincidan con la búsqueda.</td></tr>`; return; }
             f.forEach(o => {
                 const r = document.createElement('tr');
                 r.innerHTML = `
@@ -556,8 +605,8 @@
             let valores = [];
             
             if (l > 0) valores.push(l);
-            if (a > 0) valores.push(a);
-            if (al > 0) valores.push(al);
+            if (a > 0) valeurs.push(a);
+            if (al > 0) valeurs.push(al);
             
             if (valores.length > 0) {
                 sub = 1;
