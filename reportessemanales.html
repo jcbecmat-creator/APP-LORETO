@@ -57,6 +57,14 @@
         .tab-badge { background: #d1d5db; color: #555; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
         .tab-btn.active .tab-badge { background: #ffffff; color: var(--primary-blue); }
 
+        .search-bar-container { display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-end; flex-wrap: wrap; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .search-group { display: flex; flex-direction: column; gap: 5px; }
+        .search-group label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .search-input { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; outline: none; }
+        .search-text { flex-grow: 1; min-width: 200px; }
+        .btn-buscar { background: var(--primary-blue); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; height: 40px; display: flex; align-items: center; gap: 8px; }
+        .btn-limpiar { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; height: 40px; display: flex; align-items: center; gap: 8px; }
+
         .data-table-container { background: #FFFFFF; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid var(--border-color); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: left; min-width: 800px; }
         thead { background: var(--light-blue); border-bottom: 1px solid var(--border-color); }
@@ -109,6 +117,23 @@
                 <div class="tabs-container">
                     <button class="tab-btn active" onclick="cambiarTab('Guardados')" id="tab-Guardados">Guardados <span class="tab-badge" id="badge-Borrador">0</span></button>
                     <button class="tab-btn" onclick="cambiarTab('Realizados')" id="tab-Realizados">Realizados <span class="tab-badge" id="badge-Realizado">0</span></button>
+                </div>
+
+                <div class="search-bar-container">
+                    <div class="search-group">
+                        <label>Fecha Inicio</label>
+                        <input type="date" id="search-fecha-inicio" class="search-input">
+                    </div>
+                    <div class="search-group">
+                        <label>Fecha Fin</label>
+                        <input type="date" id="search-fecha-fin" class="search-input">
+                    </div>
+                    <div class="search-group" style="flex-grow: 1;">
+                        <label>Buscar</label>
+                        <input type="text" id="search-text" class="search-input search-text" placeholder="Folio, proyecto, residente...">
+                    </div>
+                    <button class="btn-buscar" onclick="renderTabla()"><i data-lucide="search" style="width:16px;"></i> Buscar</button>
+                    <button class="btn-limpiar" onclick="limpiarFiltros()"><i data-lucide="eraser" style="width:16px;"></i> Limpiar</button>
                 </div>
 
                 <div class="data-table-container">
@@ -206,16 +231,41 @@
             renderTabla();
         }
 
+        function limpiarFiltros() {
+            document.getElementById('search-fecha-inicio').value = '';
+            document.getElementById('search-fecha-fin').value = '';
+            document.getElementById('search-text').value = '';
+            renderTabla();
+        }
+
         function renderTabla() {
             const t = document.getElementById('tabla-reportes'); t.innerHTML = '';
+            
+            const fInicio = document.getElementById('search-fecha-inicio').value;
+            const fFin = document.getElementById('search-fecha-fin').value;
+            const searchText = document.getElementById('search-text').value.toLowerCase().trim();
+
             let f = todosReportes.filter(o => { 
                 if(tabActual === 'Guardados' && o.estado !== 'Borrador') return false; 
                 if(tabActual === 'Realizados' && o.estado !== 'En proceso') return false; 
+                
+                let docDate = o.fecha_creacion || ''; 
+                if (fInicio && docDate < fInicio) return false;
+                if (fFin && docDate > fFin) return false;
+                
+                if (searchText) {
+                    const folio = (o.id_ticket || '').toLowerCase();
+                    const proyecto = (o.proyecto || '').toLowerCase();
+                    const residente = (o.residente_nombre || '').toLowerCase();
+                    if (!folio.includes(searchText) && !proyecto.includes(searchText) && !residente.includes(searchText)) {
+                        return false;
+                    }
+                }
                 return true; 
             });
             
             if(f.length === 0) { 
-                t.innerHTML = `<tr><td colspan="6" style="padding:30px;color:var(--text-muted)">Sin reportes en esta sección</td></tr>`; 
+                t.innerHTML = `<tr><td colspan="6" style="padding:30px;color:var(--text-muted)">Sin reportes que coincidan con la búsqueda.</td></tr>`; 
                 return; 
             }
             
