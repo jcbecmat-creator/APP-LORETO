@@ -160,13 +160,14 @@
     <div id="custom-alert"><div class="modal-card-alert"><div id="alert-icon-container"></div><h3 id="alert-title"></h3><p id="alert-msg"></p><button id="alert-btn" onclick="closeCustomAlert()">Aceptar</button></div></div>
 
     <script>
+        // Configuración de Firebase actualizada
         const firebaseConfig = {
-            apiKey: "AIzaSyDUM2w0L-3GNm0unSgKHZCrrW9xKQY0_is",
-            authDomain: "franve-1b62e.firebaseapp.com",
-            projectId: "franve-1b62e",
-            storageBucket: "franve-1b62e.firebasestorage.app",
-            messagingSenderId: "118420640551",
-            appId: "1:118420640551:web:9b79daa79a2d46eefe4f02"
+            apiKey: "AIzaSyBjlemFwGQbA3mM7UhOZAVGaam1z1Xixr8",
+            authDomain: "loretoapp-2ca14.firebaseapp.com",
+            projectId: "loretoapp-2ca14",
+            storageBucket: "loretoapp-2ca14.firebasestorage.app",
+            messagingSenderId: "794212467801",
+            appId: "1:794212467801:web:f0bf6fd01579f0aec35d48"
         };
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.firestore();
@@ -226,7 +227,7 @@
 
         function cambiarTab(e) {
             tabActual = e;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active');
             const a = document.getElementById(`tab-${e}`); if(a) a.classList.add('active');
             renderTabla();
         }
