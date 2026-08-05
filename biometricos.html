@@ -31,17 +31,10 @@
         .sidebar { width: 260px; background: white; border-right: 1px solid var(--border-color); overflow-y: auto; transition: transform 0.3s ease; display: flex; flex-direction: column; }
         @media (max-width: 768px) { .sidebar { position: fixed; height: calc(100vh - 60px); transform: translateX(-100%); z-index: 40; } .sidebar.open { transform: translateX(0); } .header-title { display: none; } }
 
-        /* --- ESTILOS DEL MENÚ DINÁMICO --- */
         .sidebar-nav { padding: 15px 10px; }
         .sidebar-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .sidebar-section:last-child { border-bottom: none; }
-        
-        .sidebar .section-title { 
-            font-size: 11px; font-weight: 800; color: var(--text-muted); 
-            text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px;
-            padding-bottom: 0; border-bottom: none; display: block;
-        }
-
+        .sidebar .section-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 15px; padding-bottom: 0; border-bottom: none; display: block; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 15px; color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 8px; margin-bottom: 2px; transition: all 0.2s; }
         .nav-item:hover { background-color: var(--bg-color); }
         .nav-item.active { background-color: var(--light-blue); color: var(--primary-blue); font-weight: 700; border-left: 4px solid var(--primary-blue); }
@@ -61,7 +54,6 @@
         .data-table { width: 100%; border-collapse: collapse; min-width: 850px; }
         .data-table th { background-color: var(--light-blue); color: var(--primary-blue); font-size: 12px; font-weight: 800; text-transform: uppercase; padding: 14px 12px; text-align: center; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
         .data-table td { padding: 12px; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-color); text-align: center; font-weight: 500; }
-        
         .data-table tr:last-child td { border-bottom: none; }
         .data-table tbody tr:hover { background-color: #f8fafc; }
         
@@ -72,7 +64,6 @@
         .cell-fecha { text-transform: capitalize; color: var(--text-muted); font-size: 12px; }
         .cell-empty { color: #cbd5e1 !important; font-weight: 400 !important; }
         
-        /* Modificado: Estilo para las HORAS JOR */
         .cell-horas-jor { font-weight: 700; color: var(--primary-blue); background-color: var(--light-blue); border-radius: 4px; padding: 4px 8px; display: inline-block;}
         .cell-horas-te { font-weight: 700; color: #0f766e; background-color: #d1fae5; border-radius: 4px; padding: 4px 8px; display: inline-block;}
 
@@ -188,7 +179,6 @@
         const nombreUsuario = localStorage.getItem('nombre') || 'Usuario Desconocido';
         document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
 
-        // Modificado: Se renombra la función para que sea genérica y calcule cualquier diferencia de horas
         function calcularDiferenciaHoras(entrada, salida) {
             if (entrada === '-' || salida === '-') return '-';
             function parseTime(timeStr) {
@@ -235,7 +225,10 @@
         }
 
         async function cargarAsistencias() {
-            if(!idUsuario) return;
+            if(!idUsuario) {
+                document.getElementById('loader').innerHTML = '<p style="color:var(--danger);">No se识别ó al usuario. Inicia sesión.</p>';
+                return;
+            }
             try {
                 const snapshot = await db.collection("registro_asistencia").where("usuario_id", "==", idUsuario).get();
 
@@ -271,6 +264,8 @@
                 pintarTablas();
             } catch(error) {
                 console.error("Error al cargar biométricos:", error);
+                document.getElementById('loader').innerHTML = `<i data-lucide="alert-triangle" style="color: var(--danger); width:40px; height:40px; margin-bottom: 15px;"></i><p style="color:var(--danger); font-weight:600;">Error de permisos al cargar.</p><p style="font-size:12px; color:var(--text-muted);">Revisa que las reglas de Firestore estén configuradas como "allow read, write: if true;".</p>`;
+                lucide.createIcons();
             }
         }
 
@@ -285,14 +280,12 @@
                     const getCelda = (valor) => valor === '-' ? `<span class="cell-empty">-</span>` : valor;
                     const getSitio = (valor) => valor === '' ? `<span class="cell-empty">Sin registro</span>` : `<span style="font-weight:600;">${valor}</span>`;
                     
-                    // Modificado: Se calculan tanto las horas de jornada como las horas extra
                     const horasJor = calcularDiferenciaHoras(fila.entrada, fila.salida);
                     const htmlHorasJor = horasJor === '-' ? `<span class="cell-empty">-</span>` : `<span class="cell-horas-jor">${horasJor}</span>`;
 
                     const horasTE = calcularDiferenciaHoras(fila.entradaExt, fila.salidaExt);
                     const htmlHorasTE = horasTE === '-' ? `<span class="cell-empty">-</span>` : `<span class="cell-horas-te">${horasTE}</span>`;
 
-                    // Modificado: Se inyecta la columna de HORAS JOR en la tabla
                     html += `<tr class="${claseFila}"><td class="cell-dia">${i}</td><td class="cell-fecha">${fila.fechaStr}</td><td>${getSitio(fila.sitio)}</td><td>${getCelda(fila.entrada)}</td><td>${getCelda(fila.salida)}</td><td>${htmlHorasJor}</td><td>${getCelda(fila.entradaExt)}</td><td>${getCelda(fila.salidaExt)}</td><td>${htmlHorasTE}</td></tr>`;
                 }
                 return html;
@@ -317,7 +310,6 @@
             const pdfWrap = document.createElement('div');
             pdfWrap.style.width = '750px'; pdfWrap.style.backgroundColor = 'white'; pdfWrap.style.color = '#1e293b';
 
-            // Modificado: Se actualizan los encabezados del PDF
             const crearHoja = (titulo, tbodyId) => `
                 <div style="padding: 20px 30px; background: white; font-family: 'Inter', sans-serif;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #263fa4; padding-bottom: 10px; margin-bottom: 15px;">
@@ -353,7 +345,6 @@
 
             pdfWrap.innerHTML = `${crearHoja(document.getElementById('title-mes-actual').innerText, 'tbody-mes-actual')} <div class="html2pdf__page-break"></div> ${crearHoja(document.getElementById('title-mes-anterior').innerText, 'tbody-mes-anterior')}`;
 
-            // Modificado: Se aseguran los estilos para el PDF
             const celdas = pdfWrap.querySelectorAll('td');
             celdas.forEach(td => { td.style.padding = '5px 4px'; td.style.border = '1px solid #e2e8f0'; td.style.textAlign = 'center'; td.style.fontSize = '9px'; if(td.querySelector('.cell-empty')) { td.style.color = '#cbd5e1'; } });
             pdfWrap.querySelectorAll('.cell-fecha').forEach(td => { td.style.color = '#64748b'; td.style.setProperty('font-size', '9px', 'important'); });
