@@ -191,7 +191,7 @@
         const nombreUsuario = localStorage.getItem('nombre') || 'Usuario Desconocido';
         if (nombreUsuario !== 'Usuario Desconocido') document.getElementById('user-initial').innerText = nombreUsuario.charAt(0).toUpperCase();
 
-        // LÓGICA INTELIGENTE DE JORNADA
+        // LÓGICA INTELIGENTE DE JORNADA (OPTIMIZADA)
         window.jornadaActualFecha = "";
 
         if (idUsuario) {
@@ -201,13 +201,17 @@
             const strHoy = hoy.toLocaleDateString('es-MX', opts);
             const strAyer = ayer.toLocaleDateString('es-MX', opts);
 
-            // Buscamos registros de hoy y de ayer
-            const p1 = db.collection("registro_asistencia").where("usuario_id", "==", idUsuario).where("fecha", "==", strHoy).get();
-            const p2 = db.collection("registro_asistencia").where("usuario_id", "==", idUsuario).where("fecha", "==", strAyer).get();
+            // Consulta única para evitar problemas de índices compuestos en Firebase
+            db.collection("registro_asistencia").where("usuario_id", "==", idUsuario).get().then(snapshot => {
+                let recordsHoy = [];
+                let recordsAyer = [];
 
-            Promise.all([p1, p2]).then(responses => {
-                let recordsHoy = []; responses[0].forEach(doc => recordsHoy.push(doc.data()));
-                let recordsAyer = []; responses[1].forEach(doc => recordsAyer.push(doc.data()));
+                // Filtramos en memoria
+                snapshot.forEach(doc => {
+                    const r = doc.data();
+                    if(r.fecha === strHoy) recordsHoy.push(r);
+                    if(r.fecha === strAyer) recordsAyer.push(r);
+                });
 
                 let targetJornada = strHoy;
                 let targetRecords = recordsHoy;
@@ -267,6 +271,9 @@
                 if (hasSalidaTE) paintChecked(btnSalidaTE, 'Salida Tiempo Extra');
 
                 lucide.createIcons();
+            }).catch(error => {
+                console.error("Error al cargar la jornada:", error);
+                document.getElementById('fecha-hoy').value = "Error al cargar fecha";
             });
         }
 
