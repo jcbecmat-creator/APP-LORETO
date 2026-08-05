@@ -182,6 +182,8 @@
 
             fetch('menu.html?v=2').then(res => res.text()).then(html => {
                 document.getElementById('sidebar').innerHTML = html; lucide.createIcons();
+                const linkInicio = document.getElementById('link-inicio'); if(linkInicio) linkInicio.classList.remove('active');
+                const linkRep = document.getElementById('link-reportes-semanales'); if(linkRep) linkRep.classList.add('active');
             }).catch(() => {
                 document.getElementById('sidebar').innerHTML = `<nav class="sidebar-nav"><div class="sidebar-section"><span class="section-title">Navegación</span><a href="inicio.html" class="nav-item"><i data-lucide="home" style="width:18px;height:18px;"></i> Inicio</a></div></nav>`;
                 lucide.createIcons();
